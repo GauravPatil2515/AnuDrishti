@@ -1,0 +1,31 @@
+services:
+  # Backend Service (Python Flask API)
+  - type: web
+    name: denovo-api
+    runtime: python
+    region: oregon
+    plan: free
+    # Run from root to avoid path confusion
+    buildCommand: |
+      pip install --upgrade pip
+      pip install numpy==1.26.4 pandas==2.1.4
+      pip install torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu
+      pip install rdkit==2023.9.6
+      pip install flask flask-cors gunicorn groq python-dotenv
+      pip install scikit-learn xgboost transformers
+      pip install torch-geometric -f https://data.pyg.org/whl/torch-2.1.2+cpu.html
+      pip install -r backend/requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app --workers 1 --timeout 300 --preload
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.13"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: CORS_ORIGINS
+        value: "*"
+    healthCheckPath: /api/health
+    autoDeploy: true

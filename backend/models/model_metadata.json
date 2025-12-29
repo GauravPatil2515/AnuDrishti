@@ -1,0 +1,7 @@
+{
+  "trained_at": "2025-12-09T16:07:23.906311",
+  "total_samples": 7823,
+  "feature_count": 306,
+  "models_trained": 12,
+  "average_roc_auc": 0.8342768265034207
+}

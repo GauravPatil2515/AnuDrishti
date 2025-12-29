@@ -1,0 +1,51 @@
+# DeNovo - AI Drug Discovery Platform
+# =====================================
+# Standalone requirements file for easy installation
+# Install with: pip install -r requirements.txt
+
+# ------------------------------------------------------------------
+# Note: PyTorch and PyTorch Geometric require special installation
+# Please install them first using:
+#
+# For CPU only:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   pip install torch-geometric torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+#
+# For CUDA (GPU):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#   pip install torch-geometric torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.0.0+cu118.html
+# ------------------------------------------------------------------
+
+# Core Framework
+flask>=2.3.0
+flask-cors>=4.0.0
+gunicorn>=21.2.0
+gevent>=23.9.1
+
+# Data Processing
+numpy>=1.21.0,<2.0.0
+pandas>=1.5.0
+scikit-learn>=1.2.0
+
+# Cheminformatics
+rdkit>=2023.3.1
+
+# XGBoost for ensemble models
+xgboost>=2.0.0
+
+# LLM Integration
+groq>=0.4.0
+transformers>=4.30.0
+
+# Database
+supabase>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+tqdm>=4.65.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Testing
+pytest>=7.0.0

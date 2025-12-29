@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Results History - MedToXAi Enhanced{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Prediction Results</h1>
+    <p>View and manage your toxicity prediction history</p>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem; background: var(--card-background); border-radius: 12px; box-shadow: var(--shadow);">
+    <div>
+        <h3 style="margin: 0;">{{ total }} Total Predictions</h3>
+        <p style="margin: 0; color: var(--text-secondary);">Showing page {{ page }} of results</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <button class="btn btn-outline" onclick="filterResults()">
+            <i class="fas fa-filter"></i>
+            Filter
+        </button>
+        <a href="/api/export_results" class="btn btn-success">
+            <i class="fas fa-download"></i>
+            Export All
+        </a>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            New Prediction
+        </a>
+    </div>
+</div>
+
+{% if results %}
+<div class="results-container">
+    {% for result in results %}
+    <div class="result-item">
+        <div class="result-header">
+            <div class="compound-info">
+                <h3>{{ result.compound_name }}</h3>
+                <div class="compound-smiles">{{ result.smiles }}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                    ID: {{ result.prediction_id }}
+                </div>
+                <div class="prediction-timestamp">
+                    <i class="far fa-clock"></i>
+                    {{ result.timestamp.split('T')[0] }} {{ result.timestamp.split('T')[1].split('.')[0] }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Stats -->
+        {% set toxic_count = result.predictions.values() | selectattr('prediction', 'equalto', 'Toxic') | list | length %}
+        {% set total_endpoints = result.predictions | length %}
+        {% set avg_prob = (result.predictions.values() | map(attribute='probability') | sum) / total_endpoints %}
+        {% set risk_level = 'HIGH' if avg_prob > 0.6 else 'MEDIUM' if avg_prob > 0.4 else 'LOW' %}
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; background: var(--background-color); border-radius: 8px;">
+            <div class="stat-item">
+                <div class="stat-value toxic-count">{{ toxic_count }}/{{ total_endpoints }}</div>
+                <div class="stat-label">Toxic Endpoints</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value avg-prob">{{ "%.3f"|format(avg_prob) }}</div>
+                <div class="stat-label">Avg Probability</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value risk-{{ risk_level.lower() }}">{{ risk_level }}</div>
+                <div class="stat-label">Risk Level</div>
+            </div>
+            <div class="stat-item">
+                <button class="btn btn-outline details-btn" onclick="toggleDetails('{{ result.prediction_id }}')">
+                    <i class="fas fa-eye" id="icon-{{ result.prediction_id }}"></i>
+                    <span id="text-{{ result.prediction_id }}">Details</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Detailed Predictions (Initially Hidden) -->
+        <div id="details-{{ result.prediction_id }}" style="display: none;">
+            <div class="predictions-grid">
+                {% for endpoint, prediction in result.predictions.items() %}
+                <div class="prediction-card">
+                    <div class="endpoint-name">{{ endpoint }}</div>
+                    <div class="prediction-result">
+                        <span class="prediction-label {{ 'toxic' if prediction.prediction == 'Toxic' else 'non-toxic' }}">
+                            {{ prediction.prediction }}
+                        </span>
+                        <span class="confidence-badge confidence-{{ prediction.confidence.lower() }}">
+                            {{ prediction.confidence }}
+                        </span>
+                    </div>
+                    <div class="probability-bar">
+                        <div class="probability-fill" data-width="{{ (prediction.probability * 100)|round }}"></div>
+                    </div>
+                    <div class="probability-text">
+                        Probability: {{ "%.3f"|format(prediction.probability) }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="export-section">
+                <button class="btn btn-outline" onclick="exportSingleResult('{{ result.prediction_id }}')">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+                <button class="btn btn-outline" onclick="copySmiles('{{ result.smiles }}')">
+                    <i class="fas fa-copy"></i>
+                    Copy SMILES
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+<div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 2rem 0;">
+    {% if has_prev %}
+    <a href="?page={{ page - 1 }}" class="btn btn-outline">
+        <i class="fas fa-chevron-left"></i>
+        Previous
+    </a>
+    {% endif %}
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span>Page</span>
+        <strong>{{ page }}</strong>
+        <span>of</span>
+        <strong>{{ (total / 20) | round(0, 'ceil') | int }}</strong>
+    </div>
+    
+    {% if has_next %}
+    <a href="?page={{ page + 1 }}" class="btn btn-outline">
+        Next
+        <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+
+{% else %}
+<div class="results-container">
+    <div style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+        <h3>No prediction results found</h3>
+        <p>Start by making your first toxicity prediction</p>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-play"></i>
+            Make Prediction
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filter Modal (Hidden by default) -->
+<div id="filterModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-background); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-lg); width: 90%; max-width: 500px;">
+        <h3 style="margin-bottom: 1.5rem;">Filter Results</h3>
+        
+        <div class="form-group">
+            <label class="form-label">Compound Name</label>
+            <input type="text" id="filterName" class="form-input" placeholder="Search by name...">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Risk Level</label>
+            <select id="filterRisk" class="form-input">
+                <option value="">All Levels</option>
+                <option value="LOW">Low Risk</option>
+                <option value="MEDIUM">Medium Risk</option>
+                <option value="HIGH">High Risk</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Date Range</label>
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="date" id="filterDateFrom" class="form-input">
+                <input type="date" id="filterDateTo" class="form-input">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button class="btn btn-outline" onclick="closeFilterModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toggle prediction details
+function toggleDetails(predictionId) {
+    const details = document.getElementById(`details-${predictionId}`);
+    const icon = document.getElementById(`icon-${predictionId}`);
+    const text = document.getElementById(`text-${predictionId}`);
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        icon.className = 'fas fa-eye-slash';
+        text.textContent = 'Hide';
+    } else {
+        details.style.display = 'none';
+        icon.className = 'fas fa-eye';
+        text.textContent = 'Details';
+    }
+}
+
+// Copy SMILES to clipboard
+function copySmiles(smiles) {
+    navigator.clipboard.writeText(smiles).then(() => {
+        // Show temporary success message
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.style.backgroundColor = 'var(--success-color)';
+        btn.style.color = 'white';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+        }, 2000);
+    });
+}
+
+// Export single result
+function exportSingleResult(predictionId) {
+    window.open(`/api/export_results?id=${predictionId}`, '_blank');
+}
+
+// Filter modal functions
+function filterResults() {
+    document.getElementById('filterModal').style.display = 'block';
+}
+
+function closeFilterModal() {
+    document.getElementById('filterModal').style.display = 'none';
+}
+
+function applyFilters() {
+    const name = document.getElementById('filterName').value;
+    const risk = document.getElementById('filterRisk').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (name) params.append('name', name);
+    if (risk) params.append('risk', risk);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    
+    // Redirect with filters
+    window.location.href = `?${params.toString()}`;
+}
+
+// Close modal when clicking outside
+document.getElementById('filterModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeFilterModal();
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeFilterModal();
+    }
+});
+
+// Auto-refresh page every 30 seconds if there are recent predictions
+if (document.querySelector('.result-item')) {
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+}
+</script>
+
+<script>
+// Set probability bar widths on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.probability-fill').forEach(fill => {
+        const width = fill.getAttribute('data-width');
+        if (width) {
+            fill.style.width = width + '%';
+        }
+    });
+});
+</script>
+{% endblock %}

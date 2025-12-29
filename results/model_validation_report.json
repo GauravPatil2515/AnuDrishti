@@ -1,0 +1,1104 @@
+{
+  "timestamp": "2025-12-23T23:15:10.664843",
+  "model_type": "UnifiedADMETPredictor",
+  "validation_results": [
+    {
+      "name": "Aflatoxin B1",
+      "smiles": "COC1=C2C3=C(C(=O)OC3)C(=O)OC2=CC=C1",
+      "category": "toxic",
+      "expected": "High Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.10681894109390365,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0007091228035278618,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.00022157435887493193,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.14167529344558716,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.003250654088333249,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.09251713007688522,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.01984400488436222,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.01711105741560459,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.1732756793498993,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.018250800669193268,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.0029792534187436104,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.09704160690307617,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.019384566694498062,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.014592118561267853,
+          "prediction": "Non-permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.9944350719451904,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 0.006996181793510914,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Thalidomide",
+      "smiles": "O=C1CCC(N2C(=O)c3ccccc3C2=O)C(=O)N1",
+      "category": "toxic",
+      "expected": "High Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.16266978973750762,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.014820978045463562,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.00017537428357172757,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.013054604642093182,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.0013211746700108051,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.11403188854455948,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.0016881066840142012,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 3.092997576459311e-05,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.15832246840000153,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.001443434157408774,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.007300182245671749,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.003257025731727481,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.10893899202346802,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "BBBP": {
+          "probability": 0.9994925260543823,
+          "prediction": "Permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.246456116437912,
+          "prediction": "Not Approved",
+          "confidence": "Medium"
+        },
+        "CT_TOX": {
+          "probability": 0.7697130441665649,
+          "prediction": "Toxic in Trials",
+          "confidence": "Medium"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Nitrobenzene",
+      "smiles": "c1ccc([N+](=O)[O-])cc1",
+      "category": "toxic",
+      "expected": "High Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.14508363593971202,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.00022015585273038596,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.0011357966577634215,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.0062957704067230225,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.002061260864138603,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.12756741046905518,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.0026983325369656086,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.0010522155789658427,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.007090792991220951,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.0059090349823236465,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.004333799704909325,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.007079816423356533,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.00960214901715517,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.9973320960998535,
+          "prediction": "Permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.9968313574790955,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 0.007044550031423569,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Benzo[a]pyrene",
+      "smiles": "c1ccc2c(c1)cc3ccc4cccc5ccc2c3c45",
+      "category": "toxic",
+      "expected": "High Risk",
+      "predicted_assessment": "MODERATE TOXICITY \ud83d\udfe1",
+      "avg_probability": 0.5004920425203939,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.005549609195441008,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.5122737884521484,
+          "prediction": "Toxic",
+          "confidence": "Very Low"
+        },
+        "NR-AhR": {
+          "probability": 0.8493191599845886,
+          "prediction": "Toxic",
+          "confidence": "High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.08381696045398712,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.04002175107598305,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.09779726713895798,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.9535658955574036,
+          "prediction": "Toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.9713645577430725,
+          "prediction": "Toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.06781419366598129,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.8102717995643616,
+          "prediction": "Toxic",
+          "confidence": "High"
+        },
+        "SR-MMP": {
+          "probability": 0.475397527217865,
+          "prediction": "Non-toxic",
+          "confidence": "Very Low"
+        },
+        "SR-p53": {
+          "probability": 0.9720982313156128,
+          "prediction": "Toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.6171545386314392,
+          "prediction": "Permeable",
+          "confidence": "Low"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.657454252243042,
+          "prediction": "Approved",
+          "confidence": "Low"
+        },
+        "CT_TOX": {
+          "probability": 0.3934811055660248,
+          "prediction": "Safe in Trials",
+          "confidence": "Low"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Arsenic trioxide",
+      "smiles": "O=[As]O[As]=O",
+      "category": "toxic",
+      "expected": "High Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.25237449377297405,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0005280171753838658,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.001695457729510963,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.0002614409604575485,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.0010406812652945518,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.024145007133483887,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.21313388645648956,
+          "prediction": "Non-toxic",
+          "confidence": "Medium"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.0016191262984648347,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.4150945842266083,
+          "prediction": "Non-toxic",
+          "confidence": "Very Low"
+        },
+        "SR-ATAD5": {
+          "probability": 0.25694921612739563,
+          "prediction": "Non-toxic",
+          "confidence": "Medium"
+        },
+        "SR-HSE": {
+          "probability": 0.7091075778007507,
+          "prediction": "Toxic",
+          "confidence": "Medium"
+        },
+        "SR-MMP": {
+          "probability": 0.009309181943535805,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.1528664231300354,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "BBBP": {
+          "probability": 0.9998548030853271,
+          "prediction": "Permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.999995231628418,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 1.677163345448207e-05,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Ethanol",
+      "smiles": "CCO",
+      "category": "safe",
+      "expected": "Low Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.12034322748590683,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0005535151576623321,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.00011123246804345399,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.006987662985920906,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.00020394648890942335,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.002886223839595914,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.00018065597396343946,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 4.37304079241585e-05,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.023256391286849976,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.00021061740699224174,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.002259002299979329,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.0007309800130315125,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.0035166060552001,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.7642077803611755,
+          "prediction": "Permeable",
+          "confidence": "Medium"
+        },
+        "FDA_APPROVED": {
+          "probability": 1.0,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 6.754335402092693e-08,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Caffeine",
+      "smiles": "Cn1cnc2c1c(=O)n(c(=O)n2C)C",
+      "category": "safe",
+      "expected": "Low Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.17300375915365293,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.004475701600313187,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.0014822008088231087,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.020803119987249374,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.00021432340145111084,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.1184140145778656,
+          "prediction": "Non-toxic",
+          "confidence": "High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.000980675220489502,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.0006230298313312232,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.34677696228027344,
+          "prediction": "Non-toxic",
+          "confidence": "Low"
+        },
+        "SR-ATAD5": {
+          "probability": 0.002208078745752573,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.005890867207199335,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.014434775337576866,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.007102505769580603,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.9877194166183472,
+          "prediction": "Permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.859184205532074,
+          "prediction": "Approved",
+          "confidence": "High"
+        },
+        "CT_TOX": {
+          "probability": 0.22474651038646698,
+          "prediction": "Safe in Trials",
+          "confidence": "Medium"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Glucose",
+      "smiles": "OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O",
+      "category": "safe",
+      "expected": "Low Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.08930571803357452,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.008328631520271301,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.0004481111536733806,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.0008234527776949108,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.00010233918146695942,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.004185217898339033,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.00048546187463216484,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 6.890097574796528e-05,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.006043058354407549,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.00020802387734875083,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.0007448092801496387,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.002433694200590253,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.0017097888048738241,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.3074224293231964,
+          "prediction": "Non-permeable",
+          "confidence": "Low"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.9955741167068481,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 0.011007734574377537,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Vitamin C (Ascorbic Acid)",
+      "smiles": "OC[C@H](O)[C@H]1OC(=O)C(O)=C1O",
+      "category": "safe",
+      "expected": "Low Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.08625258089596173,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0018568054074421525,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 7.692439976381138e-05,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.006013201549649239,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.000124870115541853,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.009657730348408222,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.00025221295072697103,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.0001214044023072347,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.024689260870218277,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.0011024951236322522,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.0037102638743817806,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.0012653737794607878,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.003590363310649991,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.17995978891849518,
+          "prediction": "Non-permeable",
+          "confidence": "High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.8195030093193054,
+          "prediction": "Approved",
+          "confidence": "High"
+        },
+        "CT_TOX": {
+          "probability": 0.24186500906944275,
+          "prediction": "Safe in Trials",
+          "confidence": "Medium"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Glycerol",
+      "smiles": "OCC(O)CO",
+      "category": "safe",
+      "expected": "Low Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.08614670583242515,
+      "is_correct": true,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0017515110084787011,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.0009141310583800077,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.0033716752659529448,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.0003575102600734681,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.008203370496630669,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.0008251321269199252,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.00028917522286064923,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.022719619795680046,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.0036359746009111404,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.0061269463039934635,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.0010301419533789158,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.011595524847507477,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.23137924075126648,
+          "prediction": "Non-permeable",
+          "confidence": "Medium"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.9999996423721313,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 9.91422211882309e-07,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Acetaminophen (Paracetamol)",
+      "smiles": "CC(=O)Nc1ccc(O)cc1",
+      "category": "moderate",
+      "expected": "Moderate Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.14351338918980522,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0001450434501748532,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.0012547803344205022,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.005751301534473896,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.0003267698921263218,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.09075797349214554,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.001104197814129293,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.00015517888823524117,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.06476683169603348,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.0018952155951410532,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.0012986412039026618,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.007690533064305782,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-p53": {
+          "probability": 0.0035755832213908434,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.9699066281318665,
+          "prediction": "Permeable",
+          "confidence": "Very High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.993678867816925,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 0.010393291711807251,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    },
+    {
+      "name": "Ibuprofen",
+      "smiles": "CC(C)Cc1ccc(cc1)C(C)C(O)=O",
+      "category": "moderate",
+      "expected": "Moderate Risk",
+      "predicted_assessment": "VERY LOW TOXICITY \u2705",
+      "avg_probability": 0.10482948932428068,
+      "is_correct": false,
+      "endpoint_details": {
+        "NR-AR": {
+          "probability": 0.0005051025655120611,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AR-LBD": {
+          "probability": 0.00016203174891415983,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-AhR": {
+          "probability": 0.012841532938182354,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-Aromatase": {
+          "probability": 0.00038519088411703706,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER": {
+          "probability": 0.09160420298576355,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-ER-LBD": {
+          "probability": 0.001016995171085,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "NR-PPAR-gamma": {
+          "probability": 0.0008045320282690227,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ARE": {
+          "probability": 0.062436629086732864,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-ATAD5": {
+          "probability": 0.0011057804804295301,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-HSE": {
+          "probability": 0.002904067514464259,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "SR-MMP": {
+          "probability": 0.2555188834667206,
+          "prediction": "Non-toxic",
+          "confidence": "Medium"
+        },
+        "SR-p53": {
+          "probability": 0.0019544789101928473,
+          "prediction": "Non-toxic",
+          "confidence": "Very High"
+        },
+        "BBBP": {
+          "probability": 0.14110122621059418,
+          "prediction": "Non-permeable",
+          "confidence": "High"
+        },
+        "FDA_APPROVED": {
+          "probability": 0.9999276399612427,
+          "prediction": "Approved",
+          "confidence": "Very High"
+        },
+        "CT_TOX": {
+          "probability": 0.0001740459119901061,
+          "prediction": "Safe in Trials",
+          "confidence": "Very High"
+        },
+        "Clearance": {
+          "probability": 0,
+          "prediction": "Unknown",
+          "confidence": "Unknown"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 12,
+    "correct_predictions": 6,
+    "accuracy": 0.5,
+    "accuracy_percent": "50.0%"
+  }
+}

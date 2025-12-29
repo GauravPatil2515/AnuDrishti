@@ -1,0 +1,53 @@
+{
+  "name": "medtoxai-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "proxy": "http://localhost:5000",
+  "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "axios": "^1.12.2",
+    "clsx": "^2.0.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.284.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.8",
+    "react-hot-toast": "^2.6.0",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.16.0",
+    "recharts": "^2.15.4",
+    "tailwindcss": "^3.3.3",
+    "tesseract.js": "^6.0.1",
+    "uuid": "^13.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:prod": "NODE_ENV=production react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
+    "serve": "serve -s build -l 3000"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.24",
+    "@types/react-dom": "^18.2.8",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "react-scripts": "^5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

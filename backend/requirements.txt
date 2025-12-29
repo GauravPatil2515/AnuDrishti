@@ -1,0 +1,40 @@
+# DeNovo Backend Requirements
+# ===========================
+# For Python 3.10.x (specified in runtime.txt)
+
+# Core Framework
+flask>=2.3.0
+flask-cors>=4.0.0
+gunicorn>=21.2.0
+gevent>=23.9.1
+
+# Data Processing
+numpy>=1.21.0,<2.0.0
+pandas>=1.5.0,<2.2.0
+scikit-learn>=1.2.0,<1.6.0
+
+# LLM Integration
+groq>=0.4.0
+python-dotenv>=1.0.0
+
+# Database (optional)
+supabase>=2.0.0
+
+# Machine Learning
+torch>=2.0.0,<2.5.0
+transformers>=4.30.0,<4.50.0
+
+# Cheminformatics - USE rdkit NOT rdkit-pypi for Python 3.10
+rdkit>=2023.3.1
+
+# XGBoost
+xgboost>=2.0.0
+
+# PyTorch Geometric (install separately)
+# torch-geometric
+# torch-scatter
+# torch-sparse
+
+# Utilities
+pyyaml>=6.0.0
+tqdm>=4.65.0

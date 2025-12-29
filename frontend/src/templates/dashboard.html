@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - MedToXAi Enhanced{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Welcome back, Researcher</h1>
+    <p>Monitor your toxicity predictions and system performance</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon primary">
+                <i class="fas fa-flask"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.total_predictions }}</div>
+        <div class="stat-label">Total Predictions</div>
+        <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +{{ stats.recent_predictions }} this month
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ "%.1f"|format(stats.success_rate) }}%</div>
+        <div class="stat-label">Success Rate</div>
+        <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +0.2% from last week
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.average_time }}s</div>
+        <div class="stat-label">Avg Response Time</div>
+        <div class="stat-change negative">
+            <i class="fas fa-arrow-down"></i>
+            -0.1s improved
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon info">
+                <i class="fas fa-target"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.active_endpoints }}</div>
+        <div class="stat-label">Active Endpoints</div>
+        <div class="stat-change positive">
+            <i class="fas fa-check"></i>
+            All operational
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <div class="prediction-form">
+        <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-rocket"></i>
+            Quick Prediction
+        </h2>
+        <form id="quickPredictForm">
+            <div class="form-group">
+                <label class="form-label" for="compoundName">Compound Name</label>
+                <input type="text" id="compoundName" class="form-input" placeholder="e.g., Aspirin" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="smilesInput">SMILES String</label>
+                <input type="text" id="smilesInput" class="form-input" placeholder="e.g., CC(=O)OC1=CC=CC=C1C(=O)O" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-play"></i>
+                Predict Toxicity
+            </button>
+        </form>
+        
+        <div id="quickResults" style="margin-top: 1.5rem; display: none;">
+            <h3 style="margin-bottom: 1rem; color: var(--success-color);">
+                <i class="fas fa-check-circle"></i>
+                Prediction Complete
+            </h3>
+            <div id="quickResultsContent"></div>
+        </div>
+    </div>
+
+    <div class="prediction-form">
+        <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-info-circle"></i>
+            System Status
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Model Status:</span>
+                <span class="confidence-badge confidence-high">{{ stats.model_status }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Endpoints:</span>
+                <span>{{ stats.active_endpoints }}/12 Active</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Uptime:</span>
+                <span style="color: var(--success-color);">99.9%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Last Update:</span>
+                <span id="lastUpdate">Just now</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <a href="{{ url_for('predict_page') }}" class="btn btn-outline" style="width: 100%; justify-content: center;">
+                <i class="fas fa-flask"></i>
+                Advanced Prediction
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if recent_results %}
+<div class="results-container">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+        <h2 style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <i class="fas fa-history"></i>
+            Recent Predictions
+        </h2>
+    </div>
+    
+    {% for result in recent_results %}
+    <div class="result-item">
+        <div class="result-header">
+            <div class="compound-info">
+                <h3>{{ result.compound_name }}</h3>
+                <div class="compound-smiles">{{ result.smiles }}</div>
+            </div>
+            <div class="prediction-timestamp">
+                <i class="far fa-clock"></i>
+                {{ result.timestamp.split('T')[0] }}
+            </div>
+        </div>
+        
+        <div class="predictions-grid">
+            {% for endpoint, prediction in result.predictions.items() %}
+            <div class="prediction-card">
+                <div class="endpoint-name">{{ endpoint }}</div>
+                <div class="prediction-result">
+                    <span class="prediction-label {{ 'toxic' if prediction.prediction == 'Toxic' else 'non-toxic' }}">
+                        {{ prediction.prediction }}
+                    </span>
+                    <span class="confidence-badge confidence-{{ prediction.confidence.lower() }}">
+                        {{ prediction.confidence }}
+                    </span>
+                </div>
+                <div class="probability-bar">
+                    <div class="probability-fill" data-width="{{ (prediction.probability * 100)|round }}"></div>
+                </div>
+                <div class="probability-text">
+                    Probability: {{ "%.3f"|format(prediction.probability) }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div style="padding: 1rem 1.5rem; text-align: center; border-top: 1px solid var(--border-color);">
+        <a href="{{ url_for('results_page') }}" class="btn btn-outline">
+            <i class="fas fa-list"></i>
+            View All Results
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="results-container">
+    <div style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <i class="fas fa-flask" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+        <h3>No predictions yet</h3>
+        <p>Start by making your first toxicity prediction above</p>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-play"></i>
+            Make First Prediction
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+    <div class="prediction-form">
+        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-chart-pie"></i>
+            Endpoint Distribution
+        </h3>
+        <div id="endpointChart" style="height: 200px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+            <div>
+                <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.3;"></i>
+                <div>Chart will load with prediction data</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="prediction-form">
+        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-trophy"></i>
+            Top Endpoints
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for endpoint in endpoints[:5] %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--background-color); border-radius: 6px;">
+                <span style="font-weight: 500;">{{ endpoint }}</span>
+                <span class="confidence-badge confidence-high">Active</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Quick prediction form
+document.getElementById('quickPredictForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const compoundName = document.getElementById('compoundName').value;
+    const smiles = document.getElementById('smilesInput').value;
+    const resultsDiv = document.getElementById('quickResults');
+    const resultsContent = document.getElementById('quickResultsContent');
+    
+    // Show loading
+    resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    resultsDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: compoundName,
+                smiles: smiles
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const result = data.result;
+            let html = '<div class="predictions-grid">';
+            
+            for (const [endpoint, prediction] of Object.entries(result.predictions)) {
+                const toxicClass = prediction.prediction === 'Toxic' ? 'toxic' : 'non-toxic';
+                const confidenceClass = prediction.confidence.toLowerCase();
+                
+                html += `
+                    <div class="prediction-card">
+                        <div class="endpoint-name">${endpoint}</div>
+                        <div class="prediction-result">
+                            <span class="prediction-label ${toxicClass}">${prediction.prediction}</span>
+                            <span class="confidence-badge confidence-${confidenceClass}">${prediction.confidence}</span>
+                        </div>
+                        <div class="probability-bar">
+                            <div class="probability-fill" style="width: ${prediction.probability * 100}%"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            Probability: ${prediction.probability.toFixed(3)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            resultsContent.innerHTML = html;
+            
+            // Refresh page after 3 seconds to show in recent results
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+            
+        } else {
+            resultsContent.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        }
+    } catch (error) {
+        resultsContent.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+});
+
+// Update last update time
+function updateLastUpdateTime() {
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+}
+
+// Update every 30 seconds
+setInterval(updateLastUpdateTime, 30000);
+
+// Set probability bar widths
+document.querySelectorAll('.probability-fill').forEach(fill => {
+    const width = fill.getAttribute('data-width');
+    if (width) {
+        fill.style.width = width + '%';
+    }
+});
+</script>
+{% endblock %}

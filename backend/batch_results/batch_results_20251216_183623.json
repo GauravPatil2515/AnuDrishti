@@ -1,0 +1,198 @@
+{
+  "results": [
+    {
+      "smiles": "CCO",
+      "timestamp": "2025-12-16T18:36:23.368071",
+      "predictions": {
+        "tox21": {
+          "prediction": 0,
+          "probability": 0.017253005877137184,
+          "label": "Non-toxic",
+          "type": "classification",
+          "task_probabilities": [
+            0.00866671372205019,
+            0.00648987153545022,
+            0.010566912591457367,
+            0.00925548654049635,
+            0.059340670704841614,
+            0.007756578736007214,
+            0.006727945990860462,
+            0.047401998192071915,
+            0.00907811988145113,
+            0.012598863802850246,
+            0.020409954711794853,
+            0.008742978796362877
+          ]
+        },
+        "clintox": {
+          "prediction": 1,
+          "probability": 1.0,
+          "label": "Toxic",
+          "type": "classification",
+          "fda_approval_prob": 2.1649694537106967e-10,
+          "clinical_tox_prob": 1.0
+        },
+        "bbbp": {
+          "prediction": 1,
+          "probability": 0.9295423030853271,
+          "label": "BBB Permeable",
+          "type": "classification"
+        },
+        "caco2": {
+          "prediction": -4.3332672119140625,
+          "value": -4.3332672119140625,
+          "type": "regression",
+          "unit": "log Papp (cm/s)"
+        },
+        "clearance": {
+          "prediction": 3.0995514392852783,
+          "value": 3.0995514392852783,
+          "linear_value": 22.18799638540403,
+          "type": "regression",
+          "unit": "mL/min/kg"
+        },
+        "hlm_clint": {
+          "prediction": 0.7034524083137512,
+          "value": 0.7034524083137512,
+          "linear_value": 2.0207170189656667,
+          "type": "regression",
+          "unit": "\u03bcL/min/mg protein"
+        }
+      },
+      "overall_toxicity": "Medium Risk",
+      "confidence": "64.9% confidence",
+      "toxic_endpoints": 2,
+      "average_probability": 0.6489317696541548
+    },
+    {
+      "smiles": "CC(C)O",
+      "timestamp": "2025-12-16T18:36:23.452229",
+      "predictions": {
+        "tox21": {
+          "prediction": 0,
+          "probability": 0.008938810788094997,
+          "label": "Non-toxic",
+          "type": "classification",
+          "task_probabilities": [
+            0.0013217360246926546,
+            0.0003504818305373192,
+            0.001979061169549823,
+            0.003306356258690357,
+            0.05834724009037018,
+            0.0021286143455654383,
+            0.004699027631431818,
+            0.011938645504415035,
+            0.0005843666731379926,
+            0.005018084775656462,
+            0.016798323020339012,
+            0.0007937861955724657
+          ]
+        },
+        "clintox": {
+          "prediction": 1,
+          "probability": 1.0,
+          "label": "Toxic",
+          "type": "classification",
+          "fda_approval_prob": 1.346699227827708e-12,
+          "clinical_tox_prob": 1.0
+        },
+        "bbbp": {
+          "prediction": 1,
+          "probability": 0.9472112655639648,
+          "label": "BBB Permeable",
+          "type": "classification"
+        },
+        "caco2": {
+          "prediction": -4.203868865966797,
+          "value": -4.203868865966797,
+          "type": "regression",
+          "unit": "log Papp (cm/s)"
+        },
+        "clearance": {
+          "prediction": 3.284299850463867,
+          "value": 3.284299850463867,
+          "linear_value": 26.690290576877786,
+          "type": "regression",
+          "unit": "mL/min/kg"
+        },
+        "hlm_clint": {
+          "prediction": 0.7061154246330261,
+          "value": 0.7061154246330261,
+          "linear_value": 2.02610539284322,
+          "type": "regression",
+          "unit": "\u03bcL/min/mg protein"
+        }
+      },
+      "overall_toxicity": "Medium Risk",
+      "confidence": "65.2% confidence",
+      "toxic_endpoints": 2,
+      "average_probability": 0.6520500254506866
+    },
+    {
+      "smiles": "CCCO",
+      "timestamp": "2025-12-16T18:36:23.522099",
+      "predictions": {
+        "tox21": {
+          "prediction": 0,
+          "probability": 0.015087049454450607,
+          "label": "Non-toxic",
+          "type": "classification",
+          "task_probabilities": [
+            0.003797466866672039,
+            0.0014058621600270271,
+            0.004264415707439184,
+            0.0077399457804858685,
+            0.0794207975268364,
+            0.00540836900472641,
+            0.008617955259978771,
+            0.026300333440303802,
+            0.0016961947549134493,
+            0.010621463879942894,
+            0.029419461265206337,
+            0.002352324081584811
+          ]
+        },
+        "clintox": {
+          "prediction": 1,
+          "probability": 1.0,
+          "label": "Toxic",
+          "type": "classification",
+          "fda_approval_prob": 9.268917014124134e-13,
+          "clinical_tox_prob": 1.0
+        },
+        "bbbp": {
+          "prediction": 1,
+          "probability": 0.9494291543960571,
+          "label": "BBB Permeable",
+          "type": "classification"
+        },
+        "caco2": {
+          "prediction": -4.3030290603637695,
+          "value": -4.3030290603637695,
+          "type": "regression",
+          "unit": "log Papp (cm/s)"
+        },
+        "clearance": {
+          "prediction": 3.5472428798675537,
+          "value": 3.5472428798675537,
+          "linear_value": 34.71746518795238,
+          "type": "regression",
+          "unit": "mL/min/kg"
+        },
+        "hlm_clint": {
+          "prediction": 0.7206950783729553,
+          "value": 0.7206950783729553,
+          "linear_value": 2.055861699135503,
+          "type": "regression",
+          "unit": "\u03bcL/min/mg protein"
+        }
+      },
+      "overall_toxicity": "Medium Risk",
+      "confidence": "65.5% confidence",
+      "toxic_endpoints": 2,
+      "average_probability": 0.654838734616836
+    }
+  ],
+  "total_processed": 3,
+  "timestamp": "2025-12-16T18:36:23.522723"
+}

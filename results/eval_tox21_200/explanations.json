@@ -1,0 +1,2802 @@
+[
+  {
+    "smiles": "CCCCC(=O)Cl",
+    "explanation": {
+      "smiles": "CCCCC(=O)Cl",
+      "prediction": 0.013264618813991547,
+      "executive_summary": "The molecule CCCCC(=O)Cl has a predicted toxicity of 1.3%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular structure.",
+      "mechanism": "The molecule's toxicity is not driven by any specific substructure, as no high-attention substructures were identified. The predicted toxicity of 1.3% is relatively low, indicating a low risk of adverse effects. The molecular structure does not contain any notable toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1ccc(Nc2nccc(N(C)c3ccc4c(C)n(C)nc4c3)n2)cc1S(N)(=O)=O",
+    "explanation": {
+      "smiles": "Cc1ccc(Nc2nccc(N(C)c3ccc4c(C)n(C)nc4c3)n2)cc1S(N)(=O)=O",
+      "prediction": 0.14739762246608734,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 14.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The predicted toxicity may be due to the overall molecular structure rather than a specific toxic group.",
+      "mechanism": "The predicted toxicity of 14.7% may be due to the cumulative effect of the molecular structure, but no specific mechanism can be determined due to the absence of high-attention substructures. The molecule's toxicity risk is moderate, but the exact mechanism is unclear. Further analysis would be required to determine the specific factors contributing to the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)OC(=O)OCOP(=O)(CO[C@H](C)Cn1cnc2c(N)ncnc21)OCOC(=O)OC(C)C",
+    "explanation": {
+      "smiles": "CC(C)OC(=O)OCOP(=O)(CO[C@H](C)Cn1cnc2c(N)ncnc21)OCOC(=O)OC(C)C",
+      "prediction": 0.07110756635665894,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 7.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the lack of high-attention substructures. No specific features or mechanisms can be identified based on the provided evidence. The predicted toxicity risk of 7.1% suggests some level of toxicity, but the underlying causes are not apparent from the data.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(=O)N[C@H]([C@@H](O)CC(=O)C(=O)O)[C@@H](O)[C@H](O)[C@H](O)CO",
+    "explanation": {
+      "smiles": "CC(=O)N[C@H]([C@@H](O)CC(=O)C(=O)O)[C@@H](O)[C@H](O)[C@H](O)CO",
+      "prediction": 0.05023738741874695,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 5.0%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The molecule's toxicity is predicted to be 5.0%, but the lack of high-attention substructures makes it difficult to propose a specific mechanism. The overall molecular structure may contribute to the toxicity, but further analysis is needed to understand the underlying mechanisms. The current evidence does not support the identification of a specific toxicophore or mechanism.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(C=Cc1ccc(O)c(O)c1)O[C@@H]1C[C@@](OC(=O)C=Cc2ccc(O)c(O)c2)(C(=O)O)C[C@@H](O)[C@@H]1O",
+    "explanation": {
+      "smiles": "O=C(C=Cc1ccc(O)c(O)c1)O[C@@H]1C[C@@](OC(=O)C=Cc2ccc(O)c(O)c2)(C(=O)O)C[C@@H](O)[C@@H]1O",
+      "prediction": 0.08882243186235428,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 8.9%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 8.9% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores or mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CO[C@H](C(=O)[C@@H](O)[C@@H](C)O)[C@@H]1Cc2cc3cc(O[C@H]4C[C@@H](O[C@@H]5C[C@@H](O)[C@@H](OC)[C@@H](C)O5)[C@@H](OC(=O)O)[C@@H](C)O4)c(C)c(O)c3c(O)c2C(=O)[C@H]1O[C@H]1C[C@@H](O[C@H]2C[C@@H](O[C@H]3C[C@](C)(O)[C@@H](OC(C)=O)[C@H](C)O3)[C@H](O)[C@@H](C)O2)[C@H](O)[C@@H](C)O1",
+    "explanation": {
+      "smiles": "CO[C@H](C(=O)[C@@H](O)[C@@H](C)O)[C@@H]1Cc2cc3cc(O[C@H]4C[C@@H](O[C@@H]5C[C@@H](O)[C@@H](OC)[C@@H](C)O5)[C@@H](OC(=O)O)[C@@H](C)O4)c(C)c(O)c3c(O)c2C(=O)[C@H]1O[C@H]1C[C@@H](O[C@H]2C[C@@H](O[C@H]3C[C@](C)(O)[C@@H](OC(C)=O)[C@H](C)O3)[C@H](O)[C@@H](C)O2)[C@H](O)[C@@H](C)O1",
+      "prediction": 0.35327932238578796,
+      "executive_summary": "The molecule has a predicted toxicity of 35.3%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No high-attention substructures were identified, making it difficult to propose a detailed mechanism for the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCCC(=O)CCCCCC/C=C/C[C@@H](O)[C@H](O)[C@@](N)(CO)C(=O)O",
+    "explanation": {
+      "smiles": "CCCCCCC(=O)CCCCCC/C=C/C[C@@H](O)[C@H](O)[C@@](N)(CO)C(=O)O",
+      "prediction": 0.08138535916805267,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 8.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 8.1% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores or mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC1OC(=O)C[C@@H](O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@H](CC=O)C[C@@H](C)C(=O)C=C[C@]2(C)OC2C1C",
+    "explanation": {
+      "smiles": "CCC1OC(=O)C[C@@H](O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@H](CC=O)C[C@@H](C)C(=O)C=C[C@]2(C)OC2C1C",
+      "prediction": 0.14216294884681702,
+      "executive_summary": "The molecule has a predicted toxicity of 14.2%. No high-attention substructures were identified, indicating that the model did not find any specific toxicophores with attention scores above the threshold. The toxicity risk is moderate, but the lack of high-attention substructures limits the ability to provide a detailed mechanism.",
+      "mechanism": "The model did not identify any specific toxicophores or mechanisms contributing to the predicted toxicity, as no substructures had attention scores above the threshold of 0.1.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)CCOC(=O)c1ccccc1",
+    "explanation": {
+      "smiles": "CC(C)CCOC(=O)c1ccccc1",
+      "prediction": 0.09415248781442642,
+      "executive_summary": "The molecule CC(C)CCOC(=O)c1ccccc1 has a predicted toxicity of 9.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is moderate, but the mechanism is unclear due to the absence of high-attention substructures.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none exceeded the attention threshold of 0.1. The predicted toxicity of 9.4% suggests some level of toxicity, but the underlying mechanism remains unclear. Further analysis would be necessary to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1cc(C)c(C)c(O)c1",
+    "explanation": {
+      "smiles": "Cc1cc(C)c(C)c(O)c1",
+      "prediction": 0.04201224446296692,
+      "executive_summary": "The molecule Cc1cc(C)c(C)c(O)c1 has a predicted toxicity of 4.2%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as no high-attention substructures were identified (attention < 0.1). The predicted toxicity of 4.2% may be due to the overall molecular structure, but no clear mechanism can be determined. Further analysis would be required to understand the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC(=O)OCCC(C)CCC=C(C)C",
+    "explanation": {
+      "smiles": "CCC(=O)OCCC(C)CCC=C(C)C",
+      "prediction": 0.030437031760811806,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 3.0%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism is not well understood due to the lack of high-attention substructures. The predicted toxicity of 3.0% may be attributed to unknown or subtle factors not captured by the model. Further analysis is needed to elucidate the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)COC(=O)c1ccccc1O",
+    "explanation": {
+      "smiles": "CC(C)COC(=O)c1ccccc1O",
+      "prediction": 0.18613825738430023,
+      "executive_summary": "The molecule CC(C)COC(=O)c1ccccc1O has a predicted toxicity of 18.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is moderate, but the mechanism is unclear due to the absence of high-attention features.",
+      "mechanism": "The molecule's toxicity cannot be explained by any specific substructure, as none have an attention score above the threshold of 0.1. The predicted toxicity of 18.6% suggests some level of risk, but the underlying mechanism is unclear. Further analysis would be required to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)CCCCCCCOC(=O)c1ccc(C(=O)OCCCCCCCC(C)C)c(C(=O)OCCCCCCCC(C)C)c1",
+    "explanation": {
+      "smiles": "CC(C)CCCCCCCOC(=O)c1ccc(C(=O)OCCCCCCCC(C)C)c(C(=O)OCCCCCCCC(C)C)c1",
+      "prediction": 0.09254855662584305,
+      "executive_summary": "The predicted toxicity of the molecule is 9.3%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. The predicted toxicity of 9.3% suggests some level of toxicity, but the underlying causes cannot be determined from the provided evidence. Further analysis would be necessary to understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCCCCCCCC(=O)O.OCCN(CCO)CCO",
+    "explanation": {
+      "smiles": "CCCCCCCCCCCC(=O)O.OCCN(CCO)CCO",
+      "prediction": 0.08240937441587448,
+      "executive_summary": "The predicted toxicity of the molecule is 8.2%, but no high-attention substructures were identified. As a result, the toxicity mechanism is not well-defined. The molecule's toxicity risk appears to be relatively low to moderate.",
+      "mechanism": "The molecule's toxicity mechanism is not well-defined due to the absence of high-attention substructures. The predicted toxicity of 8.2% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be necessary to determine the specific mechanisms contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCCCCC(=O)OCC(C)OC(=O)CCCCCCCC",
+    "explanation": {
+      "smiles": "CCCCCCCCC(=O)OCC(C)OC(=O)CCCCCCCC",
+      "prediction": 0.018653159961104393,
+      "executive_summary": "The predicted toxicity of the molecule is 1.9%, but no high-attention substructures were identified. As a result, the toxicity risk is difficult to assess based on the provided evidence. The molecule's toxicity profile appears to be relatively low.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The molecule's structure does not contain any identifiable toxicophores with attention scores above the threshold. Further analysis would be required to fully understand the molecule's toxicity profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCCCCCCOC(C)=O",
+    "explanation": {
+      "smiles": "CCCCCCCCCCOC(C)=O",
+      "prediction": 0.0283608790487051,
+      "executive_summary": "The molecule CCCCCCCCCCOC(C)=O has a predicted toxicity of 2.8%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant attention scores limits the ability to provide a detailed mechanism explanation.",
+      "mechanism": "Due to the absence of high-attention substructures, a specific toxicity mechanism cannot be proposed. due to the lack of evidence (attention score: N/A). The predicted toxicity of 2.8% is relatively low, but without identifiable toxicophores, the underlying causes remain unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(=O)OCCC1CCCCC1",
+    "explanation": {
+      "smiles": "CC(=O)OCCC1CCCCC1",
+      "prediction": 0.0395861379802227,
+      "executive_summary": "The molecule CC(=O)OCCC1CCCCC1 has a predicted toxicity of 4.0%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular structure.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures that contribute to its toxicity, resulting in a relatively low predicted toxicity of 4.0%. The absence of high-attention substructures suggests a limited potential for adverse effects. The molecular structure appears to be relatively safe.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COP(=O)(OC)OC(=CCl)c1cc(Cl)c(Cl)cc1Cl",
+    "explanation": {
+      "smiles": "COP(=O)(OC)OC(=CCl)c1cc(Cl)c(Cl)cc1Cl",
+      "prediction": 0.3359711468219757,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCN(CC)C(=S)SSC(=S)N(CC)CC",
+    "explanation": {
+      "smiles": "CCN(CC)C(=S)SSC(=S)N(CC)CC",
+      "prediction": 0.5562593340873718,
+      "executive_summary": "The molecule has a predicted toxicity of 55.6%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of high-attention substructures. No specific toxicophores or features can be identified as contributing to the predicted toxicity. Further investigation is required to understand the potential toxicity of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCN(CCCCC)C(=O)C(CCC(=O)[O-])NC(=O)c1ccc(Cl)c(Cl)c1",
+    "explanation": {
+      "smiles": "CCCCCN(CCCCC)C(=O)C(CCC(=O)[O-])NC(=O)c1ccc(Cl)c(Cl)c1",
+      "prediction": 0.04735841229557991,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 4.7%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 4.7% may be due to the cumulative effect of the molecular structure, but no specific mechanism can be proposed based on the provided evidence. The model did not identify any substructures with an attention score above the threshold of 0.1. Further analysis would be required to determine the underlying causes of the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCc1cc(O)c2c(c1)OC(C)(C)[C@@H]1CCC(C)=C[C@@H]21",
+    "explanation": {
+      "smiles": "CCCCCc1cc(O)c2c(c1)OC(C)(C)[C@@H]1CCC(C)=C[C@@H]21",
+      "prediction": 0.40714526176452637,
+      "executive_summary": "The molecule has a predicted toxicity of 40.7%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 40.7% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C1CCOC1",
+    "explanation": {
+      "smiles": "C1CCOC1",
+      "prediction": 0.061991456896066666,
+      "executive_summary": "The molecule C1CCOC1 has a predicted toxicity of 6.2%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is relatively low.",
+      "mechanism": "The molecule's toxicity is not well-explained by the model, as no substructures with attention scores above the threshold were identified. The predicted toxicity of 6.2% may be due to unknown or complex interactions. Further analysis is needed to fully understand the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1C(C)(C)CCCC1(C)C",
+    "explanation": {
+      "smiles": "CN1C(C)(C)CCCC1(C)C",
+      "prediction": 0.03493259847164154,
+      "executive_summary": "The molecule CN1C(C)(C)CCCC1(C)C has a predicted toxicity of 3.5%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none were identified with an attention score above the threshold. The predicted toxicity of 3.5% may be due to non-specific interactions or other factors not captured by the model. Further analysis would be required to determine the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC1=CCC(C(C)(C)O)CC1",
+    "explanation": {
+      "smiles": "CC1=CCC(C(C)(C)O)CC1",
+      "prediction": 0.03190688416361809,
+      "executive_summary": "The predicted toxicity of the molecule is 3.2%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. The predicted toxicity of 3.2% suggests a potential low-level risk, but the underlying causes are not apparent from the provided evidence. Further analysis would be necessary to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(Cc1cccc(S(=O)(=O)O)c1)c1ccccc1",
+    "explanation": {
+      "smiles": "CCN(Cc1cccc(S(=O)(=O)O)c1)c1ccccc1",
+      "prediction": 0.045517295598983765,
+      "executive_summary": "The molecule has a predicted toxicity of 4.6%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 4.6% may be due to the cumulative effect of the molecular structure, but no specific mechanism can be proposed due to the lack of high-attention substructures. The molecule's sulfonate group (attention score not available) may contribute to its toxicity, but this cannot be confirmed without further evidence. The overall mechanism of toxicity remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(=O)c1ccc(O)cc1",
+    "explanation": {
+      "smiles": "CC(=O)c1ccc(O)cc1",
+      "prediction": 0.0553804486989975,
+      "executive_summary": "The molecule CC(=O)c1ccc(O)cc1 has a predicted toxicity of 5.5%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none exceeded the attention threshold of 0.1. The predicted toxicity of 5.5% may be due to the cumulative effect of low-attention substructures. However, without further evidence, the exact mechanism remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1cc(C(C)(C)C)cc(C)c1CC1=NCCN1",
+    "explanation": {
+      "smiles": "Cc1cc(C(C)(C)C)cc(C)c1CC1=NCCN1",
+      "prediction": 0.06387137621641159,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 6.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of substructures with attention scores above the threshold of 0.1. The predicted toxicity of 6.4% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to understand the molecular basis of this toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1",
+      "prediction": 0.7786009907722473,
+      "executive_summary": "The molecule F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1 has a predicted toxicity of 77.9%. No high-attention substructures were identified, indicating that the model did not highlight any specific toxicophores. The toxicity risk is likely due to the overall molecular structure rather than a specific functional group.",
+      "mechanism": "The molecule's toxicity is predicted to be 77.9%, but the exact mechanism cannot be determined due to the absence of high-attention substructures. The model's prediction is based on the overall molecular structure, but no specific toxicophores or features were identified with an attention score above the threshold. Further analysis would be required to determine the underlying causes of the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCOc1ccc(O)cc1",
+    "explanation": {
+      "smiles": "CCOc1ccc(O)cc1",
+      "prediction": 0.14111201465129852,
+      "executive_summary": "The molecule CCOc1ccc(O)cc1 has a predicted toxicity of 14.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is moderate, but the mechanism is unclear due to the absence of high-attention substructures.",
+      "mechanism": "The molecule's toxicity cannot be explained by any specific substructure, as none have an attention score above the threshold of 0.1. The predicted toxicity of 14.1% suggests some level of risk, but the underlying mechanism is unclear. Further analysis would be required to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=S1(=O)OCC2C(CO1)C1(Cl)C(Cl)=C(Cl)C2(Cl)C1(Cl)Cl",
+    "explanation": {
+      "smiles": "O=S1(=O)OCC2C(CO1)C1(Cl)C(Cl)=C(Cl)C2(Cl)C1(Cl)Cl",
+      "prediction": 0.31853964924812317,
+      "executive_summary": "The molecule has a predicted toxicity of 31.9%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be determined due to the absence of high-attention substructures. The predicted toxicity of 31.9% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCSCc1ccccc1OC(=O)NC",
+    "explanation": {
+      "smiles": "CCSCc1ccccc1OC(=O)NC",
+      "prediction": 0.06521498411893845,
+      "executive_summary": "The predicted toxicity of the molecule CCSCc1ccccc1OC(=O)NC is 6.5%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 6.5% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be necessary to fully understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Brc1nc2ccccc2s1",
+    "explanation": {
+      "smiles": "Brc1nc2ccccc2s1",
+      "prediction": 0.1682366281747818,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCC(C)Br",
+    "explanation": {
+      "smiles": "CCC(C)Br",
+      "prediction": 0.011112400330603123,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "N#CCc1ccccc1",
+    "explanation": {
+      "smiles": "N#CCc1ccccc1",
+      "prediction": 0.06444472819566727,
+      "executive_summary": "The molecule N#CCc1ccccc1 has a predicted toxicity of 6.4%. No high-attention substructures were identified, suggesting that the toxicity may not be driven by a specific, dominant toxicophore. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The predicted toxicity of 6.4% cannot be attributed to a specific toxicophore or mechanism, as no substructures with attention scores above the threshold were identified. The molecule's toxicity may be the result of a complex interplay of various factors, but the current evidence does not provide sufficient information to determine a specific mechanism. Further analysis would be necessary to fully understand the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)c1ccc(CO)o1",
+    "explanation": {
+      "smiles": "O=C(O)c1ccc(CO)o1",
+      "prediction": 0.03130059316754341,
+      "executive_summary": "The molecule O=C(O)c1ccc(CO)o1 has a predicted toxicity of 3.1%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular structure.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures with attention scores above the threshold of 0.1, indicating a low toxicity risk. The predicted toxicity of 3.1% is likely due to non-specific or weak interactions. The overall mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "N#Cc1ccccc1",
+    "explanation": {
+      "smiles": "N#Cc1ccccc1",
+      "prediction": 0.03768806904554367,
+      "executive_summary": "The molecule N#Cc1ccccc1 has a predicted toxicity of 3.8%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures with attention scores above the threshold of 0.1, indicating a low toxicity risk. The predicted toxicity of 3.8% is likely due to non-specific or weak interactions. The overall mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "N#CCBr",
+    "explanation": {
+      "smiles": "N#CCBr",
+      "prediction": 0.011331875808537006,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(O)CBr",
+    "explanation": {
+      "smiles": "O=C(O)CBr",
+      "prediction": 0.031450655311346054,
+      "executive_summary": "The molecule O=C(O)CBr has a predicted toxicity of 3.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is relatively low.",
+      "mechanism": "The molecule's toxicity is not clearly attributed to any specific substructure, as no high-attention substructures were identified (attention < 0.1). The predicted toxicity of 3.1% may be due to the overall molecular structure, but no specific mechanism can be determined from the provided evidence. Further analysis would be necessary to fully understand the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1CC(O)C2=C/C(=N/NC(N)=O)C(=O)C=C21",
+    "explanation": {
+      "smiles": "CN1CC(O)C2=C/C(=N/NC(N)=O)C(=O)C=C21",
+      "prediction": 0.1974778026342392,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 19.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk appears to be distributed across the molecule.",
+      "mechanism": "The molecule's toxicity cannot be attributed to a specific mechanism or toxicophore, as no substructures have an attention score above the threshold of 0.1. The predicted toxicity of 19.7% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be necessary to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1ccc(C2(O)CCN(CCCC(=O)c3ccc(F)cc3)CC2)cc1",
+    "explanation": {
+      "smiles": "Cc1ccc(C2(O)CCN(CCCC(=O)c3ccc(F)cc3)CC2)cc1",
+      "prediction": 0.08461866527795792,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 8.5%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 8.5% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores or mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=S(=O)(O)F",
+    "explanation": {
+      "smiles": "O=S(=O)(O)F",
+      "prediction": 0.03625980019569397,
+      "executive_summary": "The molecule O=S(=O)(O)F has a predicted toxicity of 3.6%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 3.6% may be attributed to the overall molecular properties of O=S(=O)(O)F, but the exact mechanism cannot be determined due to the lack of high-attention substructures. The model did not identify any specific toxicophores or features with an attention score above the threshold of 0.1. Further analysis would be required to understand the potential toxic effects of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.34728291630744934,
+      "executive_summary": "The molecule has a predicted toxicity of 34.7%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 34.7% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "N=C(N)c1ccc(OCCCOc2ccc(C(=N)N)cc2Br)c(Br)c1",
+    "explanation": {
+      "smiles": "N=C(N)c1ccc(OCCCOc2ccc(C(=N)N)cc2Br)c(Br)c1",
+      "prediction": 0.18677560985088348,
+      "executive_summary": "The molecule has a predicted toxicity of 18.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of high-attention substructures. The predicted toxicity of 18.7% suggests some level of toxicity, but the specific mechanisms and contributing features cannot be determined. Further analysis would be required to understand the toxicity of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1[C@H]2CCC[C@@H]1C[C@H](NC(=O)c1nn(C)c3ccccc13)C2",
+    "explanation": {
+      "smiles": "CN1[C@H]2CCC[C@@H]1C[C@H](NC(=O)c1nn(C)c3ccccc13)C2",
+      "prediction": 0.09710999578237534,
+      "executive_summary": "The molecule has a predicted toxicity of 9.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of high-attention substructures. The predicted toxicity of 9.7% suggests some level of toxicity, but the underlying causes cannot be determined from the provided evidence. Further analysis would be necessary to understand the toxicological profile of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(Cl)/C=C/C(=O)Cl",
+    "explanation": {
+      "smiles": "O=C(Cl)/C=C/C(=O)Cl",
+      "prediction": 0.06998712569475174,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1nc2n(c(=O)c1CCN1CCC(c3noc4cc(F)ccc34)CC1)CCC[C@H]2O",
+    "explanation": {
+      "smiles": "Cc1nc2n(c(=O)c1CCN1CCC(c3noc4cc(F)ccc34)CC1)CCC[C@H]2O",
+      "prediction": 0.04473083093762398,
+      "executive_summary": "The predicted toxicity of the molecule is 4.5%. No high-attention substructures were identified, suggesting that the toxicity may not be attributed to a specific toxicophore. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be explained by a specific mechanism due to the absence of high-attention substructures. The predicted toxicity may be the result of cumulative effects from various low-attention substructures. However, without further evidence, the exact mechanism remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COc1cc(C(C)=O)ccc1OCCCN1CCC(c2noc3cc(F)ccc23)CC1",
+    "explanation": {
+      "smiles": "COc1cc(C(C)=O)ccc1OCCCN1CCC(c2noc3cc(F)ccc23)CC1",
+      "prediction": 0.07125250995159149,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 7.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the lack of high-attention substructures. No specific features or mechanisms can be identified as contributing to the predicted toxicity. Further analysis is needed to understand the molecule's potential toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN(C(=O)CO)c1c(I)c(C(=O)NCC(O)CO)c(I)c(C(=O)NCC(O)CO)c1I",
+    "explanation": {
+      "smiles": "CN(C(=O)CO)c1c(I)c(C(=O)NCC(O)CO)c(I)c(C(=O)NCC(O)CO)c1I",
+      "prediction": 0.07366632670164108,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 7.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of substructures with attention scores above the threshold of 0.1. The predicted toxicity of 7.4% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to understand the molecular basis of this toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C1OC2(c3ccccc31)c1cc(I)c(O)c(I)c1Oc1c2cc(I)c(O)c1I",
+    "explanation": {
+      "smiles": "O=C1OC2(c3ccccc31)c1cc(I)c(O)c(I)c1Oc1c2cc(I)c(O)c1I",
+      "prediction": 0.39334288239479065,
+      "executive_summary": "The molecule has a predicted toxicity of 39.3%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 39.3% suggests potential toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Nc1c(CC(=O)[O-])cccc1C(=O)c1ccc(Br)cc1.Nc1c(CC(=O)[O-])cccc1C(=O)c1ccc(Br)cc1",
+    "explanation": {
+      "smiles": "Nc1c(CC(=O)[O-])cccc1C(=O)c1ccc(Br)cc1.Nc1c(CC(=O)[O-])cccc1C(=O)c1ccc(Br)cc1",
+      "prediction": 0.15387876331806183,
+      "executive_summary": "The molecule has a predicted toxicity of 15.4%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be determined due to the absence of high-attention substructures. The predicted toxicity of 15.4% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COCCCOc1ccnc(CS(=O)c2nc3ccccc3[n-]2)c1C",
+    "explanation": {
+      "smiles": "COCCCOc1ccnc(CS(=O)c2nc3ccccc3[n-]2)c1C",
+      "prediction": 0.2205154448747635,
+      "executive_summary": "The molecule has a predicted toxicity of 22.1%, but no high-attention substructures were identified. As a result, the toxicity mechanism is not well-defined. The model does not provide sufficient evidence to determine the primary toxicophore or secondary features.",
+      "mechanism": "The model does not provide sufficient evidence to determine the overall mechanism of toxicity. No substructures with attention scores greater than 0.1 were identified. Therefore, the toxicity prediction is not supported by specific molecular features.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COCC(=O)O[C@]1(CCN(C)CCCc2nc3ccccc3[nH]2)CCc2cc(F)ccc2[C@@H]1C(C)C",
+    "explanation": {
+      "smiles": "COCC(=O)O[C@]1(CCN(C)CCCc2nc3ccccc3[nH]2)CCc2cc(F)ccc2[C@@H]1C(C)C",
+      "prediction": 0.14606918394565582,
+      "executive_summary": "The molecule has a predicted toxicity of 14.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 14.6% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to fully understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCc1ccc(CCOc2ccc(CC3SC(=O)NC3=O)cc2)nc1",
+    "explanation": {
+      "smiles": "CCc1ccc(CCOc2ccc(CC3SC(=O)NC3=O)cc2)nc1",
+      "prediction": 0.4324779808521271,
+      "executive_summary": "The molecule has a predicted toxicity of 43.2%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 43.2% suggests some level of toxicity, but the specific toxicophores and mechanisms are unclear. Further analysis is required to identify potential toxicophores and understand their contributions to toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCCCCOC(C)=O",
+    "explanation": {
+      "smiles": "CCCCCCCCOC(C)=O",
+      "prediction": 0.023541182279586792,
+      "executive_summary": "The molecule CCCCCCCCOC(C)=O has a predicted toxicity of 2.4%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures with attention scores above the threshold of 0.1. As a result, the overall mechanism of toxicity is unclear. The predicted toxicity of 2.4% may be attributed to unknown or weak interactions.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1.OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1",
+    "explanation": {
+      "smiles": "OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1.OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1",
+      "prediction": 0.18227709829807281,
+      "executive_summary": "The predicted toxicity of the molecule is 18.2%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as no high-attention substructures were identified. The predicted toxicity of 18.2% suggests some level of toxicity, but the underlying mechanisms are unknown. Further analysis is needed to determine the toxicological profile of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)CCSCCC(=O)O",
+    "explanation": {
+      "smiles": "O=C(O)CCSCCC(=O)O",
+      "prediction": 0.027465030550956726,
+      "executive_summary": "The predicted toxicity of the molecule O=C(O)CCSCCC(=O)O is 2.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 2.7% suggests a potential low-level risk, but the underlying causes are unclear. Further analysis would be necessary to fully understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1nc[nH]c1CN1CCc2c(c3ccccc3n2C)C1=O",
+    "explanation": {
+      "smiles": "Cc1nc[nH]c1CN1CCc2c(c3ccccc3n2C)C1=O",
+      "prediction": 0.09928262233734131,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 9.9%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 9.9% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores or mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)CCCC[C@@H]1SC[C@@H]2NC(=O)N[C@H]12",
+    "explanation": {
+      "smiles": "O=C(O)CCCC[C@@H]1SC[C@@H]2NC(=O)N[C@H]12",
+      "prediction": 0.3427395522594452,
+      "executive_summary": "The molecule has a predicted toxicity of 34.3%, but no high-attention substructures were identified. As a result, the primary toxicophore and secondary features could not be determined. The overall mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. No specific toxicophores or features could be identified. Further analysis is needed to understand the molecule's potential toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C[C@](O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1",
+    "explanation": {
+      "smiles": "C[C@](O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1",
+      "prediction": 0.14751119911670685,
+      "executive_summary": "The molecule has a predicted toxicity of 14.8%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 14.8% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C[N+](C)(C)C)OC(N)=O",
+    "explanation": {
+      "smiles": "CC(C[N+](C)(C)C)OC(N)=O",
+      "prediction": 0.05998283252120018,
+      "executive_summary": "The molecule has a predicted toxicity of 6.0%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 6.0% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)NCC(O)COc1ccc(CCOCC2CC2)cc1",
+    "explanation": {
+      "smiles": "CC(C)NCC(O)COc1ccc(CCOCC2CC2)cc1",
+      "prediction": 0.06351348012685776,
+      "executive_summary": "The molecule has a predicted toxicity of 6.4%, but no high-attention substructures were identified. As a result, the toxicity mechanism is not well-defined. The overall confidence in the prediction is low due to the lack of significant substructures.",
+      "mechanism": "The molecule's toxicity is not well-explained by the model, as no substructures with attention scores above the threshold were identified. The predicted toxicity of 6.4% suggests some level of toxicity, but the underlying mechanisms are unclear. Further analysis would be necessary to determine the specific toxicological effects of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.30698052048683167,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 30.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The predicted toxicity may be due to the overall molecular structure rather than a specific toxic group.",
+      "mechanism": "The molecule's toxicity mechanism is not clearly defined due to the absence of high-attention substructures. The predicted toxicity of 30.7% suggests some level of toxicity, but the specific mechanism cannot be determined from the provided evidence. Further analysis would be required to understand the molecular basis of the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC(=O)O[C@]1(C(=O)COC(=O)CC)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "CCCC(=O)O[C@]1(C(=O)COC(=O)CC)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.30904850363731384,
+      "executive_summary": "The molecule has a predicted toxicity of 30.9%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 30.9% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores and understand their contributions to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(CBr)OCc1ccccc1",
+    "explanation": {
+      "smiles": "O=C(CBr)OCc1ccccc1",
+      "prediction": 0.02111320197582245,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCCc1ccc(Cl)cc1",
+    "explanation": {
+      "smiles": "CCCCCc1ccc(Cl)cc1",
+      "prediction": 0.021441064774990082,
+      "executive_summary": "The molecule CCCCCc1ccc(Cl)cc1 has a predicted toxicity of 2.1%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures with attention scores above the threshold of 0.1, indicating a low toxicity risk. The predicted toxicity of 2.1% is likely due to non-specific or weak interactions. The overall mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=P(O)(Oc1ccccc1)Oc1ccccc1",
+    "explanation": {
+      "smiles": "O=P(O)(Oc1ccccc1)Oc1ccccc1",
+      "prediction": 0.2834573984146118,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COC(=O)c1ccccc1C",
+    "explanation": {
+      "smiles": "COC(=O)c1ccccc1C",
+      "prediction": 0.026488928124308586,
+      "executive_summary": "The molecule COC(=O)c1ccccc1C has a predicted toxicity of 2.6%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant attention scores limits the ability to pinpoint specific toxicophores.",
+      "mechanism": "The predicted toxicity of 2.6% cannot be attributed to specific substructures due to the absence of high-attention features. The molecule's toxicity profile remains unclear. Further analysis is required to understand potential toxic mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)(C)C(=O)c1ccccc1",
+    "explanation": {
+      "smiles": "CC(C)(C)C(=O)c1ccccc1",
+      "prediction": 0.04331149533390999,
+      "executive_summary": "The molecule CC(C)(C)C(=O)c1ccccc1 has a predicted toxicity of 4.3%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 4.3% may be influenced by subtle interactions or features not captured by the model. Further analysis would be required to elucidate the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(Oc1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "O=C(Oc1ccccc1)c1ccccc1",
+      "prediction": 0.21484361588954926,
+      "executive_summary": "The molecule has a predicted toxicity of 21.5%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 21.5% suggests that the molecule may have some level of toxicity, but the lack of high-attention substructures makes it difficult to propose a specific mechanism. The molecular structure as a whole may be contributing to the toxicity, but further analysis is needed to understand the underlying mechanisms. The current evidence does not support the identification of specific toxicophores or secondary features.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCOC(=O)c1ccc(C)cc1",
+    "explanation": {
+      "smiles": "CCOC(=O)c1ccc(C)cc1",
+      "prediction": 0.02561001479625702,
+      "executive_summary": "The molecule CCOC(=O)c1ccc(C)cc1 has a predicted toxicity of 2.6%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant attention scores limits the ability to provide a detailed mechanism explanation.",
+      "mechanism": "Due to the absence of high-attention substructures, a detailed mechanism of toxicity cannot be determined. The predicted toxicity of 2.6% is relatively low, but the underlying causes are not clear from the provided evidence. Further analysis would be necessary to fully understand the potential toxicity of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1cc(C)cc(N)c1",
+    "explanation": {
+      "smiles": "Cc1cc(C)cc(N)c1",
+      "prediction": 0.04849281534552574,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O",
+    "explanation": {
+      "smiles": "CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O",
+      "prediction": 0.35421183705329895,
+      "executive_summary": "The molecule has a predicted toxicity of 35.4%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No high-attention substructures were identified, making it difficult to determine the overall mechanism of toxicity. The predicted toxicity of 35.4% suggests some level of toxicity, but the lack of high-attention substructures limits our understanding. Further analysis is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1cc(C2(c3cc(C)c(O)cc3C)OS(=O)(=O)c3ccccc32)c(C)cc1O",
+    "explanation": {
+      "smiles": "Cc1cc(C2(c3cc(C)c(O)cc3C)OS(=O)(=O)c3ccccc32)c(C)cc1O",
+      "prediction": 0.2556256949901581,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 25.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 25.6% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1ccc(S(=O)(=O)[O-])cc1C",
+    "explanation": {
+      "smiles": "Cc1ccc(S(=O)(=O)[O-])cc1C",
+      "prediction": 0.021055616438388824,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cccc(C)c1N",
+    "explanation": {
+      "smiles": "Cc1cccc(C)c1N",
+      "prediction": 0.037257369607686996,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ccc(C)c(N)c1",
+    "explanation": {
+      "smiles": "Cc1ccc(C)c(N)c1",
+      "prediction": 0.05434542894363403,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cccc(N)c1C",
+    "explanation": {
+      "smiles": "Cc1cccc(N)c1C",
+      "prediction": 0.059028979390859604,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ncc(CSSCc2cnc(C)c(O)c2CO)c(CO)c1O",
+    "explanation": {
+      "smiles": "Cc1ncc(CSSCc2cnc(C)c(O)c2CO)c(CO)c1O",
+      "prediction": 0.2008049339056015,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 20.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 20.1% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores or mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC=Cc1ccc(O)c(OC)c1",
+    "explanation": {
+      "smiles": "CC=Cc1ccc(O)c(OC)c1",
+      "prediction": 0.09246242791414261,
+      "executive_summary": "The molecule CC=Cc1ccc(O)c(OC)c1 has a predicted toxicity of 9.2%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as no high-attention substructures were identified (attention < 0.1). The predicted toxicity of 9.2% may be due to the cumulative effect of low-attention substructures. However, without further evidence, the exact mechanism remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "FC(F)(F)C(Cl)Br",
+    "explanation": {
+      "smiles": "FC(F)(F)C(Cl)Br",
+      "prediction": 0.009013483300805092,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(O)c1ccc(S(=O)(=O)N(Cl)Cl)cc1",
+    "explanation": {
+      "smiles": "O=C(O)c1ccc(S(=O)(=O)N(Cl)Cl)cc1",
+      "prediction": 0.028613949194550514,
+      "executive_summary": "The predicted toxicity of the molecule is 2.9%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism is not clearly defined due to the absence of high-attention substructures. The predicted toxicity of 2.9% may be attributed to the overall molecular structure, but no specific features are identified as contributing to this risk. Further analysis would be required to determine the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCOC(=O)c1ccc(N)cc1",
+    "explanation": {
+      "smiles": "CCCCOC(=O)c1ccc(N)cc1",
+      "prediction": 0.2390301674604416,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ccc2c(C)cccc2c1",
+    "explanation": {
+      "smiles": "Cc1ccc2c(C)cccc2c1",
+      "prediction": 0.024807920679450035,
+      "executive_summary": "The predicted toxicity of the molecule is 2.5%. No high-attention substructures were identified, suggesting a low toxicity risk. The molecule's toxicity is not driven by any specific substructure with an attention score above the threshold.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none were identified with an attention score above 0.1. The predicted toxicity of 2.5% is likely due to the overall molecular structure rather than a specific toxicophore. The exact mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC(C)C(C)(COC(N)=O)COC(N)=O",
+    "explanation": {
+      "smiles": "CCC(C)C(C)(COC(N)=O)COC(N)=O",
+      "prediction": 0.026266954839229584,
+      "executive_summary": "The predicted toxicity of the molecule is 2.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 2.6% suggests a relatively low risk, but the underlying causes are unclear. Further analysis would be necessary to fully understand the molecule's toxicity profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)C(=O)[C@@H]1C=C2c3cccc4[nH]cc(c34)C[C@H]2N(C)C1",
+    "explanation": {
+      "smiles": "CCN(CC)C(=O)[C@@H]1C=C2c3cccc4[nH]cc(c34)C[C@H]2N(C)C1",
+      "prediction": 0.25048986077308655,
+      "executive_summary": "The molecule has a predicted toxicity of 25.0%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be determined due to the absence of high-attention substructures. The predicted toxicity of 25.0% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OC[C@@H](O)[C@@H](O)[C@H](O)[C@H](O)CO",
+    "explanation": {
+      "smiles": "OC[C@@H](O)[C@@H](O)[C@H](O)[C@H](O)CO",
+      "prediction": 0.05634157359600067,
+      "executive_summary": "The molecule has a predicted toxicity of 5.6%, but no high-attention substructures were identified. As a result, the toxicity risk is not clearly attributed to specific substructures. The overall toxicity mechanism is unclear due to the lack of high-attention features.",
+      "mechanism": "The molecule's toxicity mechanism is not well understood due to the absence of high-attention substructures. The predicted toxicity of 5.6% suggests some level of toxicity, but the underlying causes are not clear from the provided evidence. Further analysis would be necessary to determine the specific toxicophores and mechanisms involved.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1CCN(CCCN2c3ccccc3Sc3ccc(S(=O)(=O)N(C)C)cc32)CC1",
+    "explanation": {
+      "smiles": "CN1CCN(CCCN2c3ccccc3Sc3ccc(S(=O)(=O)N(C)C)cc32)CC1",
+      "prediction": 0.0867796465754509,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 8.7%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 8.7% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to understand the molecular basis of this toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCNCC.O=S(=O)(O)c1cc(O)ccc1O",
+    "explanation": {
+      "smiles": "CCNCC.O=S(=O)(O)c1cc(O)ccc1O",
+      "prediction": 0.03854752704501152,
+      "executive_summary": "The molecule CCNCC.O=S(=O)(O)c1cc(O)ccc1O has a predicted toxicity of 3.9%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 3.9% may be attributed to unknown or subtle factors not captured by the model. Further analysis is needed to understand the potential toxic effects of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1nn(-c2cc(NS(C)(=O)=O)c(Cl)cc2Cl)c(=O)n1C(F)F",
+    "explanation": {
+      "smiles": "Cc1nn(-c2cc(NS(C)(=O)=O)c(Cl)cc2Cl)c(=O)n1C(F)F",
+      "prediction": 0.2092125564813614,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 20.9%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 20.9% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OC(c1ccc(Cl)cc1)(c1cncnc1)c1ccccc1Cl",
+    "explanation": {
+      "smiles": "OC(c1ccc(Cl)cc1)(c1cncnc1)c1ccccc1Cl",
+      "prediction": 0.40926146507263184,
+      "executive_summary": "The molecule has a predicted toxicity of 40.9%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 40.9% suggests potential toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores and mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCOC(=O)C(C)Oc1ccc(Oc2nc3ccc(Cl)cc3o2)cc1",
+    "explanation": {
+      "smiles": "CCOC(=O)C(C)Oc1ccc(Oc2nc3ccc(Cl)cc3o2)cc1",
+      "prediction": 0.2362838238477707,
+      "executive_summary": "The molecule has a predicted toxicity of 23.6%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be determined due to the absence of high-attention substructures. The predicted toxicity of 23.6% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCOC(=O)NCCOc1ccc(Oc2ccccc2)cc1",
+    "explanation": {
+      "smiles": "CCOC(=O)NCCOc1ccc(Oc2ccccc2)cc1",
+      "prediction": 0.20391839742660522,
+      "executive_summary": "The molecule has a predicted toxicity of 20.4%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 20.4% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores and understand their mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COc1c(O)cc2c(c1O)[C@@H]1O[C@H](CO)[C@@H](O)[C@H](O)[C@H]1OC2=O",
+    "explanation": {
+      "smiles": "COc1c(O)cc2c(c1O)[C@@H]1O[C@H](CO)[C@@H](O)[C@H](O)[C@H]1OC2=O",
+      "prediction": 0.09630117565393448,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 9.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The predicted toxicity may be due to the overall molecular structure rather than a specific toxic group.",
+      "mechanism": "The predicted toxicity of 9.6% cannot be attributed to a specific mechanism due to the absence of high-attention substructures. The molecule's overall structure may contribute to its toxicity, but no clear toxicophores were identified. Further analysis would be required to determine the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1onc(-c2ccccc2Cl)c1C(=O)N[C@@H]1C(=O)N2[C@@H](C(=O)[O-])C(C)(C)S[C@H]12",
+    "explanation": {
+      "smiles": "Cc1onc(-c2ccccc2Cl)c1C(=O)N[C@@H]1C(=O)N2[C@@H](C(=O)[O-])C(C)(C)S[C@H]12",
+      "prediction": 0.08825606852769852,
+      "executive_summary": "The predicted toxicity of the molecule is 8.8%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. The predicted toxicity of 8.8% suggests some level of toxicity, but the underlying causes cannot be determined from the provided evidence. Further analysis would be necessary to understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(=O)O[C@H]1C[C@@]2(C)[C@@H](C[C@@H](O)[C@H]3[C@@]4(C)CC[C@@H](O)[C@@H](C)[C@@H]4CC[C@@]32C)/C1=C(\\CCC=C(C)C)C(=O)[O-]",
+    "explanation": {
+      "smiles": "CC(=O)O[C@H]1C[C@@]2(C)[C@@H](C[C@@H](O)[C@H]3[C@@]4(C)CC[C@@H](O)[C@@H](C)[C@@H]4CC[C@@]32C)/C1=C(\\CCC=C(C)C)C(=O)[O-]",
+      "prediction": 0.13663171231746674,
+      "executive_summary": "The predicted toxicity of the molecule is 13.7%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The molecule's toxicity may be influenced by its overall structure, but without high-attention substructures, a detailed mechanism cannot be determined. The predicted toxicity of 13.7% suggests some level of concern, but the specific factors contributing to this toxicity are not clear from the provided evidence. Further analysis would be necessary to fully understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "N#Cc1c[nH]cc1-c1cccc2c1OC(F)(F)O2",
+    "explanation": {
+      "smiles": "N#Cc1c[nH]cc1-c1cccc2c1OC(F)(F)O2",
+      "prediction": 0.3823496401309967,
+      "executive_summary": "The molecule has a predicted toxicity of 38.2%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 38.2% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)C(=O)N1CCN(C)CC1.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+    "explanation": {
+      "smiles": "CCN(CC)C(=O)N1CCN(C)CC1.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+      "prediction": 0.0650944858789444,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 6.5%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of significant attention scores. No specific features or substructures were identified as contributing to the predicted toxicity. Further analysis is needed to understand the potential toxic effects of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)CCc1nc(-c2ccccc2)no1.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+    "explanation": {
+      "smiles": "CCN(CC)CCc1nc(-c2ccccc2)no1.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+      "prediction": 0.06961315125226974,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 7.0%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of substructures with attention scores above the threshold of 0.1. The predicted toxicity of 7.0% suggests some level of toxicity, but the specific mechanisms or contributing features cannot be determined from the provided evidence. Further analysis would be required to understand the toxicity profile of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1[C@H]2CC[C@@H]1C[C@H](OC1c3ccccc3CCc3ccccc31)C2.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+    "explanation": {
+      "smiles": "CN1[C@H]2CC[C@@H]1C[C@H](OC1c3ccccc3CCc3ccccc31)C2.O=C(O)CC(O)(CC(=O)O)C(=O)O",
+      "prediction": 0.09082454442977905,
+      "executive_summary": "The molecule has a predicted toxicity of 9.1%, but no high-attention substructures were identified. As a result, the toxicity risk is not well-explained by the model. Further analysis is needed to understand the potential toxic effects.",
+      "mechanism": "The model was unable to identify any high-attention substructures, making it difficult to propose a detailed mechanism for the predicted toxicity. The molecule's toxicity may be influenced by subtle interactions or features not captured by the model. Further investigation is required to understand the potential toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COc1ccc(C=O)cc1",
+    "explanation": {
+      "smiles": "COc1ccc(C=O)cc1",
+      "prediction": 0.06374336779117584,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl",
+    "explanation": {
+      "smiles": "COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl",
+      "prediction": 0.3095252215862274,
+      "executive_summary": "The molecule COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl has a predicted toxicity of 31.0%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is moderate, but the mechanisms are unclear due to the absence of high-attention substructures.",
+      "mechanism": "The molecule's toxicity cannot be explained by specific substructures, as none were identified with an attention score above the threshold. The predicted toxicity of 31.0% suggests some level of risk, but the underlying mechanisms are unclear. Further analysis would be required to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(NC(=O)c1c(F)cccc1F)Nc1ccc(OC(F)(F)C(F)OC(F)(F)F)c(Cl)c1",
+    "explanation": {
+      "smiles": "O=C(NC(=O)c1c(F)cccc1F)Nc1ccc(OC(F)(F)C(F)OC(F)(F)F)c(Cl)c1",
+      "prediction": 0.2691938281059265,
+      "executive_summary": "The molecule has a predicted toxicity of 26.9%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 26.9% suggests some level of toxicity, but the specific toxicophores and mechanisms are unclear. Further analysis is required to understand the potential toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCOC(=O)c1ccc(C(=O)OCCC)nc1",
+    "explanation": {
+      "smiles": "CCCOC(=O)c1ccc(C(=O)OCCC)nc1",
+      "prediction": 0.03639134764671326,
+      "executive_summary": "The predicted toxicity of the molecule is 3.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. The predicted toxicity of 3.6% suggests a potential low-level risk, but the underlying causes are not apparent from the provided evidence. Further analysis would be necessary to determine the specific factors contributing to the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(O)CCO",
+    "explanation": {
+      "smiles": "CC(O)CCO",
+      "prediction": 0.03832670673727989,
+      "executive_summary": "The molecule CC(O)CCO has a predicted toxicity of 3.8%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular structure.",
+      "mechanism": "The molecule's toxicity is not driven by any specific substructure, as no high-attention substructures were identified. The predicted toxicity of 3.8% is relatively low, suggesting a minimal risk. The molecular structure does not contain any notable toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)CCS",
+    "explanation": {
+      "smiles": "O=C(O)CCS",
+      "prediction": 0.032572679221630096,
+      "executive_summary": "The molecule O=C(O)CCS has a predicted toxicity of 3.3%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of notable toxicophores indicates a relatively safe molecular structure.",
+      "mechanism": "The molecule's toxicity is expected to be low due to the absence of high-attention substructures. No specific mechanism of toxicity can be determined from the provided evidence. The predicted toxicity of 3.3% is likely due to non-specific or weak interactions.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC[n+]1ccc(C)cc1.O=S(=O)([O-])C(F)(F)F",
+    "explanation": {
+      "smiles": "CCCC[n+]1ccc(C)cc1.O=S(=O)([O-])C(F)(F)F",
+      "prediction": 0.13952578604221344,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 14.0%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The predicted toxicity may be due to the overall molecular structure rather than a specific substructure.",
+      "mechanism": "The predicted toxicity of 14.0% may be due to the overall molecular structure, but no specific mechanism can be determined due to the lack of high-attention substructures. The molecule's structure, including the sulfonate group and the fluorinated alkyl group, may contribute to its toxicity. However, without high-attention substructures, the exact mechanism remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC[N+]1(C)CCCCC1.F[B-](F)(F)F",
+    "explanation": {
+      "smiles": "CCC[N+]1(C)CCCCC1.F[B-](F)(F)F",
+      "prediction": 0.07005324959754944,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 7.0%. No high-attention substructures were identified, suggesting that the toxicity may not be attributed to specific, prominent toxicophores. The overall toxicity mechanism is unclear due to the lack of high-attention substructures.",
+      "mechanism": "The predicted toxicity of 7.0% cannot be explained by specific substructures, as none were identified with an attention score above the threshold of 0.1. The molecule's toxicity may be the result of cumulative effects from multiple low-attention substructures. However, without further evidence, the exact mechanism remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(=O)C1CCCCC1=O",
+    "explanation": {
+      "smiles": "CC(=O)C1CCCCC1=O",
+      "prediction": 0.014379856176674366,
+      "executive_summary": "The molecule CC(=O)C1CCCCC1=O has a predicted toxicity of 1.4%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of notable substructures indicates a relatively safe molecular profile.",
+      "mechanism": "The molecule's toxicity is expected to be low due to the absence of high-attention substructures. The predicted toxicity of 1.4% is relatively low, and no specific mechanism can be attributed to the molecule's structure. The molecule's safety profile appears to be relatively favorable.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC[n+]1cccc(C)c1.O=S(=O)([O-])C(F)(F)F",
+    "explanation": {
+      "smiles": "CCCC[n+]1cccc(C)c1.O=S(=O)([O-])C(F)(F)F",
+      "prediction": 0.10663682222366333,
+      "executive_summary": "The molecule has a predicted toxicity of 10.7%. No high-attention substructures were identified, suggesting that the toxicity may not be attributed to a specific toxicophore. The overall mechanism of toxicity is unclear due to the lack of high-attention substructures.",
+      "mechanism": "The molecule's toxicity cannot be explained by a specific mechanism due to the absence of high-attention substructures. The predicted toxicity of 10.7% suggests some level of toxicity, but the underlying causes are unclear. Further analysis is needed to determine the molecular features contributing to the toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCN1C=CN(C)C1",
+    "explanation": {
+      "smiles": "CCCCN1C=CN(C)C1",
+      "prediction": 0.03999747708439827,
+      "executive_summary": "The molecule CCCCN1C=CN(C)C1 has a predicted toxicity of 4.0%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "No specific toxic mechanism can be determined due to the absence of high-attention substructures. The molecule's toxicity is predicted to be relatively low, with no clear contributing factors. The model's confidence in this prediction is limited by the lack of identifiable toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC1(C(=O)Nc2ccc(O)c(Cl)c2Cl)CCCCC1",
+    "explanation": {
+      "smiles": "CC1(C(=O)Nc2ccc(O)c(Cl)c2Cl)CCCCC1",
+      "prediction": 0.43156835436820984,
+      "executive_summary": "The molecule has a predicted toxicity of 43.2%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 43.2% suggests potential toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC[N+]1(C)CCCCC1",
+    "explanation": {
+      "smiles": "CCC[N+]1(C)CCCCC1",
+      "prediction": 0.07099888473749161,
+      "executive_summary": "The molecule CCC[N+]1(C)CCCCC1 has a predicted toxicity of 7.1%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity risk is relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none exceeded the attention threshold. The predicted toxicity of 7.1% may be due to the overall molecular structure, but no clear mechanism can be determined. Further analysis would be required to understand the molecule's potential toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC[N+]1(C)CCCCC1.F[B-](F)(F)F",
+    "explanation": {
+      "smiles": "CCCC[N+]1(C)CCCCC1.F[B-](F)(F)F",
+      "prediction": 0.0741865262389183,
+      "executive_summary": "The molecule CCCC[N+]1(C)CCCCC1.F[B-](F)(F)F has a predicted toxicity of 7.4%. No high-attention substructures were identified, suggesting that the toxicity may not be attributed to specific toxicophores. The overall toxicity risk appears to be moderate.",
+      "mechanism": "The predicted toxicity of 7.4% cannot be attributed to specific substructures, as no high-attention substructures were identified (attention < 0.1). The molecular structure does not provide clear evidence for a particular toxic mechanism. Further analysis would be required to determine the underlying causes of toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "N=C(N)N[N+](=O)[O-]",
+    "explanation": {
+      "smiles": "N=C(N)N[N+](=O)[O-]",
+      "prediction": 0.05627584457397461,
+      "executive_summary": "The molecule N=C(N)N[N+](=O)[O-] has a predicted toxicity of 5.6%. No high-attention substructures were identified, suggesting that the toxicity may not be driven by a specific, dominant toxicophore. The overall toxicity mechanism is unclear due to the lack of high-attention substructures.",
+      "mechanism": "The predicted toxicity of 5.6% cannot be attributed to a specific substructure or mechanism, as no high-attention substructures were identified (attention score < 0.1). The molecule's toxicity may be the result of a complex interplay of various factors, but the current evidence does not support the identification of a primary toxicophore or secondary features. Further analysis would be required to elucidate the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)(C)OOC(C)(C)C",
+    "explanation": {
+      "smiles": "CC(C)(C)OOC(C)(C)C",
+      "prediction": 0.0305203665047884,
+      "executive_summary": "The molecule CC(C)(C)OOC(C)(C)C has a predicted toxicity of 3.1%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be explained by any specific substructure, as none exceeded the attention threshold of 0.1. The predicted toxicity of 3.1% may be due to non-specific interactions or other factors not captured by the model. Further analysis would be required to determine the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCC(C)Nc1ccc(NC(C)CC)cc1",
+    "explanation": {
+      "smiles": "CCC(C)Nc1ccc(NC(C)CC)cc1",
+      "prediction": 0.20015911757946014,
+      "executive_summary": "The molecule has a predicted toxicity of 20.0%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of high-attention substructures. No specific toxicophores or features can be identified as contributing to the predicted toxicity. Further investigation is required to understand the potential toxicity of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCNCCCC",
+    "explanation": {
+      "smiles": "CCCCNCCCC",
+      "prediction": 0.021635515615344048,
+      "executive_summary": "The molecule CCCCNCCCC has a predicted toxicity of 2.2%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "The molecule does not exhibit any notable toxicophores or substructures with attention scores above the threshold of 0.1, indicating a low toxicity risk. The predicted toxicity of 2.2% is likely due to non-specific or weak interactions. No specific mechanism of toxicity can be inferred from the provided evidence.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCN(CCO)CCCC",
+    "explanation": {
+      "smiles": "CCCCN(CCO)CCCC",
+      "prediction": 0.0349636971950531,
+      "executive_summary": "The molecule CCCCN(CCO)CCCC has a predicted toxicity of 3.5%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as no high-attention substructures were identified (attention < 0.1). The predicted toxicity of 3.5% may be due to the overall molecular structure, but no clear mechanism can be determined. Further analysis would be required to understand the underlying causes of toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)c1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+    "explanation": {
+      "smiles": "O=C(O)c1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+      "prediction": 0.16444186866283417,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 16.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The predicted toxicity may be due to the overall molecular structure rather than a specific toxic group.",
+      "mechanism": "The predicted toxicity of 16.4% cannot be attributed to a specific mechanism due to the absence of high-attention substructures. The molecular structure as a whole may contribute to the toxicity, but no specific features can be identified. Further analysis would be required to determine the underlying mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN1C2CCC1CC(OC(c1ccccc1)c1ccc(Cl)cc1)C2",
+    "explanation": {
+      "smiles": "CN1C2CCC1CC(OC(c1ccccc1)c1ccc(Cl)cc1)C2",
+      "prediction": 0.18306513130664825,
+      "executive_summary": "The molecule has a predicted toxicity of 18.3%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 18.3% suggests some level of toxicity, but the specific toxicophores and mechanisms are unclear. Further analysis is required to identify potential toxicophores and their corresponding mechanisms.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Oc1ccc(C2CNCCc3c2cc(O)c(O)c3Cl)cc1",
+    "explanation": {
+      "smiles": "Oc1ccc(C2CNCCc3c2cc(O)c(O)c3Cl)cc1",
+      "prediction": 0.3837020695209503,
+      "executive_summary": "The molecule has a predicted toxicity of 38.4%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be determined due to the absence of high-attention substructures. The predicted toxicity of 38.4% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Oc1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+    "explanation": {
+      "smiles": "Oc1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+      "prediction": 0.27311697602272034,
+      "executive_summary": "The molecule has a predicted toxicity of 27.3%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 27.3% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C[C@@H](/C=C/[C@@H](C)[C@H]1CC[C@H]2/C(=C/C=C3C[C@@H](O)C[C@H](O)C3)CCC[C@@]21C)C(C)(C)O",
+    "explanation": {
+      "smiles": "C[C@@H](/C=C/[C@@H](C)[C@H]1CC[C@H]2/C(=C/C=C3C[C@@H](O)C[C@H](O)C3)CCC[C@@]21C)C(C)(C)O",
+      "prediction": 0.1561141014099121,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 15.6%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to the absence of significant attention scores.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the lack of high-attention substructures. No specific features or mechanisms can be identified based on the provided evidence. The predicted toxicity of 15.6% suggests some level of toxicity, but the underlying causes are not apparent from the model's output.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCOC(=O)NNc1nncc2ccccc12",
+    "explanation": {
+      "smiles": "CCOC(=O)NNc1nncc2ccccc12",
+      "prediction": 0.16395603120326996,
+      "executive_summary": "The molecule CCOC(=O)NNc1nncc2ccccc12 has a predicted toxicity of 16.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The overall mechanism of toxicity is unclear due to the absence of high-attention substructures. The predicted toxicity of 16.4% suggests some level of toxicity, but the specific mechanisms and contributing features cannot be determined. Further analysis would be required to understand the toxicity of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)(C)NCCNC(C)(C)C",
+    "explanation": {
+      "smiles": "CC(C)(C)NCCNC(C)(C)C",
+      "prediction": 0.03945862129330635,
+      "executive_summary": "The molecule CC(C)(C)NCCNC(C)(C)C has a predicted toxicity of 3.9%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 3.9% may be attributed to unknown or subtle factors not captured by the model. Further analysis is needed to fully understand the molecule's toxicity profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCC(F)(F)[C@@]1(O)CC[C@H]2[C@@H](CC(=O)[C@@H]2CCCCCCC(=O)O)O1",
+    "explanation": {
+      "smiles": "CCCCC(F)(F)[C@@]1(O)CC[C@H]2[C@@H](CC(=O)[C@@H]2CCCCCCC(=O)O)O1",
+      "prediction": 0.13870592415332794,
+      "executive_summary": "The molecule has a predicted toxicity of 13.9%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk appears to be relatively low.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 13.9% suggests some level of toxicity, but the underlying causes are unclear. Further analysis would be required to fully understand the toxicity profile of this molecule.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/CCC(=O)OC/C=C(\\C)CCC=C(C)C",
+    "explanation": {
+      "smiles": "CC(C)=CCC/C(C)=C/CC/C(C)=C/CCC(=O)OC/C=C(\\C)CCC=C(C)C",
+      "prediction": 0.037592627108097076,
+      "executive_summary": "The predicted toxicity of the molecule is 3.8%. No high-attention substructures were identified, suggesting a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 3.8% may be influenced by the overall molecular structure, but no specific features can be identified as contributing to this toxicity. Further analysis would be required to fully understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)Cc1nccn1-c1ccc([N+](=O)[O-])cc1C(=O)c1ccccc1Cl",
+    "explanation": {
+      "smiles": "CCN(CC)Cc1nccn1-c1ccc([N+](=O)[O-])cc1C(=O)c1ccccc1Cl",
+      "prediction": 0.15300513803958893,
+      "executive_summary": "The molecule has a predicted toxicity of 15.3%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 15.3% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OC1CCCCCCCCCCC1",
+    "explanation": {
+      "smiles": "OC1CCCCCCCCCCC1",
+      "prediction": 0.04183399677276611,
+      "executive_summary": "The molecule OC1CCCCCCCCCCC1 has a predicted toxicity of 4.2%. No high-attention substructures were identified, suggesting a lack of specific toxicophores. The overall toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity is not attributed to any specific substructure, as no high-attention substructures were identified. The predicted toxicity of 4.2% may be due to non-specific interactions or other factors not captured by the model. Further analysis is needed to fully understand the molecule's toxicity profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)(C)CC(=O)OCC(=O)[C@@]12OC(C)(C)O[C@@H]1C[C@H]1[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]12C",
+    "explanation": {
+      "smiles": "CC(C)(C)CC(=O)OCC(=O)[C@@]12OC(C)(C)O[C@@H]1C[C@H]1[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]12C",
+      "prediction": 0.2605765163898468,
+      "executive_summary": "The molecule has a predicted toxicity of 26.1%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "The overall mechanism of toxicity cannot be determined due to the absence of high-attention substructures. The predicted toxicity of 26.1% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores and understand their contributions to toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCS(=O)(=O)N[C@@H](Cc1ccc(OCCCCC2CCNCC2)cc1)C(=O)O",
+    "explanation": {
+      "smiles": "CCCCS(=O)(=O)N[C@@H](Cc1ccc(OCCCCC2CCNCC2)cc1)C(=O)O",
+      "prediction": 0.07391351461410522,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 7.4%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The overall toxicity mechanism is unclear due to insufficient evidence.",
+      "mechanism": "The predicted toxicity of 7.4% cannot be attributed to specific substructures, as none exceeded the attention threshold of 0.1. The molecule's toxicity mechanism remains unclear. Further analysis is required to understand the potential toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "COC(=O)c1ccc(C(=O)O)cc1",
+    "explanation": {
+      "smiles": "COC(=O)c1ccc(C(=O)O)cc1",
+      "prediction": 0.0270322784781456,
+      "executive_summary": "The predicted toxicity of the molecule is 2.7%. No high-attention substructures were identified, suggesting a low toxicity risk. The molecule's toxicity is not driven by any specific substructure with an attention score above the threshold.",
+      "mechanism": "The molecule's toxicity cannot be attributed to any specific substructure, as none have an attention score above 0.1. The predicted toxicity of 2.7% is likely due to the overall molecular structure, but the exact mechanism is unclear. Further analysis would be required to determine the underlying causes of toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CN(C)CCOCCO",
+    "explanation": {
+      "smiles": "CN(C)CCOCCO",
+      "prediction": 0.027726298198103905,
+      "executive_summary": "The molecule CN(C)CCOCCO has a predicted toxicity of 2.8%. No high-attention substructures were identified, suggesting a low toxicity risk. The lack of significant toxicophores indicates a relatively safe molecular profile.",
+      "mechanism": "No specific toxic mechanism can be determined due to the absence of high-attention substructures. The molecule's toxicity is likely to be low, but the exact mechanism remains unclear. Further analysis would be required to fully understand the molecular behavior.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)[N+](C)(C)CC(O)COc1cccc2ccccc12",
+    "explanation": {
+      "smiles": "CC(C)[N+](C)(C)CC(O)COc1cccc2ccccc12",
+      "prediction": 0.07148876041173935,
+      "executive_summary": "The molecule has a predicted toxicity of 7.1%, but no high-attention substructures were identified. As a result, the toxicity mechanism is unclear. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 7.1% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1ccc(S(=O)(=O)NC(=O)N[C@@H](C)Cc2ccccc2)cc1",
+    "explanation": {
+      "smiles": "Cc1ccc(S(=O)(=O)NC(=O)N[C@@H](C)Cc2ccccc2)cc1",
+      "prediction": 0.03234441950917244,
+      "executive_summary": "The predicted toxicity of the molecule is 3.2%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk appears to be relatively low.",
+      "mechanism": "The molecule's toxicity mechanism cannot be determined with confidence due to the absence of high-attention substructures. The predicted toxicity of 3.2% suggests a potential low-level risk, but the underlying causes are unclear. Further analysis would be necessary to fully understand the molecule's toxicity profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Nc1ccc(S(=O)(=O)NCc2ccccc2)cc1",
+    "explanation": {
+      "smiles": "Nc1ccc(S(=O)(=O)NCc2ccccc2)cc1",
+      "prediction": 0.046053215861320496,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 4.6%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 4.6% may be due to the overall molecular structure, but the lack of high-attention substructures prevents the identification of a specific toxicophore or mechanism. The molecule's sulfonamide group may contribute to its toxicity, but this cannot be confirmed without further evidence. The actual mechanism of toxicity remains unclear.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC=CC=NNC(=O)c1ccncc1",
+    "explanation": {
+      "smiles": "CC=CC=NNC(=O)c1ccncc1",
+      "prediction": 0.21587993204593658,
+      "executive_summary": "The molecule CC=CC=NNC(=O)c1ccncc1 has a predicted toxicity of 21.6%. No high-attention substructures were identified, suggesting that the toxicity may be due to the overall molecular structure rather than a specific toxicophore. The lack of high-attention substructures limits the ability to provide a detailed mechanism of toxicity.",
+      "mechanism": "The predicted toxicity of 21.6% may be due to the overall molecular structure, but without high-attention substructures, a detailed mechanism cannot be proposed. The molecule's structure and potential reactivity will influence its toxicity, but specific features contributing to this toxicity are not identified. Further analysis would be required to determine the exact mechanism of toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C1C(=O)c2ncccc2-c2cccnc21",
+    "explanation": {
+      "smiles": "O=C1C(=O)c2ncccc2-c2cccnc21",
+      "prediction": 0.4496630132198334,
+      "executive_summary": "The molecule has a predicted toxicity of 45.0%. No high-attention substructures were identified, indicating that the model did not find any specific toxicophores with attention scores above the threshold. The toxicity risk is moderate, but the lack of high-attention substructures limits the ability to provide a detailed mechanism.",
+      "mechanism": "The model predicts a moderate toxicity risk, but the absence of high-attention substructures prevents the identification of a specific toxicophore or mechanism. The molecule's toxicity may be due to the collective effect of its structural features, but this cannot be confirmed without further analysis. The predicted toxicity should be interpreted with caution due to the limited information available.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC12CCC(C[N+](C)(CCC[N+](C)(C)C)C1)C2(C)C.COS(=O)(=O)[O-].COS(=O)(=O)[O-]",
+    "explanation": {
+      "smiles": "CC12CCC(C[N+](C)(CCC[N+](C)(C)C)C1)C2(C)C.COS(=O)(=O)[O-].COS(=O)(=O)[O-]",
+      "prediction": 0.05340288579463959,
+      "executive_summary": "The predicted toxicity of the molecule is 5.3%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The molecule's toxicity risk is relatively low, but the absence of high-attention substructures limits the understanding of its toxic mechanisms.",
+      "mechanism": "The molecule's toxicity mechanism is unclear due to the absence of high-attention substructures. The predicted toxicity of 5.3% suggests some level of toxicity, but the underlying causes cannot be determined from the provided evidence. Further analysis would be necessary to understand the molecule's toxic effects.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Nc1ccc(C(=O)Nc2ccccc2N)cc1",
+    "explanation": {
+      "smiles": "Nc1ccc(C(=O)Nc2ccccc2N)cc1",
+      "prediction": 0.5001572966575623,
+      "executive_summary": "The molecule has a predicted toxicity of 50.0%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 50.0% suggests potential toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C[N+](C)(C)CCOC(=O)C(O)(c1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "C[N+](C)(C)CCOC(=O)C(O)(c1ccccc1)c1ccccc1",
+      "prediction": 0.14434342086315155,
+      "executive_summary": "The molecule has a predicted toxicity of 14.4%, but no high-attention substructures were identified. As a result, the toxicity risk is uncertain. Further analysis is needed to determine the potential toxicophores.",
+      "mechanism": "No overall mechanism can be proposed due to the absence of high-attention substructures. The predicted toxicity of 14.4% suggests some level of toxicity, but the underlying causes are unclear. Further investigation is required to identify potential toxicophores.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)C=CC(=O)Nc1ccc(S(=O)(=O)Nc2nccs2)cc1",
+    "explanation": {
+      "smiles": "O=C(O)C=CC(=O)Nc1ccc(S(=O)(=O)Nc2nccs2)cc1",
+      "prediction": 0.09154164046049118,
+      "executive_summary": "The molecule has a predicted toxicity of 9.2%. No high-attention substructures were identified, indicating a lack of clear toxicophores. The toxicity risk is moderate, but the underlying mechanisms are unclear.",
+      "mechanism": "The molecule's toxicity is not clearly attributed to any specific substructure, as no high-attention substructures were identified. The predicted toxicity of 9.2% suggests some level of toxicity, but the mechanisms are not well-defined. Further analysis is needed to understand the molecule's toxicological profile.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.7937005259840998,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "FC(F)(F)C(F)(F)C(F)(F)C(F)(F)CCI",
+    "explanation": {
+      "smiles": "FC(F)(F)C(F)(F)C(F)(F)C(F)(F)CCI",
+      "prediction": 0.021364480257034302,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC/C=C\\CCOC(=O)CC",
+    "explanation": {
+      "smiles": "CC/C=C\\CCOC(=O)CC",
+      "prediction": 0.02771536447107792,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CO[PH](=O)OC",
+    "explanation": {
+      "smiles": "CO[PH](=O)OC",
+      "prediction": 0.019055882468819618,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C=CC(C)(CCC=C(C)C)OC(=O)CC",
+    "explanation": {
+      "smiles": "C=CC(C)(CCC=C(C)C)OC(=O)CC",
+      "prediction": 0.032149214297533035,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN1C(=O)CC[C@H]1c1cccnc1",
+    "explanation": {
+      "smiles": "CN1C(=O)CC[C@H]1c1cccnc1",
+      "prediction": 0.02136301063001156,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C[C@H]1C[C@@H](O)CC(C)(C)C1",
+    "explanation": {
+      "smiles": "C[C@H]1C[C@@H](O)CC(C)(C)C1",
+      "prediction": 0.052212197333574295,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "ClP(Cl)c1ccccc1",
+    "explanation": {
+      "smiles": "ClP(Cl)c1ccccc1",
+      "prediction": 0.017810335382819176,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C1COCO1",
+    "explanation": {
+      "smiles": "C1COCO1",
+      "prediction": 0.0026506029535084963,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1c(O)cccc1O",
+    "explanation": {
+      "smiles": "Cc1c(O)cccc1O",
+      "prediction": 0.16711115837097168,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCOC(=O)CC([O-])C(=O)OCC",
+    "explanation": {
+      "smiles": "CCOC(=O)CC([O-])C(=O)OCC",
+      "prediction": 0.005655546206980944,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "c1ccc(CCc2ccccc2)cc1",
+    "explanation": {
+      "smiles": "c1ccc(CCc2ccccc2)cc1",
+      "prediction": 0.11736122518777847,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COC(=O)c1ccccc1",
+    "explanation": {
+      "smiles": "COC(=O)c1ccccc1",
+      "prediction": 0.03031604178249836,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C=CC(=O)OCC(C)OCC(C)OCC(C)OC(=O)C=C",
+    "explanation": {
+      "smiles": "C=CC(=O)OCC(C)OCC(C)OCC(C)OC(=O)C=C",
+      "prediction": 0.34579387307167053,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ccc(CO)cc1",
+    "explanation": {
+      "smiles": "Cc1ccc(CO)cc1",
+      "prediction": 0.05612606182694435,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C/C=C(/C)C#N",
+    "explanation": {
+      "smiles": "C/C=C(/C)C#N",
+      "prediction": 0.019687766209244728,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C=CC(=O)OCC[N+](C)(C)C",
+    "explanation": {
+      "smiles": "C=CC(=O)OCC[N+](C)(C)C",
+      "prediction": 0.1338213086128235,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(C=Cc1ccccc1)OCc1ccccc1",
+    "explanation": {
+      "smiles": "O=C(C=Cc1ccccc1)OCc1ccccc1",
+      "prediction": 0.3472693860530853,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "N#Cc1ccccc1O",
+    "explanation": {
+      "smiles": "N#Cc1ccccc1O",
+      "prediction": 0.1885596513748169,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCCCCCCCCCCCCC[N+](C)(C)Cc1ccccc1",
+    "explanation": {
+      "smiles": "CCCCCCCCCCCCCCCC[N+](C)(C)Cc1ccccc1",
+      "prediction": 0.19787347316741943,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(N)C12CC3CC(CC(C3)C1)C2",
+    "explanation": {
+      "smiles": "CC(N)C12CC3CC(CC(C3)C1)C2",
+      "prediction": 0.03754279017448425,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)(N)Cc1ccc(Cl)cc1",
+    "explanation": {
+      "smiles": "CC(C)(N)Cc1ccc(Cl)cc1",
+      "prediction": 0.03681355342268944,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCC(CC)COC(=O)COc1ccc(Cl)cc1C",
+    "explanation": {
+      "smiles": "CCCCC(CC)COC(=O)COc1ccc(Cl)cc1C",
+      "prediction": 0.015288207679986954,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COc1cc(NCc2ccc3nc(N)nc(N)c3c2C)cc(OC)c1OC",
+    "explanation": {
+      "smiles": "COc1cc(NCc2ccc3nc(N)nc(N)c3c2C)cc(OC)c1OC",
+      "prediction": 0.3211130201816559,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN(C)CC[C@@H](c1ccc(Br)cc1)c1ccccn1",
+    "explanation": {
+      "smiles": "CN(C)CC[C@@H](c1ccc(Br)cc1)c1ccccn1",
+      "prediction": 0.032495494931936264,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O[C@@H](c1cc(C(F)(F)F)nc2c(C(F)(F)F)cccc12)[C@H]1CCCCN1",
+    "explanation": {
+      "smiles": "O[C@@H](c1cc(C(F)(F)F)nc2c(C(F)(F)F)cccc12)[C@H]1CCCCN1",
+      "prediction": 0.3960760831832886,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(O)CCC(=O)O.c1ccc(C2(c3ccccc3)CC2C2=NCCN2)cc1",
+    "explanation": {
+      "smiles": "O=C(O)CCC(=O)O.c1ccc(C2(c3ccccc3)CC2C2=NCCN2)cc1",
+      "prediction": 0.09918743371963501,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC1NCCOC1c1ccccc1",
+    "explanation": {
+      "smiles": "CC1NCCOC1c1ccccc1",
+      "prediction": 0.03302188590168953,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCc1ncc(C(=O)O)s1",
+    "explanation": {
+      "smiles": "CCCc1ncc(C(=O)O)s1",
+      "prediction": 0.04735488072037697,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(CCOCCOCCOCCOCCC(=O)Nc1c(I)cc(I)c(C(=O)O)c1I)Nc1c(I)cc(I)c(C(=O)O)c1I",
+    "explanation": {
+      "smiles": "O=C(CCOCCOCCOCCOCCC(=O)Nc1c(I)cc(I)c(C(=O)O)c1I)Nc1c(I)cc(I)c(C(=O)O)c1I",
+      "prediction": 0.056847717612981796,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCCC(CO)CCC",
+    "explanation": {
+      "smiles": "CCCCCC(CO)CCC",
+      "prediction": 0.024137206375598907,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cccc2[nH]nnc12",
+    "explanation": {
+      "smiles": "Cc1cccc2[nH]nnc12",
+      "prediction": 0.02294808439910412,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCCCCCCCCC(=O)OC[C@@H](O)[C@H]1OC[C@H](OCCO)[C@H]1OCCO",
+    "explanation": {
+      "smiles": "CCCCCCCCCCCC(=O)OC[C@@H](O)[C@H]1OC[C@H](OCCO)[C@H]1OCCO",
+      "prediction": 0.1270437091588974,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CS(=O)(=O)OCC(O)C(O)COS(C)(=O)=O",
+    "explanation": {
+      "smiles": "CS(=O)(=O)OCC(O)C(O)COS(C)(=O)=O",
+      "prediction": 0.05183478817343712,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C=CCN(CC=C)CC=C",
+    "explanation": {
+      "smiles": "C=CCN(CC=C)CC=C",
+      "prediction": 0.07026055455207825,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C=CCn1c(=O)n(CC=C)c(=O)n(CC=C)c1=O",
+    "explanation": {
+      "smiles": "C=CCn1c(=O)n(CC=C)c(=O)n(CC=C)c1=O",
+      "prediction": 0.030711455270648003,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(NCO)NCO",
+    "explanation": {
+      "smiles": "O=C(NCO)NCO",
+      "prediction": 0.03097343258559704,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cccc(O)c1C",
+    "explanation": {
+      "smiles": "Cc1cccc(O)c1C",
+      "prediction": 0.05793499946594238,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ccc(C)c(O)c1",
+    "explanation": {
+      "smiles": "Cc1ccc(C)c(O)c1",
+      "prediction": 0.0455196350812912,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cc(C)cc(O)c1",
+    "explanation": {
+      "smiles": "Cc1cc(C)cc(O)c1",
+      "prediction": 0.0516582690179348,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN(C)c1ccc(N)cc1",
+    "explanation": {
+      "smiles": "CN(C)c1ccc(N)cc1",
+      "prediction": 0.497402548789978,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COc1cc2c(cc1O)CCN[C@]21CS[C@@H]2c3c(OC(C)=O)c(C)c4c(c3[C@H](COC1=O)N1[C@@H](O)[C@@H]3Cc5cc(C)c(OC)c(O)c5[C@H]([C@H]21)N3C)OCO4",
+    "explanation": {
+      "smiles": "COc1cc2c(cc1O)CCN[C@]21CS[C@@H]2c3c(OC(C)=O)c(C)c4c(c3[C@H](COC1=O)N1[C@@H](O)[C@@H]3Cc5cc(C)c(OC)c(O)c5[C@H]([C@H]21)N3C)OCO4",
+      "prediction": 0.17475931346416473,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Nc1cc(=O)nc(N)[nH]1",
+    "explanation": {
+      "smiles": "Nc1cc(=O)nc(N)[nH]1",
+      "prediction": 0.01910177432000637,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1coc2c1CCC(C)C2",
+    "explanation": {
+      "smiles": "Cc1coc2c1CCC(C)C2",
+      "prediction": 0.024972597137093544,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Nc1c[n+](N2CCOCC2)no1",
+    "explanation": {
+      "smiles": "Nc1c[n+](N2CCOCC2)no1",
+      "prediction": 0.005785301793366671,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)(Cl)Cl",
+    "explanation": {
+      "smiles": "CC(C)(Cl)Cl",
+      "prediction": 0.015052408911287785,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(O)Cc1ccc(OCCNC[C@H](O)c2ccccc2)cc1",
+    "explanation": {
+      "smiles": "O=C(O)Cc1ccc(OCCNC[C@H](O)c2ccccc2)cc1",
+      "prediction": 0.08486790210008621,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN1CCCN(C(c2ccccc2)c2ccc(Cl)cc2)CC1",
+    "explanation": {
+      "smiles": "CN1CCCN(C(c2ccccc2)c2ccc(Cl)cc2)CC1",
+      "prediction": 0.0963059738278389,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cn1cc(NC(=O)c2cc(NC(=O)c3cc(NC=O)cn3C)cn2C)cc1C(=O)NCCC(=N)N",
+    "explanation": {
+      "smiles": "Cn1cc(NC(=O)c2cc(NC(=O)c3cc(NC=O)cn3C)cn2C)cc1C(=O)NCCC(=N)N",
+      "prediction": 0.10082295536994934,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(=O)O[C@H]1CC[C@@]2(C)C(=CC[C@H]3[C@@H]4CC=C(c5cccnc5)[C@@]4(C)CC[C@@H]32)C1",
+    "explanation": {
+      "smiles": "CC(=O)O[C@H]1CC[C@@]2(C)C(=CC[C@H]3[C@@H]4CC=C(c5cccnc5)[C@@]4(C)CC[C@@H]32)C1",
+      "prediction": 0.4489973485469818,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "c1ccc(-c2ccc(C(c3ccccc3)n3ccnc3)cc2)cc1",
+    "explanation": {
+      "smiles": "c1ccc(-c2ccc(C(c3ccccc3)n3ccnc3)cc2)cc1",
+      "prediction": 0.46185004711151123,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3[C@@H](O)C[C@@]21C",
+      "prediction": 0.3344457447528839,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC[N+](C)(CC)CCOC(=O)C(O)(c1ccccc1)C1CCCCC1",
+    "explanation": {
+      "smiles": "CC[N+](C)(CC)CCOC(=O)C(O)(c1ccccc1)C1CCCCC1",
+      "prediction": 0.1076991930603981,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(O)c1ccc(OCCn2ccnc2)cc1",
+    "explanation": {
+      "smiles": "O=C(O)c1ccc(OCCn2ccnc2)cc1",
+      "prediction": 0.24390274286270142,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCCCCCNC(C)C(O)c1ccc(SC(C)C)cc1",
+    "explanation": {
+      "smiles": "CCCCCCCCNC(C)C(O)c1ccc(SC(C)C)cc1",
+      "prediction": 0.04243503138422966,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COc1cc(OC)nc(NC(=O)[N-]S(=O)(=O)c2ncccc2OCC(F)(F)F)n1",
+    "explanation": {
+      "smiles": "COc1cc(OC)nc(NC(=O)[N-]S(=O)(=O)c2ncccc2OCC(F)(F)F)n1",
+      "prediction": 0.11873818188905716,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN/C(=N/[N+](=O)[O-])NCC1CCOC1",
+    "explanation": {
+      "smiles": "CN/C(=N/[N+](=O)[O-])NCC1CCOC1",
+      "prediction": 0.03130917251110077,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC1(C)OC[C@@H]2O[C@@]3(C(=O)[O-])OC(C)(C)O[C@H]3[C@@H]2O1",
+    "explanation": {
+      "smiles": "CC1(C)OC[C@@H]2O[C@@]3(C(=O)[O-])OC(C)(C)O[C@H]3[C@@H]2O1",
+      "prediction": 0.03558523952960968,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=Cc1ccccc1Cl",
+    "explanation": {
+      "smiles": "O=Cc1ccccc1Cl",
+      "prediction": 0.07434611022472382,
+      "executive_summary": "[Explanation generation failed faithfulness validation]",
+      "mechanism": "",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after multiple attempts",
+      "generation_attempts": 3
+    }
+  }
+]

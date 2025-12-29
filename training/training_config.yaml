@@ -1,0 +1,103 @@
+# Training Configuration for ADMET GIN Models
+# ==============================================
+
+# Common settings for all models
+common:
+  device: cuda  # Use 'cpu' if no GPU available
+  seed: 42
+  early_stopping_patience: 50
+  save_best_only: true
+  log_interval: 10  # Log every N epochs
+  
+# Model architecture (same for all)
+architecture:
+  model_type: AttentionGINet
+  num_layer: 5
+  emb_dim: 300
+  feat_dim: 512
+  drop_ratio: 0.3
+  pred_n_layer: 2
+  pred_act: softplus
+
+# Classification models (Tox21, ClinTox, BBBP)
+classification:
+  epochs: 100
+  batch_size: 32
+  learning_rate: 0.0001
+  attention_lr: 0.0005  # Higher LR for attention layer
+  weight_decay: 0.0001
+  pos_weight: 3.0  # For class imbalance
+  scheduler: cosine
+  warmup_epochs: 5
+
+# Regression models (Caco2, Clearance, HLM_CLint)
+regression:
+  epochs: 150
+  batch_size: 32
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  loss: mse
+  scheduler: cosine
+  warmup_epochs: 5
+
+# Individual model configurations
+models:
+  tox21:
+    name: "Tox21 Toxicity"
+    type: classification
+    num_tasks: 12
+    package_dir: "data_packages/tox21_model_full_package"
+    output_file: "results/trained_models/attention_gin_model.pth"
+    status: trained  # Already done!
+    target_metric: roc_auc
+    target_value: 0.82
+    
+  clintox:
+    name: "Clinical Toxicity"
+    type: classification
+    num_tasks: 2
+    package_dir: "data_packages/clintox_model_package"  # To be created
+    output_file: "results/trained_models/clintox_gin_model.pth"
+    status: not_trained
+    target_metric: roc_auc
+    target_value: 0.90
+    
+  bbbp:
+    name: "Blood-Brain Barrier Penetration"
+    type: classification
+    num_tasks: 1
+    package_dir: "data_packages/bbbp_model_full_package"
+    output_file: "results/trained_models/bbbp_gin_model.pth"
+    status: not_trained
+    target_metric: roc_auc
+    target_value: 0.85
+    
+  caco2:
+    name: "Caco-2 Permeability"
+    type: regression
+    num_tasks: 1
+    package_dir: "data_packages/caco2_model_full_package"
+    output_file: "results/trained_models/caco2_gin_model.pth"
+    status: not_trained
+    target_metric: rmse
+    target_value: 0.5  # Lower is better
+    
+  clearance:
+    name: "Intrinsic Clearance"
+    type: regression
+    num_tasks: 1
+    package_dir: "data_packages/clearance_model_full_package"
+    output_file: "results/trained_models/clearance_gin_model.pth"
+    status: not_trained
+    target_metric: rmse
+    target_value: 0.6
+    
+  hlm_clint:
+    name: "HLM Intrinsic Clearance"
+    type: regression
+    num_tasks: 1
+    package_dir: "data_packages/hlm_clint_model_full_package"
+    output_file: "results/trained_models/hlm_clint_gin_model.pth"
+    status: not_trained
+    target_metric: rmse
+    target_value: 0.55
