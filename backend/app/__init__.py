@@ -36,11 +36,23 @@ static_dir = os.path.join(frontend_dir, 'src', 'assets')
 local_template = os.path.join(current_dir, 'templates')
 local_static = os.path.join(current_dir, 'static')
 
+# Debug paths
+print(f"🔍 Current Directory: {os.getcwd()}")
+print(f"🔍 File Directory: {current_dir}")
+print(f"🔍 Checking Local Template Path: {local_template}")
+
 if os.path.exists(local_template):
     template_dir = local_template
     print(f"✅ Using local templates: {template_dir}")
+    print(f"📂 Files in {template_dir}: {os.listdir(template_dir)}")
 else:
-    print(f"ℹ️ Using frontend templates: {template_dir}")
+    print(f"❌ Local templates not found at {local_template}")
+    print(f"ℹ️ Falling back to frontend templates: {template_dir}")
+    if os.path.exists(template_dir):
+         print(f"📂 Files in {template_dir}: {os.listdir(template_dir)}")
+    else:
+         print(f"❌ Frontend templates also NOT found at {template_dir}")
+
     
 if os.path.exists(local_static):
     static_dir = local_static
