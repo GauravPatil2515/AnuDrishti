@@ -28,9 +28,27 @@ frontend_dir = os.path.join(project_root, 'frontend')
 sys.path.append(project_root)
 sys.path.append(frontend_dir)
 
+# Determine template and static paths
+template_dir = os.path.join(frontend_dir, 'src', 'templates')
+static_dir = os.path.join(frontend_dir, 'src', 'assets')
+
+# Check if we should use local directories (Deployment Copy Strategy)
+local_template = os.path.join(current_dir, 'templates')
+local_static = os.path.join(current_dir, 'static')
+
+if os.path.exists(local_template):
+    template_dir = local_template
+    print(f"✅ Using local templates: {template_dir}")
+else:
+    print(f"ℹ️ Using frontend templates: {template_dir}")
+    
+if os.path.exists(local_static):
+    static_dir = local_static
+    print(f"✅ Using local static files: {static_dir}")
+
 app = Flask(__name__,
-            template_folder=os.path.join(frontend_dir, 'src', 'templates'),
-            static_folder=os.path.join(frontend_dir, 'src', 'assets'))
+            template_folder=template_dir,
+            static_folder=static_dir)
 app.secret_key = 'drugtox_ai_secret_key_2025'
 
 # Configuration

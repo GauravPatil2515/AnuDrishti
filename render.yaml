@@ -15,6 +15,12 @@ services:
       pip install scikit-learn xgboost transformers
       pip install torch-geometric -f https://data.pyg.org/whl/torch-2.1.2+cpu.html
       pip install -r backend/requirements.txt
+      
+      # Copy frontend templates to backend for deployment
+      mkdir -p backend/app/templates
+      mkdir -p backend/app/static
+      cp -r frontend/src/templates/* backend/app/templates/
+      cp -r frontend/src/assets/* backend/app/static/
     startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app --workers 1 --timeout 300 --preload
     envVars:
       - key: PYTHON_VERSION
