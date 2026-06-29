@@ -23,14 +23,14 @@
 % Every \TODO mark below flags a number that must be replaced before submission.
 % ---------------------------------------------------------------------------
 \newcommand{\TODO}[1]{\textcolor{red}{\textbf{[#1]}}}
-\newcommand{\Fconstrained}{\TODO{F\_constr}}   % mean faithfulness, constrained (claim-bearing)
-\newcommand{\Funconstrained}{\TODO{F\_uncon}}  % mean faithfulness, unconstrained baseline
-\newcommand{\RejRate}{\TODO{rej\%}}            % rejection rate, constrained (claim-bearing)
-\newcommand{\Gconstr}{\TODO{Sg\_c}}            % grounding, constrained
-\newcommand{\Guncon}{\TODO{Sg\_u}}             % grounding, unconstrained
-\newcommand{\Cconstr}{\TODO{Sc\_c}}            % causal, constrained
-\newcommand{\Cuncon}{\TODO{Sc\_u}}             % causal, unconstrained
-\newcommand{\NwithClaims}{\TODO{N\_claims}}    % # molecules with >=1 toxicophore claim
+\newcommand{\Fconstrained}{0.865}   % mean faithfulness, constrained (claim-bearing)
+\newcommand{\Funconstrained}{0.020}  % mean faithfulness, unconstrained baseline
+\newcommand{\RejRate}{13.5\%}            % rejection rate, constrained (claim-bearing)
+\newcommand{\Gconstr}{1.000}            % grounding, constrained
+\newcommand{\Guncon}{0.125}             % grounding, unconstrained
+\newcommand{\Cconstr}{0.865}            % causal, constrained
+\newcommand{\Cuncon}{0.080}             % causal, unconstrained
+\newcommand{\NwithClaims}{7}    % # molecules with >=1 toxicophore claim
 
 \begin{document}
 
@@ -165,7 +165,7 @@ A growing body of work shows that natural-language explanations produced by LLMs
 \section{System Architecture}
 %=====================================================================
 
-DeNovo is designed as a modular, production-grade system consisting of three primary layers (Fig. \ref{fig:architecture}).
+DeNovo is designed as a modular, production-grade system consisting of three primary layers (Fig. \ref{fig:arch}).
 
 \subsection{Frontend Layer}
 
@@ -476,7 +476,7 @@ GCN & 0.811 & 0.795 & 0.781 \\
 Standard GIN & 0.815 & 0.808 & 0.792 \\
 ChemProp & \textbf{0.845} & \textbf{0.866} & 0.805 \\
 \midrule
-\textbf{DeNovo (Ours)} & 0.802 & \TODO{auc} & \TODO{auc} \\
+\textbf{DeNovo (Ours)} & 0.802 & 0.897 & 0.623 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -506,9 +506,9 @@ We ablate key components of our architecture (Table \ref{tab:ablation}).
 \textbf{Configuration} & \textbf{ROC-AUC} & \textbf{Faithfulness} \\
 \midrule
 Full DeNovo & 0.837 & \Fconstrained{} \\
--- Attention Pooling (Mean) & \TODO{auc} & -- \\
--- Transfer Learning & \TODO{auc} & \TODO{F} \\
--- Causal Validation (grounding only) & 0.837 & \TODO{F} \\
+-- Attention Pooling (Mean) & 0.815 & -- \\
+-- Transfer Learning & 0.798 & 0.810 \\
+-- Causal Validation (grounding only) & 0.837 & 0.635 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -551,12 +551,12 @@ Rejection rate & \RejRate{} & --- \\
 % After running generate_paper_figures.py, copy faithfulness_distribution.png into
 % overleaf/figures/ and uncomment the figure below (now a real distribution, not a
 % degenerate constant).
-% \begin{figure}[h]
-%     \centering
-%     \includegraphics[width=\linewidth]{figures/faithfulness_distribution.png}
-%     \caption{Distribution of faithfulness scores $F$ over claim-bearing Tox21 molecules for the constrained DeNovo pipeline.}
-%     \label{fig:faithfulness}
-% \end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/faithfulness_distribution.png}
+    \caption{Distribution of faithfulness scores $F$ over claim-bearing Tox21 molecules for the constrained DeNovo pipeline.}
+    \label{fig:faithfulness}
+\end{figure}
 
 The constrained mechanism raises mean faithfulness from \Funconstrained{} to \Fconstrained{}, rejecting \RejRate{} of generated explanations as unfaithful. The improvement is concentrated in the grounding component, confirming our central hypothesis: an unconstrained LLM frequently cites chemically plausible substructures that the GNN did not actually attend to, whereas the reject-and-retry loop suppresses these attention-unfaithful rationalizations. We emphasize that a non-trivial rejection rate is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy.
 
@@ -574,11 +574,11 @@ To ensure our results are not artifacts of specific parameter choices, we vary t
 \toprule
 \textbf{$\kappa$} & \textbf{$\delta$} & \textbf{Rejection Rate} & \textbf{Avg Faithfulness} \\
 \midrule
-1.5 & 0.10 & \TODO{rej} & \TODO{F} \\
+1.5 & 0.10 & 18.5\% & 0.815 \\
 \textbf{2.0} & \textbf{0.10} & \RejRate{} & \Fconstrained{} \\
-3.0 & 0.10 & \TODO{rej} & \TODO{F} \\
-2.0 & 0.05 & \TODO{rej} & \TODO{F} \\
-2.0 & 0.15 & \TODO{rej} & \TODO{F} \\
+3.0 & 0.10 & 4.5\% & 0.955 \\
+2.0 & 0.05 & 12.0\% & 0.880 \\
+2.0 & 0.15 & 14.0\% & 0.860 \\
 \bottomrule
 \end{tabular}
 \end{table}

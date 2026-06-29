@@ -265,13 +265,14 @@ class SubstructureMapper:
             pattern = Chem.MolFromSmarts(info['smarts'])
             if pattern is not None:
                 self._compiled_patterns[name] = pattern
+        self.relative_factor = 2.0
     
     def identify_substructures(
         self,
         smiles: str,
         attention_weights: np.ndarray,
         threshold: Optional[float] = None,
-        relative_factor: float = 2.0
+        relative_factor: Optional[float] = None
     ) -> List[SubstructureMatch]:
         """
         Identify toxic substructures based on attention weights.
@@ -297,6 +298,9 @@ class SubstructureMapper:
         mol = Chem.AddHs(mol)
 
         attention_weights = np.asarray(attention_weights, dtype=float)
+
+        if relative_factor is None:
+            relative_factor = getattr(self, 'relative_factor', 2.0)
 
         # Determine the effective cutoff. Attention is softmax-normalized (sums to
         # 1.0), so per-atom values shrink as the molecule grows; a fixed absolute

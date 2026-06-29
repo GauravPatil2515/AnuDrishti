@@ -1,0 +1,32 @@
+[
+  {
+    "kappa": 1.5,
+    "delta": 0.1,
+    "rejection_rate": 0.18500000000000005,
+    "mean_faithfulness": 0.815
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.1,
+    "rejection_rate": 0.135,
+    "mean_faithfulness": 0.865
+  },
+  {
+    "kappa": 3.0,
+    "delta": 0.1,
+    "rejection_rate": 0.04500000000000004,
+    "mean_faithfulness": 0.955
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.05,
+    "rejection_rate": 0.12,
+    "mean_faithfulness": 0.88
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.15,
+    "rejection_rate": 0.14,
+    "mean_faithfulness": 0.86
+  }
+]

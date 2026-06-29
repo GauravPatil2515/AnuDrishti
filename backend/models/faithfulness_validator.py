@@ -139,6 +139,7 @@ class FaithfulnessValidator:
         self.faithfulness_threshold = faithfulness_threshold
         self.causal_drop_threshold = causal_drop_threshold
         self.attention_threshold = attention_threshold
+        self.kappa = 2.0
         
         # Import dependencies
         try:
@@ -426,7 +427,7 @@ class FaithfulnessValidator:
         # configured absolute threshold only if attention is empty.
         attention_weights = np.asarray(attention_weights, dtype=float)
         n_atoms = len(attention_weights)
-        cutoff = (2.0 / n_atoms) if n_atoms > 0 else self.attention_threshold
+        cutoff = (self.kappa / n_atoms) if n_atoms > 0 else self.attention_threshold
 
         for toxicophore in toxicophores:
             name = toxicophore.get('name', 'unknown')
@@ -480,7 +481,7 @@ class FaithfulnessValidator:
             self.model.eval()
             with torch.no_grad():
                 data = data.to(next(self.model.parameters()).device)
-                _, predictions, _ = self.model(data, return_attention=False)
+                _, predictions = self.model(data, return_attention=False)
                 
                 # Average across tasks
                 probs = torch.sigmoid(predictions).cpu().numpy()[0]

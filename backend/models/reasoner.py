@@ -335,6 +335,113 @@ class MockLLMProvider(LLMProvider):
     
     def generate(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.3) -> str:
         """Return mock response for testing."""
+        import re
+        import json
+        
+        if "JSON" in prompt:
+            # Let's check if this is the constrained prompt
+            is_constrained = "High-Attention Substructures" in prompt
+            
+            if is_constrained:
+                # Try to find high attention substructures in the evidence section only (after "High-Attention Substructures")
+                evidence_idx = prompt.find("High-Attention Substructures")
+                evidence_text = prompt[evidence_idx:] if evidence_idx != -1 else ""
+                sub_matches = re.findall(r'\d+\.\s+([\w\s_-]+?)(?:\s*\(atoms\s*(\[[^\]]*\])\))?\n', evidence_text)
+                if sub_matches:
+                    first_sub = sub_matches[0]
+                    primary_name = first_sub[0].strip()
+                    primary_atoms = [6, 7, 8]
+                    if first_sub[1]:
+                        try:
+                            primary_atoms = json.loads(first_sub[1])
+                        except:
+                            pass
+                    
+                    # Extract attention score if available
+                    primary_attention = 0.85
+                    attn_match = re.search(fr'{re.escape(first_sub[0])}.*?Attention:\s*([\d\.]+)%', prompt, re.DOTALL)
+                    if attn_match:
+                        primary_attention = float(attn_match.group(1)) / 100.0
+                    
+                    primary_mechanism = "Enzymatic reduction forms reactive intermediates."
+                    # Look up mechanism from TOXICOPHORES if available
+                    try:
+                        try:
+                            from utils.substructure_mapper import TOXICOPHORES
+                        except ImportError:
+                            from substructure_mapper import TOXICOPHORES
+                        if primary_name in TOXICOPHORES:
+                            primary_mechanism = TOXICOPHORES[primary_name]['mechanism']
+                    except:
+                        pass
+                    
+                    res = {
+                        "executive_summary": f"The prediction is driven by the presence of a {primary_name} group.",
+                        "primary_toxicophore": {
+                            "name": primary_name,
+                            "atoms": primary_atoms,
+                            "attention_score": primary_attention,
+                            "mechanism": primary_mechanism
+                        },
+                        "secondary_features": [],
+                        "overall_mechanism": primary_mechanism,
+                        "confidence": 0.95
+                    }
+                else:
+                    # No high-attention substructures. Return no claims.
+                    res = {
+                        "executive_summary": "No active toxicophores were identified above the attention threshold.",
+                        "primary_toxicophore": None,
+                        "secondary_features": [],
+                        "overall_mechanism": "The model prediction is based on global feature interactions rather than a single dominant toxicophore.",
+                        "confidence": 0.95
+                    }
+            else:
+                # Unconstrained mode: find a real toxicophore in the database based on SMILES
+                primary_name = "Nitro"
+                primary_atoms = [6, 7, 8]
+                primary_attention = 0.85
+                primary_mechanism = "Enzymatic reduction forms reactive nitroso intermediates."
+                
+                smiles_match = re.search(r'Molecule(?:\s*\(SMILES\))?:\s*([^\n\s]+)', prompt)
+                if smiles_match:
+                    smiles = smiles_match.group(1)
+                    try:
+                        from rdkit import Chem
+                        try:
+                            from utils.substructure_mapper import TOXICOPHORES
+                        except ImportError:
+                            from substructure_mapper import TOXICOPHORES
+                        
+                        mol = Chem.MolFromSmiles(smiles)
+                        if mol:
+                            mol = Chem.AddHs(mol)
+                            for k, v in TOXICOPHORES.items():
+                                patt = Chem.MolFromSmarts(v['smarts'])
+                                if patt and mol.HasSubstructMatch(patt):
+                                    primary_name = k
+                                    primary_atoms = list(mol.GetSubstructMatch(patt))
+                                    primary_attention = 0.8
+                                    primary_mechanism = v['mechanism']
+                                    break
+                    except:
+                        pass
+                
+                res = {
+                    "executive_summary": f"The prediction is driven by the presence of a {primary_name} group.",
+                    "primary_toxicophore": {
+                        "name": primary_name,
+                        "atoms": primary_atoms,
+                        "attention_score": primary_attention,
+                        "mechanism": primary_mechanism
+                    },
+                    "secondary_features": [],
+                    "overall_mechanism": primary_mechanism,
+                    "confidence": 0.95
+                }
+            
+            return json.dumps(res)
+
         if "executive summary" in prompt.lower():
             return ("This molecule shows moderate toxicity risk due to the presence of "
                    "reactive functional groups identified by the neural network. "

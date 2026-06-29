@@ -1,0 +1,17 @@
+{
+  "n_evaluated": 200,
+  "mean_faithfulness": 0.86,
+  "std_faithfulness": 0.34785776565376275,
+  "median_faithfulness": 1.0,
+  "rejection_rate": 0.14,
+  "mean_generation_attempts": 1.28,
+  "mean_toxicophores_per_molecule": 0.03,
+  "n_with_claims": 6,
+  "n_without_claims": 194,
+  "mean_faithfulness_claims": 1.0,
+  "std_faithfulness_claims": 0.0,
+  "median_faithfulness_claims": 1.0,
+  "rejection_rate_claims": 0.0,
+  "mean_grounding": 1.0,
+  "mean_causal": 0.86
+}
