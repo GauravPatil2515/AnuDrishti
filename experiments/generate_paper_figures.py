@@ -1,93 +1,106 @@
+#!/usr/bin/env python3
+"""
+Generate publication figures from a faithfulness evaluation run.
+
+Reads the results.csv written by run_faithful_eval.py and produces:
+  - faithfulness_distribution.png  (distribution of scores; real, not the old constant)
+  - acceptance_rate.png            (accepted vs rejected)
+  - toxicity_vs_faithfulness.png   (faithfulness vs predicted toxicity)
+
+Usage:
+    python generate_paper_figures.py \
+        --results results/eval_tox21_fixed/results.csv \
+        --output results/paper_figures
+"""
+
+import argparse
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
-import json
-import numpy as np
 
-# Set style for publication-quality figures
 plt.style.use('seaborn-v0_8-paper')
 sns.set_context("paper", font_scale=1.5)
 sns.set_style("whitegrid")
 
-OUTPUT_DIR = Path('results/paper_figures')
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-def load_data():
-    """Load evaluation results."""
-    csv_path = Path('results/eval_tox21_200/results.csv')
+def load_data(csv_path):
+    csv_path = Path(csv_path)
     if not csv_path.exists():
-        print(f"Error: {csv_path} not found.")
+        print(f"Error: {csv_path} not found. Run run_faithful_eval.py first.")
         return None
     return pd.read_csv(csv_path)
 
-def plot_faithfulness_distribution(df):
-    """Plot histogram of faithfulness scores."""
+
+def plot_faithfulness_distribution(df, out_dir):
     plt.figure(figsize=(10, 6))
-    
-    # Filter out 0.0 scores (rejections) for the distribution of *accepted* explanations
-    accepted_df = df[df['validation_passed'] == True]
-    
-    sns.histplot(data=accepted_df, x='faithfulness_score', bins=20, kde=True, color='#2ecc71')
-    
-    plt.title('Distribution of Faithfulness Scores (Accepted Explanations)', fontweight='bold')
-    plt.xlabel('Faithfulness Score (0-1)')
+    # Show the full distribution over claim-bearing molecules (the meaningful
+    # population). Rejections (F=0) are included so the figure reflects reality.
+    sub = df[df['n_toxicophores'] > 0] if 'n_toxicophores' in df.columns else df
+    sns.histplot(data=sub, x='faithfulness_score', bins=20, kde=True, color='#2ecc71')
+    plt.title('Distribution of Faithfulness Scores (claim-bearing molecules)', fontweight='bold')
+    plt.xlabel('Faithfulness Score $F$ (0-1)')
     plt.ylabel('Count')
-    plt.axvline(accepted_df['faithfulness_score'].median(), color='red', linestyle='--', label=f'Median: {accepted_df["faithfulness_score"].median():.3f}')
+    med = sub['faithfulness_score'].median()
+    plt.axvline(med, color='red', linestyle='--', label=f'Median: {med:.3f}')
     plt.legend()
-    
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / 'faithfulness_distribution.png', dpi=300)
+    plt.savefig(out_dir / 'faithfulness_distribution.png', dpi=300)
     plt.close()
     print("Generated faithfulness_distribution.png")
 
-def plot_rejection_analysis(df):
-    """Plot rejection rate and reasons."""
+
+def plot_rejection_analysis(df, out_dir):
     plt.figure(figsize=(8, 6))
-    
-    # Pie chart for Pass/Fail
-    pass_count = df['validation_passed'].sum()
+    pass_count = int(df['validation_passed'].sum())
     fail_count = len(df) - pass_count
-    
-    plt.pie([pass_count, fail_count], labels=['Accepted', 'Rejected'], 
-            colors=['#2ecc71', '#e74c3c'], autopct='%1.1f%%', 
+    plt.pie([pass_count, fail_count], labels=['Accepted', 'Rejected'],
+            colors=['#2ecc71', '#e74c3c'], autopct='%1.1f%%',
             explode=(0, 0.1), shadow=True, startangle=90)
-            
     plt.title('Explanation Acceptance Rate', fontweight='bold')
-    
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / 'acceptance_rate.png', dpi=300)
+    plt.savefig(out_dir / 'acceptance_rate.png', dpi=300)
     plt.close()
     print("Generated acceptance_rate.png")
 
-def plot_toxicity_vs_faithfulness(df):
-    """Scatter plot of predicted toxicity vs faithfulness."""
+
+def plot_toxicity_vs_faithfulness(df, out_dir):
     plt.figure(figsize=(10, 6))
-    
-    accepted_df = df[df['validation_passed'] == True]
-    
-    sns.scatterplot(data=accepted_df, x='prediction', y='faithfulness_score', 
+    sub = df[df['n_toxicophores'] > 0] if 'n_toxicophores' in df.columns else df
+    sns.scatterplot(data=sub, x='prediction', y='faithfulness_score',
                     alpha=0.6, color='#3498db', s=100)
-    
     plt.title('Faithfulness vs. Predicted Toxicity', fontweight='bold')
     plt.xlabel('Predicted Toxicity Probability')
-    plt.ylabel('Faithfulness Score')
-    plt.ylim(0.5, 1.05)
-    
-    # Add trend line
-    sns.regplot(data=accepted_df, x='prediction', y='faithfulness_score', 
-                scatter=False, color='gray', line_kws={'linestyle': '--'})
-    
+    plt.ylabel('Faithfulness Score $F$')
+    if len(sub) > 2:
+        sns.regplot(data=sub, x='prediction', y='faithfulness_score',
+                    scatter=False, color='gray', line_kws={'linestyle': '--'})
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / 'toxicity_vs_faithfulness.png', dpi=300)
+    plt.savefig(out_dir / 'toxicity_vs_faithfulness.png', dpi=300)
     plt.close()
     print("Generated toxicity_vs_faithfulness.png")
 
-if __name__ == "__main__":
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--results', default='results/eval_tox21_fixed/results.csv',
+                    help='Path to results.csv from run_faithful_eval.py')
+    ap.add_argument('--output', default='results/paper_figures',
+                    help='Output directory for figures')
+    args = ap.parse_args()
+
+    out_dir = Path(args.output)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     print("Generating paper figures...")
-    df = load_data()
+    df = load_data(args.results)
     if df is not None:
-        plot_faithfulness_distribution(df)
-        plot_rejection_analysis(df)
-        plot_toxicity_vs_faithfulness(df)
-        print(f"\nFigures saved to {OUTPUT_DIR.absolute()}")
+        plot_faithfulness_distribution(df, out_dir)
+        plot_rejection_analysis(df, out_dir)
+        plot_toxicity_vs_faithfulness(df, out_dir)
+        print(f"\nFigures saved to {out_dir.absolute()}")
+
+
+if __name__ == "__main__":
+    main()

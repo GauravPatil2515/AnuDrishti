@@ -242,11 +242,13 @@ REMEMBER: Only include features with attention > {attention_threshold}. Do not i
 
     def _extract_evidence(self, smiles: str, attention_weights: Any) -> Dict[str, Any]:
         """Extract high-attention substructures to serve as evidence."""
-        # Get active substructures
+        # Get active substructures. Use an adaptive, per-molecule attention cutoff
+        # (relative to the 1/N uniform baseline) rather than a fixed absolute
+        # threshold, which is diluted to zero matches on larger molecules.
         matches = self.substructure_mapper.identify_substructures(
             smiles,
             attention_weights,
-            threshold=self.attention_threshold
+            threshold=None
         )
         
         evidence = {

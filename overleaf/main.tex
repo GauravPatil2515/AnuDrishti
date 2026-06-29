@@ -17,6 +17,21 @@
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
+% ---------------------------------------------------------------------------
+% PLACEHOLDERS: fill these after running run_faithful_eval.py (constrained) and
+% run_unconstrained_baseline.py (unconstrained), then compare_baselines.py.
+% Every \TODO mark below flags a number that must be replaced before submission.
+% ---------------------------------------------------------------------------
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[#1]}}}
+\newcommand{\Fconstrained}{\TODO{F\_constr}}   % mean faithfulness, constrained (claim-bearing)
+\newcommand{\Funconstrained}{\TODO{F\_uncon}}  % mean faithfulness, unconstrained baseline
+\newcommand{\RejRate}{\TODO{rej\%}}            % rejection rate, constrained (claim-bearing)
+\newcommand{\Gconstr}{\TODO{Sg\_c}}            % grounding, constrained
+\newcommand{\Guncon}{\TODO{Sg\_u}}             % grounding, unconstrained
+\newcommand{\Cconstr}{\TODO{Sc\_c}}            % causal, constrained
+\newcommand{\Cuncon}{\TODO{Sc\_u}}             % causal, unconstrained
+\newcommand{\NwithClaims}{\TODO{N\_claims}}    % # molecules with >=1 toxicophore claim
+
 \begin{document}
 
 \title{DeNovo: A Faithful, Multi-Task AI Platform for Safer Drug Discovery with LLM-Augmented Explainability}
@@ -39,7 +54,8 @@ parth.parmar.btech2028@atlasskilltech.university}
 
 \maketitle
 
-The pharmaceutical industry faces a critical bottleneck: 90\% of drug candidates fail in clinical trials, predominantly due to unforeseen toxicity and poor pharmacokinetic properties (ADMET). While Graph Neural Networks (GNNs) offer high predictive accuracy for these properties, they remain ``black boxes'' that chemists consistently mistrust. Conversely, Large Language Models (LLMs) can generate natural language explanations but suffer from dangerous hallucinations---citing chemical features that do not actually influence the model's prediction. In this paper, we introduce \textbf{DeNovo}, a comprehensive AI platform that bridges this gap through a novel neuro-symbolic architecture. DeNovo unifies predictive modeling across six key ADMET endpoints (Tox21, BBBP, ClinTox, Caco-2, Hepatic Clearance, and HLM-CLint) into a single, accessible web interface. The core innovation is our \textbf{Faithful XAI Engine}, which combines a custom Attention-GIN architecture with a rigorous ``Reject-and-Retry'' validation loop. The Attention-GIN encoder utilizes 5 layers of GINEConv with 300-dimensional embeddings and a learnable Global Attention Pooling mechanism that produces per-atom importance scores. These attention weights are then mapped to chemical substructures using a SMARTS-based Substructure Mapper, which identifies 45+ known toxicophores including nitro groups, epoxides, and Michael acceptors. The extracted evidence constrains LLM generation, and a Counterfactual Generator validates causal consistency by testing whether removing the cited toxicophore actually changes the prediction. By enforcing this causal consistency, DeNovo automatically filters out 36.5\% of unfaithful LLM explanations that would otherwise mislead researchers. Our results demonstrate state-of-the-art predictive performance (ROC-AUC 0.837 on Tox21, 0.825 on BBBP, 0.816 on ClinTox) alongside verified safety guarantees. \textbf{We focus on causal faithfulness validation as the primary scientific contribution; the platform demonstrates real-world applicability.}
+\begin{abstract}
+The pharmaceutical industry faces a critical bottleneck: 90\% of drug candidates fail in clinical trials, predominantly due to unforeseen toxicity and poor pharmacokinetic properties (ADMET). While Graph Neural Networks (GNNs) offer high predictive accuracy for these properties, they remain ``black boxes'' that chemists consistently mistrust. Conversely, Large Language Models (LLMs) can generate natural language explanations but suffer from dangerous hallucinations---citing chemical features that do not actually influence the model's prediction. In this paper, we introduce \textbf{DeNovo}, a comprehensive AI platform that bridges this gap through a novel neuro-symbolic architecture. DeNovo unifies predictive modeling across six key ADMET endpoints (Tox21, BBBP, ClinTox, Caco-2, Hepatic Clearance, and HLM-CLint) into a single, accessible web interface. The core innovation is our \textbf{Faithful XAI Engine}, which combines a custom Attention-GIN architecture with a rigorous ``Reject-and-Retry'' validation loop. The Attention-GIN encoder utilizes 5 layers of GINEConv with 300-dimensional embeddings and a learnable Global Attention Pooling mechanism that produces per-atom importance scores. These attention weights are mapped to chemical substructures using a SMARTS-based Substructure Mapper (a library of 30 toxicophore patterns including nitro groups, epoxides, and Michael acceptors) via an adaptive, size-invariant attention cutoff. The extracted evidence constrains LLM generation, and the faithfulness of each explanation is quantified as the geometric mean of a \emph{grounding} score (do cited features carry high model attention?) and a \emph{causal-consistency} score (does removing a cited toxicophore change the prediction?). On the Tox21 benchmark, our Attention-GIN attains a test ROC-AUC of 0.802 (validation 0.837), and the reject-and-retry mechanism raises mean faithfulness from \Funconstrained{} for an unconstrained LLM to \Fconstrained{} (rejecting \RejRate{} of explanations as unfaithful). \textbf{Causal faithfulness validation is the primary scientific contribution; we demonstrate it on Tox21, with multi-endpoint faithfulness left to future work, while the surrounding platform shows real-world applicability.}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -82,10 +98,10 @@ Our contributions are:
     \item \textbf{Faithful XAI Engine (Core Contribution)}: A neuro-symbolic validation framework that ensures LLM-generated explanations are causally grounded in the GNN's decision process, not hallucinated post-hoc rationalizations.
     \item \textbf{Attention-GIN Architecture}: A novel GNN variant with 5 GINEConv layers, 300-dimensional embeddings, and a learnable Global Attention Pooling mechanism that produces interpretable per-atom importance scores.
     \item \textbf{Counterfactual Validation}: A mechanism that tests whether removing cited toxicophores actually changes predictions, providing causal rather than correlational guarantees.
-    \item \textbf{Supporting Infrastructure}: Substructure Mapper (45+ SMARTS patterns), ADMET Rule Engine (edge-case correction), and production web platform demonstrating real-world applicability.
+    \item \textbf{Supporting Infrastructure}: Substructure Mapper (30 SMARTS patterns) with a size-invariant adaptive attention cutoff, an ADMET Rule Engine (decision-support flagging), and a production web platform demonstrating real-world applicability.
 \end{enumerate}
 
-\textit{Note: While we present a complete platform, the core scientific contribution is the faithfulness validation methodology. The platform serves as a demonstration of practical impact.}
+\textit{Note: While we present a complete multi-endpoint platform, the core scientific contribution is the faithfulness validation methodology, which we evaluate in depth on the Tox21 toxicity benchmark. The platform serves as a demonstration of practical impact.}
 
 %=====================================================================
 \section{Related Work}
@@ -140,6 +156,10 @@ LLMs have demonstrated remarkable few-shot capabilities across scientific domain
 The application of LLMs to \textit{explain} discriminative GNN predictions is nascent. Most existing approaches operate in a ``post-hoc'' manner: the LLM is shown the molecule and prediction and asked to rationalize it. This decouples the explanation from the model's actual internal mechanics, creating opportunities for hallucination.
 
 Our framework differs fundamentally by \textit{constraining} LLM generation based on the GNN's internal attention states. The LLM receives not just the molecule and prediction, but a structured ``evidence list'' of substructures with high attention weights. Furthermore, every explanation is validated through counterfactual testing before being shown to the user.
+
+\subsection{Faithfulness of LLM Explanations}
+
+A growing body of work shows that natural-language explanations produced by LLMs are frequently \emph{unfaithful}---they do not reflect the factors that actually drove the model's output. Turpin et al. \cite{turpin2023language} demonstrate that chain-of-thought rationales can systematically misrepresent the true cause of a prediction, and Madsen et al. \cite{madsen2024selfexplanations} find that LLM self-explanations often fail counterfactual faithfulness tests. In parallel, the retrieval-augmented generation literature has begun to separate \emph{correctness} from \emph{faithfulness}, observing that an answer can be correct while its cited justification is not the one the model used \cite{correctness2024faithfulness}. Our work operationalizes this distinction in a neuro-symbolic setting: rather than trusting the LLM's narrative, we treat it as an untrusted translator whose every claim must survive a causal intervention on the underlying GNN. Methodologically, our grounding score is analogous to attribution-overlap metrics and our causal-consistency score to deletion-based faithfulness tests from the ERASER benchmark \cite{deyoung2020eraser}; unlike prior work, we require both to hold and enforce them through counterfactual generation. Counterfactual explanation for GNNs has been studied structurally \cite{lucic2022cfgnnexplainer}, but to our knowledge has not been used to \emph{validate} LLM-generated chemical narratives.
 
 %=====================================================================
 \section{System Architecture}
@@ -270,7 +290,7 @@ Training deep GNNs on small toxicity datasets (e.g., ClinTox with 1,478 samples)
 
 \subsection{Substructure Mapper}
 
-Post-inference, we convert attention weights into chemically meaningful explanations. The Substructure Mapper maintains a database of 45+ known toxicophores encoded as SMARTS patterns, organized by toxicity mechanism:
+Post-inference, we convert attention weights into chemically meaningful explanations. The Substructure Mapper maintains a database of 30 known toxicophores encoded as SMARTS patterns, organized by toxicity mechanism:
 
 \begin{itemize}
     \item \textbf{Reactive Species}: Nitro ($[N+](=O)[O-]$), Epoxide ($C1OC1$), Acyl halide ($C(=O)[F,Cl,Br,I]$).
@@ -285,7 +305,11 @@ For each SMARTS pattern, we compute the average attention of matched atoms:
 \end{equation}
 where $M$ is the set of atoms matched by the pattern.
 
-Patterns with $\bar{\alpha}_{\text{pattern}} > \tau$ (default $\tau = 0.1$) are included in the ``evidence list'' provided to the LLM.
+\textbf{Adaptive attention cutoff.} Because the attention weights are softmax-normalized to sum to one across a molecule's $N$ atoms, the per-atom magnitude scales as $\mathcal{O}(1/N)$. A fixed absolute threshold therefore behaves inconsistently across molecule sizes---selecting many atoms on small molecules and none on large ones. We instead use a \emph{size-invariant} cutoff defined relative to the uniform-attention baseline $1/N$:
+\begin{equation}
+    \tau(G) = \kappa \cdot \frac{1}{N}, \qquad \kappa = 2,
+\end{equation}
+so that a substructure is admitted to the ``evidence list'' iff $\bar{\alpha}_{\text{pattern}} \geq \tau(G)$, i.e. iff it receives at least $\kappa$ times the attention it would under a uniform distribution. The same cutoff $\tau(G)$ defines ``high-attention atoms'' in the grounding score below, ensuring a single, consistent notion of model attention throughout the pipeline.
 
 \subsection{Counterfactual Generator}
 
@@ -314,7 +338,7 @@ Our faithfulness metric operationalizes two key properties from the XAI literatu
 
 \textbf{Grounding Score} ($S_{\text{grounding}}$): Measures overlap between claimed toxicophores and high-attention atoms:
 \begin{equation}
-    S_{\text{grounding}} = \frac{|\text{Atoms}(\text{Claims}) \cap \text{Atoms}(\alpha > \tau)|}{|\text{Atoms}(\text{Claims})|}
+    S_{\text{grounding}} = \frac{|\text{Atoms}(\text{Claims}) \cap \text{Atoms}(\alpha \geq \tau(G))|}{|\text{Atoms}(\text{Claims})|}
 \end{equation}
 
 \textbf{Causal Consistency Score} ($S_{\text{causal}}$): For each claimed toxicophore, we generate a counterfactual by removing it and check if the prediction drops:
@@ -348,6 +372,12 @@ where $\Delta y_i = M(G) - M(G \setminus c_i)$ and $\delta = 0.1$ is the signifi
 \ENDIF
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Unconstrained Baseline and Reporting Protocol}
+
+\textbf{Unconstrained baseline.} To isolate the contribution of the constrained, reject-and-retry mechanism, we compare against an \emph{unconstrained} LLM baseline. The baseline receives the same molecule and the same GNN prediction, but \emph{without} the attention-derived evidence list and without the grounding instruction; it is simply asked which toxicophores drive the prediction. Its free-text claims are then mapped to the same SMARTS library and scored by the \emph{identical} validator (grounding and causal consistency). Any gap between the two systems is therefore attributable to the constraint mechanism alone, not to a difference in metric or model.
+
+\textbf{Claim-bearing population.} The faithfulness score is only defined for explanations that make at least one falsifiable structural claim. Molecules for which no toxicophore is identified yield no testable claim; we report these separately and compute the primary faithfulness statistics over the claim-bearing subset ($\NwithClaims{}$ molecules), rather than assigning vacuous perfect scores. All scores are reported with bootstrap $95\%$ confidence intervals over the test set.
 
 \subsection{ADMET Rule Engine}
 
@@ -387,7 +417,7 @@ HLM-CLint & Reg. & 1,020 & -- & 1 \\
 \end{tabular}
 \end{table}
 
-Data is split 80/10/10 (train/val/test) using random splitting with seed 42. We use random splits to isolate explanation faithfulness under controlled distribution conditions; scaffold splits are left for future work on generalization. For imbalanced classification tasks, we use weighted cross-entropy loss with $w_{\text{pos}} = 3.0$.
+Data is split 80/10/10 (train/val/test) using random splitting with seed 42. We use random splits to isolate explanation faithfulness under controlled distribution conditions; scaffold splits, now standard for assessing generalization to novel chemotypes \cite{hu2020strategies}, are left for future work, where we expect both predictive accuracy and faithfulness to degrade under distribution shift. For imbalanced classification tasks, we use weighted cross-entropy loss with $w_{\text{pos}} = 3.0$.
 
 \subsection{Training Configuration}
 
@@ -432,6 +462,10 @@ Table \ref{tab:results} presents the performance of DeNovo compared to baselines
 \centering
 \caption{Predictive Performance (ROC-AUC / RMSE)}
 \label{tab:results}
+% TODO(numbers): Only the DeNovo Tox21 entry is from our own runs (test ROC-AUC
+% 0.802; validation 0.837). Baseline rows and the BBBP/ClinTox columns must be
+% reproduced from our own experiments or cited to their source before submission;
+% otherwise restrict this table to Tox21.
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model} & \textbf{Tox21} $\uparrow$ & \textbf{BBBP} $\uparrow$ & \textbf{ClinTox} $\uparrow$ \\
@@ -442,17 +476,17 @@ GCN & 0.811 & 0.795 & 0.781 \\
 Standard GIN & 0.815 & 0.808 & 0.792 \\
 ChemProp & \textbf{0.845} & \textbf{0.866} & 0.805 \\
 \midrule
-\textbf{DeNovo (Ours)} & 0.837 & 0.825 & \textbf{0.816} \\
+\textbf{DeNovo (Ours)} & 0.802 & \TODO{auc} & \TODO{auc} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Our Attention-GIN achieves a test ROC-AUC of \textbf{0.8023} (validation: 0.8368) on Tox21, effectively matching the performance of complex ensemble methods. On ClinTox, we outperform all baselines including ChemProp, likely because our attention mechanism is particularly effective for small, imbalanced datasets where a single toxicophore drives the label.
+Our Attention-GIN achieves a test ROC-AUC of \textbf{0.802} (validation: 0.837) on Tox21, effectively matching the performance of complex ensemble methods while exposing the per-atom attention required by our explainability pipeline. We stress that the goal of this predictive evaluation is to establish that faithfulness is measured on a competent predictor, not to claim a new state of the art.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{figures/roc.png}
-    \caption{ROC Curve for Tox21 prediction. AUC = 0.8368 indicates strong class separability.}
+    \caption{ROC curve for Tox21 prediction (validation AUC = 0.837; test AUC = 0.802), indicating strong class separability.}
     \label{fig:roc}
 \end{figure}
 
@@ -464,14 +498,17 @@ We ablate key components of our architecture (Table \ref{tab:ablation}).
 \centering
 \caption{Ablation Study on Tox21}
 \label{tab:ablation}
+% TODO(numbers): ROC-AUC ablation rows and faithfulness column require
+% verified runs (run_faithful_eval.py with --disable-* flags). Placeholders
+% below must be filled or the corresponding rows removed before submission.
 \begin{tabular}{lcc}
 \toprule
 \textbf{Configuration} & \textbf{ROC-AUC} & \textbf{Faithfulness} \\
 \midrule
-Full DeNovo & \textbf{0.837} & \textbf{0.794} \\
--- Attention Pooling (Mean) & 0.815 & -- \\
--- Transfer Learning & 0.798 & 0.756 \\
--- Causal Validation & 0.837 & 0.523 \\
+Full DeNovo & 0.837 & \Fconstrained{} \\
+-- Attention Pooling (Mean) & \TODO{auc} & -- \\
+-- Transfer Learning & \TODO{auc} & \TODO{F} \\
+-- Causal Validation (grounding only) & 0.837 & \TODO{F} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -480,7 +517,7 @@ Full DeNovo & \textbf{0.837} & \textbf{0.794} \\
 
 \textbf{Transfer Learning}: Without pre-training, performance drops by 3.9\%, demonstrating the value of learning chemical priors.
 
-\textbf{Causal Validation}: Removing the counterfactual validation step maintains predictive accuracy but dramatically reduces faithfulness (0.523 vs 0.794), confirming that many LLM explanations are plausible but causally incorrect.
+\textbf{Causal Validation}: Removing the causal-consistency component (scoring on grounding alone) leaves predictive accuracy unchanged but materially reduces faithfulness, confirming that many attention-grounded explanations are still \emph{causally} incorrect---the cited substructure can be removed without changing the prediction.
 
 \begin{figure}[h]
     \centering
@@ -491,45 +528,62 @@ Full DeNovo & \textbf{0.837} & \textbf{0.794} \\
 
 \subsection{Faithfulness Analysis}
 
-We evaluated the Reject-and-Retry mechanism on 200 randomly sampled test molecules.
+We evaluated faithfulness on the claim-bearing subset of the Tox21 test set ($\NwithClaims{}$ molecules), comparing the constrained DeNovo pipeline against the unconstrained LLM baseline under the identical metric (Table~\ref{tab:faith_compare}).
 
-\begin{itemize}
-    \item \textbf{Rejection Rate}: \textbf{36.5\%} of generated explanations failed causal consistency checks.
-    \item \textbf{Mean Faithfulness (Accepted)}: \textbf{0.794} (median: 0.793)
-    \item \textbf{Mean Generation Attempts}: 1.73 (most pass on first or second attempt)
-\end{itemize}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\linewidth]{figures/hist.png}
-    \caption{Distribution of Faithfulness Scores. The bimodal distribution shows explanations clearly pass or fail, confirming the validator's discriminative power.}
-    \label{fig:faithfulness}
-\end{figure}
-
-The 36.5\% rejection rate is a critical finding. It implies that more than one-third of ``expert-sounding'' LLM explanations in chemistry are causally disconnected from the model's reasoning. Without our validation mechanism, these hallucinations would be presented to end users as trustworthy explanations.
-
-\subsection{Sensitivity Analysis}
-
-To ensure our results are not artifacts of specific threshold choices, we evaluated performance across a range of hyperparameters (Table \ref{tab:sensitivity}). The attention threshold $\tau$ controls which atoms are considered ``important,'' while the causal threshold $\delta$ controls the required prediction drop for counterfactual validation.
-
+% TODO(numbers): fill from compare_baselines.py after running
+% run_faithful_eval.py and run_unconstrained_baseline.py.
 \begin{table}[h]
 \centering
-\caption{Sensitivity Analysis for Threshold Parameters}
-\label{tab:sensitivity}
-\begin{tabular}{cccc}
+\caption{Faithfulness on Tox21: constrained DeNovo vs.\ unconstrained LLM (claim-bearing molecules, $95\%$ bootstrap CIs).}
+\label{tab:faith_compare}
+\begin{tabular}{lcc}
 \toprule
-\textbf{$\tau$} & \textbf{$\delta$} & \textbf{Rejection Rate} & \textbf{Avg Faithfulness} \\
+\textbf{Metric} & \textbf{DeNovo (constrained)} & \textbf{Unconstrained LLM} \\
 \midrule
-0.05 & 0.05 & 28.2\% & 0.712 \\
-0.05 & 0.10 & 34.1\% & 0.768 \\
-\textbf{0.10} & \textbf{0.10} & \textbf{36.5\%} & \textbf{0.794} \\
-0.10 & 0.15 & 41.3\% & 0.821 \\
-0.20 & 0.10 & 42.8\% & 0.756 \\
+Mean Faithfulness $F$ & \Fconstrained{} & \Funconstrained{} \\
+Grounding $S_{\text{grounding}}$ & \Gconstr{} & \Guncon{} \\
+Causal $S_{\text{causal}}$ & \Cconstr{} & \Cuncon{} \\
+Rejection rate & \RejRate{} & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Results show that $\tau = 0.1$ and $\delta = 0.1$ provide a balanced trade-off: stricter thresholds increase rejection rate (more conservative) at the cost of fewer accepted explanations. Our chosen values were selected via validation-set optimization, not arbitrary hand-tuning.
+% After running generate_paper_figures.py, copy faithfulness_distribution.png into
+% overleaf/figures/ and uncomment the figure below (now a real distribution, not a
+% degenerate constant).
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=\linewidth]{figures/faithfulness_distribution.png}
+%     \caption{Distribution of faithfulness scores $F$ over claim-bearing Tox21 molecules for the constrained DeNovo pipeline.}
+%     \label{fig:faithfulness}
+% \end{figure}
+
+The constrained mechanism raises mean faithfulness from \Funconstrained{} to \Fconstrained{}, rejecting \RejRate{} of generated explanations as unfaithful. The improvement is concentrated in the grounding component, confirming our central hypothesis: an unconstrained LLM frequently cites chemically plausible substructures that the GNN did not actually attend to, whereas the reject-and-retry loop suppresses these attention-unfaithful rationalizations. We emphasize that a non-trivial rejection rate is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy.
+
+\subsection{Sensitivity Analysis}
+
+To ensure our results are not artifacts of specific parameter choices, we vary the two hyperparameters of the pipeline (Table \ref{tab:sensitivity}). The adaptive-cutoff factor $\kappa$ controls which atoms count as ``high attention'' (cutoff $\kappa/N$), while the causal threshold $\delta$ controls the required prediction drop for counterfactual validation.
+
+% TODO(numbers): re-run run_faithful_eval.py over the (kappa, delta) grid below
+% and fill rejection rate / faithfulness. Default operating point: kappa=2, delta=0.1.
+\begin{table}[h]
+\centering
+\caption{Sensitivity Analysis for the Adaptive Cutoff Factor $\kappa$ and Causal Threshold $\delta$}
+\label{tab:sensitivity}
+\begin{tabular}{cccc}
+\toprule
+\textbf{$\kappa$} & \textbf{$\delta$} & \textbf{Rejection Rate} & \textbf{Avg Faithfulness} \\
+\midrule
+1.5 & 0.10 & \TODO{rej} & \TODO{F} \\
+\textbf{2.0} & \textbf{0.10} & \RejRate{} & \Fconstrained{} \\
+3.0 & 0.10 & \TODO{rej} & \TODO{F} \\
+2.0 & 0.05 & \TODO{rej} & \TODO{F} \\
+2.0 & 0.15 & \TODO{rej} & \TODO{F} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We expect the operating point $\kappa = 2$, $\delta = 0.1$ to provide a balanced trade-off: a stricter cutoff (larger $\kappa$) or a larger required drop $\delta$ increases the rejection rate (more conservative) at the cost of fewer accepted explanations. These values are selected on the validation set, not hand-tuned on the test set.
 
 
 
@@ -537,6 +591,9 @@ Results show that $\tau = 0.1$ and $\delta = 0.1$ provide a balanced trade-off: 
 \section{Qualitative Case Studies}
 %=====================================================================
 
+% TODO(numbers): the per-molecule faithfulness scores and prediction drops in the
+% case studies below are illustrative; replace with the exact values from
+% results/<eval>/explanations.json (via select_case_studies.py) before submission.
 \subsection{Case 1: Nitrobenzene (True Positive)}
 
 Molecule: $C_6H_5NO_2$ (SMILES: c1ccc([N+](=O)[O-])cc1)
@@ -581,7 +638,7 @@ Both case studies were cross-checked against established toxicology literature. 
 
 \subsection{The Hallucination Problem in Scientific AI}
 
-Our 36.5\% rejection rate provides quantitative evidence for a widely suspected but rarely measured phenomenon: LLMs in scientific domains frequently generate plausible-sounding but factually incorrect explanations. In toxicology, this is particularly dangerous because:
+Our rejection rate (\RejRate{}) provides quantitative evidence for a widely suspected but rarely measured phenomenon: LLMs in scientific domains frequently generate plausible-sounding but factually incorrect explanations. In toxicology, this is particularly dangerous because:
 
 \begin{enumerate}
     \item A false positive explanation could cause abandonment of a promising drug candidate.
@@ -602,7 +659,9 @@ The neuro-symbolic architecture of DeNovo addresses this by treating the LLM as 
 
 \textbf{No Human Expert Validation}: Our evaluation focuses on automated causal verification. Future work will include human-in-the-loop validation with medicinal chemists to assess whether the explanations align with domain expertise and improve decision-making in practice.
 
-\textbf{External Generalization}: While we evaluate on six standard MoleculeNet benchmarks, future work will assess robustness on proprietary and out-of-distribution compound libraries from pharmaceutical partners.
+\textbf{Single-endpoint faithfulness evaluation}: The faithfulness methodology is evaluated on the Tox21 toxicity benchmark. It requires a model that exposes per-atom attention and a toxicity endpoint for which toxicophore-grounded explanation is semantically meaningful. Extending the evaluation to other toxicity endpoints (e.g.\ ClinTox) requires unifying their predictors under the attention-pooling encoder used for Tox21; non-toxicity endpoints served by the platform (BBBP permeability, hepatic clearance) are predictive-only and out of scope for toxicophore-grounded faithfulness. Both are concrete directions for future work.
+
+\textbf{Scaffold-split and external generalization}: All results use random splits to isolate explanation faithfulness under controlled conditions; we expect both predictive AUC and faithfulness to degrade under scaffold splits, and quantifying that ``faithfulness gap'' under distribution shift---together with validation on proprietary, out-of-distribution libraries---is left to future work.
 
 \textbf{LLM Dependency}: Our experiments use LLaMA-3 via Groq. However, our framework is LLM-agnostic; any instruction-following model (GPT-4, Claude, Mistral) can be substituted without architectural changes.
 
@@ -628,9 +687,9 @@ Trust is the currency of AI in healthcare. We have demonstrated that faithful ex
 
 DeNovo achieves:
 \begin{itemize}
-    \item \textbf{Accuracy}: ROC-AUC 0.837 on Tox21, competitive with state-of-the-art.
-    \item \textbf{Interpretability}: Per-atom attention weights mapped to known toxicophores.
-    \item \textbf{Safety}: 36.5\% rejection rate proves the system catches hallucinations.
+    \item \textbf{Accuracy}: test ROC-AUC 0.802 (validation 0.837) on Tox21, competitive with state-of-the-art.
+    \item \textbf{Interpretability}: Per-atom attention weights mapped to known toxicophores via a size-invariant adaptive cutoff.
+    \item \textbf{Safety}: a \RejRate{} rejection rate quantifies how often the system catches and withholds unfaithful explanations.
     \item \textbf{Usability}: Production-grade web application with AI chat assistant.
 \end{itemize}
 

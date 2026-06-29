@@ -208,6 +208,37 @@ TOXICOPHORES = {
 }
 
 
+def adaptive_attention_cutoff(
+    attention_weights: np.ndarray,
+    relative_factor: float = 2.0,
+    min_floor: float = 0.0
+) -> float:
+    """Compute a per-molecule attention cutoff.
+
+    The GNN attention is softmax-normalized to sum to 1.0 across the atoms of a
+    single molecule, so per-atom values scale as ~1/N. A fixed absolute threshold
+    (e.g. 0.1) therefore matches nothing on larger molecules, where attention is
+    diluted across many atoms. We instead use a cutoff relative to the uniform
+    baseline (1/N): an atom (or matched substructure) is considered "high
+    attention" if it receives at least ``relative_factor`` times the attention it
+    would under a uniform distribution. This is scale-invariant across molecule
+    sizes and reduces to the intuitive notion of "attended to more than average".
+
+    Args:
+        attention_weights: Per-atom attention scores (sum ~= 1.0).
+        relative_factor: Multiple of the uniform baseline required (default 2.0).
+        min_floor: Optional absolute lower bound on the cutoff.
+
+    Returns:
+        The effective attention cutoff for this molecule.
+    """
+    n = len(attention_weights)
+    if n == 0:
+        return min_floor
+    uniform = 1.0 / n
+    return max(min_floor, relative_factor * uniform)
+
+
 class SubstructureMapper:
     """
     Maps GNN attention weights to chemically meaningful substructures.
@@ -236,29 +267,46 @@ class SubstructureMapper:
                 self._compiled_patterns[name] = pattern
     
     def identify_substructures(
-        self, 
+        self,
         smiles: str,
         attention_weights: np.ndarray,
-        threshold: float = 0.1
+        threshold: Optional[float] = None,
+        relative_factor: float = 2.0
     ) -> List[SubstructureMatch]:
         """
         Identify toxic substructures based on attention weights.
-        
+
         Args:
             smiles: SMILES string of molecule
             attention_weights: Per-atom attention scores from GNN
-            threshold: Minimum average attention to report substructure
-            
+            threshold: Absolute minimum average attention to report a substructure.
+                If ``None`` (default), an adaptive per-molecule cutoff is used (see
+                ``adaptive_attention_cutoff``), which is robust to molecule size.
+                A fixed absolute value is retained only for backward compatibility.
+            relative_factor: Multiple of the uniform baseline used when ``threshold``
+                is ``None``.
+
         Returns:
             List of SubstructureMatch objects sorted by importance
         """
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             return []
-        
+
         # Add hydrogens to match GNN processing
         mol = Chem.AddHs(mol)
-        
+
+        attention_weights = np.asarray(attention_weights, dtype=float)
+
+        # Determine the effective cutoff. Attention is softmax-normalized (sums to
+        # 1.0), so per-atom values shrink as the molecule grows; a fixed absolute
+        # threshold matches nothing on larger molecules. Default to an adaptive
+        # cutoff relative to the uniform (1/N) baseline.
+        if threshold is None:
+            cutoff = adaptive_attention_cutoff(attention_weights, relative_factor)
+        else:
+            cutoff = threshold
+
         matches = []
         
         for name, pattern in self._compiled_patterns.items():
@@ -275,8 +323,8 @@ class SubstructureMapper:
                 avg_attention = float(np.mean(atom_scores))
                 max_attention = float(np.max(atom_scores))
                 
-                # Only include if attention is above threshold
-                if avg_attention >= threshold:
+                # Only include if attention is above the (adaptive) cutoff
+                if avg_attention >= cutoff:
                     info = self.toxicophores[name]
                     matches.append(SubstructureMatch(
                         name=name,

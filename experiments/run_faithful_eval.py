@@ -217,6 +217,12 @@ def run_faithful_evaluation(
     
     df_results = pd.DataFrame(results)
     
+    # Faithfulness is only meaningfully defined for explanations that make at least
+    # one falsifiable structural claim (n_toxicophores > 0). Molecules where the
+    # mapper finds no toxicophore have nothing to verify, so their score is vacuous;
+    # we report the claim-bearing subset separately to avoid inflating the headline.
+    df_claims = df_results[df_results['n_toxicophores'] > 0]
+
     # Compute statistics
     stats = {
         'n_evaluated': len(df_results),
@@ -225,14 +231,34 @@ def run_faithful_evaluation(
         'median_faithfulness': df_results['faithfulness_score'].median(),
         'rejection_rate': (1 - df_results['validation_passed'].mean()),
         'mean_generation_attempts': df_results['generation_attempts'].mean(),
-        'mean_toxicophores_per_molecule': df_results['n_toxicophores'].mean()
+        'mean_toxicophores_per_molecule': df_results['n_toxicophores'].mean(),
+        # Claim-bearing subset (primary numbers for the paper)
+        'n_with_claims': int(len(df_claims)),
+        'n_without_claims': int(len(df_results) - len(df_claims)),
+        'mean_faithfulness_claims': df_claims['faithfulness_score'].mean() if len(df_claims) else None,
+        'std_faithfulness_claims': df_claims['faithfulness_score'].std() if len(df_claims) else None,
+        'median_faithfulness_claims': df_claims['faithfulness_score'].median() if len(df_claims) else None,
+        'rejection_rate_claims': (1 - df_claims['validation_passed'].mean()) if len(df_claims) else None,
+        # Component means (present only when faithfulness_details were recorded);
+        # enables the constrained-vs-unconstrained component breakdown.
+        'mean_grounding': (df_results['score_grounding'].dropna().mean()
+                           if 'score_grounding' in df_results.columns else None),
+        'mean_causal': (df_results['score_causal'].dropna().mean()
+                        if 'score_causal' in df_results.columns else None),
     }
-    
-    logger.info("Statistics:")
+
+    logger.info("Statistics (all molecules):")
     logger.info(f"  Mean Faithfulness Score: {stats['mean_faithfulness']:.3f} ± {stats['std_faithfulness']:.3f}")
     logger.info(f"  Median FS: {stats['median_faithfulness']:.3f}")
     logger.info(f"  Rejection Rate: {stats['rejection_rate']:.1%}")
     logger.info(f"  Avg Generation Attempts: {stats['mean_generation_attempts']:.2f}")
+    logger.info(f"  Molecules with >=1 claim: {stats['n_with_claims']} "
+                f"(without claims: {stats['n_without_claims']})")
+    if stats['mean_faithfulness_claims'] is not None:
+        logger.info("Statistics (claim-bearing subset):")
+        logger.info(f"  Mean Faithfulness: {stats['mean_faithfulness_claims']:.3f} "
+                    f"± {stats['std_faithfulness_claims']:.3f}")
+        logger.info(f"  Rejection Rate: {stats['rejection_rate_claims']:.1%}")
     
     # 6. Save results
     logger.info(f"\n[6/6] Saving results to {output_dir}...")
@@ -275,7 +301,7 @@ def smiles_to_data(smiles, device):
         
         # Load dataset utilities
         project_dir = Path(__file__).parent.parent
-        sys.path.insert(0, str(project_dir / 'MODELS' / 'tox21_model_full_package'))
+        sys.path.insert(0, str(project_dir / 'data_packages' / 'tox21_model_full_package'))
         from dataset.dataset_test import ATOM_LIST, CHIRALITY_LIST, BOND_LIST, BONDDIR_LIST
         
         mol = Chem.MolFromSmiles(smiles)
@@ -328,8 +354,8 @@ def main():
     
     parser.add_argument('--model', type=str, required=True,
                        help='Path to trained model')
-    parser.add_argument('--dataset', type=str, 
-                       default='../MODELS/tox21_model_full_package/data/tox21/tox21.csv',
+    parser.add_argument('--dataset', type=str,
+                       default='../data_packages/tox21_model_full_package/data/tox21/tox21.csv',
                        help='Path to dataset CSV')
     parser.add_argument('--output', type=str, default='./results/faithful_eval',
                        help='Output directory')

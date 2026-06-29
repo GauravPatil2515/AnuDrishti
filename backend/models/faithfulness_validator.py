@@ -67,21 +67,27 @@ class GroundingResult:
 @dataclass
 class FaithfulnessScore:
     """Complete faithfulness evaluation."""
-    overall_score: float  # Geometric mean of three components
-    
+    overall_score: float  # F = sqrt(S_causal * S_grounding), per the paper
+
     causal_consistency: CausalConsistencyResult
     counterfactual_sensitivity: CounterfactualSensitivityResult
     grounding: GroundingResult
-    
+
     validation_result: ValidationResult
     passed: bool
-    
+
+    # Number of falsifiable structural claims the explanation made. When 0, the
+    # faithfulness score is not meaningfully defined (nothing to verify) and such
+    # cases should be reported/excluded separately rather than counted as perfect.
+    n_claims: int = 0
+
     def to_dict(self) -> Dict:
         """Convert to dictionary."""
         return {
             'overall_score': self.overall_score,
             'validation_result': self.validation_result.value,
             'passed': self.passed,
+            'n_claims': self.n_claims,
             'causal_consistency': {
                 'score': self.causal_consistency.score,
                 'tested': self.causal_consistency.tested_claims,
@@ -193,14 +199,18 @@ class FaithfulnessValidator:
         grounding_result = self.test_grounding(
             explanation, attention_weights
         )
-        
-        # Compute overall score (geometric mean)
-        overall_score = (
-            causal_result.score *
-            counterfactual_result.score *
-            grounding_result.score
-        ) ** (1/3)
-        
+
+        # Number of falsifiable structural claims under test.
+        n_claims = len(explanation.get('identified_toxicophores', []))
+
+        # Compute overall score as the two-component geometric mean of the causal
+        # and grounding scores: F = sqrt(S_causal * S_grounding). This matches the
+        # metric defined in the paper. The counterfactual-sensitivity test is
+        # retained as a reported diagnostic but is NOT folded into F, because its
+        # current implementation does not re-generate and compare explanations and
+        # would otherwise inject a constant factor into every score.
+        overall_score = (causal_result.score * grounding_result.score) ** (1 / 2)
+
         # Determine pass/fail
         passed = overall_score >= self.faithfulness_threshold
         
@@ -217,7 +227,8 @@ class FaithfulnessValidator:
             counterfactual_sensitivity=counterfactual_result,
             grounding=grounding_result,
             validation_result=validation_result,
-            passed=passed
+            passed=passed,
+            n_claims=n_claims
         )
     
     def test_causal_consistency(
@@ -409,21 +420,28 @@ class FaithfulnessValidator:
         
         grounded_claims = 0
         ungrounded_claims = []
-        
+
+        # Use the same adaptive, per-molecule cutoff as the substructure mapper so
+        # that "grounded" means the same thing in both places. Falls back to the
+        # configured absolute threshold only if attention is empty.
+        attention_weights = np.asarray(attention_weights, dtype=float)
+        n_atoms = len(attention_weights)
+        cutoff = (2.0 / n_atoms) if n_atoms > 0 else self.attention_threshold
+
         for toxicophore in toxicophores:
             name = toxicophore.get('name', 'unknown')
             atom_indices = toxicophore.get('atom_indices', [])
-            
+
             if not atom_indices:
                 continue
-            
+
             # Get attention scores for these atoms
             valid_indices = [i for i in atom_indices if i < len(attention_weights)]
-            
+
             if valid_indices:
                 avg_attention = np.mean([attention_weights[i] for i in valid_indices])
-                
-                if avg_attention >= self.attention_threshold:
+
+                if avg_attention >= cutoff:
                     grounded_claims += 1
                     logger.debug(f"✓ {name}: attention {avg_attention:.3f}")
                 else:
@@ -438,7 +456,7 @@ class FaithfulnessValidator:
             total_claims=total_claims,
             grounded_claims=grounded_claims,
             ungrounded_claims=ungrounded_claims,
-            attention_threshold=self.attention_threshold
+            attention_threshold=float(cutoff)
         )
     
     def _predict_smiles(self, smiles: str) -> Optional[float]:
