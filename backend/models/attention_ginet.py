@@ -193,18 +193,40 @@ class AttentionGINet(nn.Module):
         pred_head.append(nn.Linear(feat_dim // 2, out_dim))
         self.pred_head = nn.Sequential(*pred_head)
         
+        # ═══════════════════════════════════════════════════════════════
+        # 🔥 NOVEL: Multi-Task Attention & ECFP6 Feature Fusion
+        # ═══════════════════════════════════════════════════════════════
+        self.task_gate_nns = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(emb_dim, emb_dim // 2),
+                nn.ReLU(),
+                nn.BatchNorm1d(emb_dim // 2),
+                nn.Linear(emb_dim // 2, 1)
+            )
+            for _ in range(num_tasks)
+        ])
+        self.task_attention_pools = nn.ModuleList([
+            GlobalAttention(gate_nn=gate) for gate in self.task_gate_nns
+        ])
+        
+        # Fingerprint projection layer (ECFP6 has 2048 dimensions)
+        self.fp_proj = nn.Linear(2048, feat_dim)
+        # Fusion layer to map concatenated GNN + projected ECFP features back to feat_dim
+        self.fusion_layer = nn.Linear(feat_dim * 2, feat_dim)
+        
         # Storage for attention weights (for explainability)
         self._last_attention_weights = None
         self._last_node_features = None
     
-    def forward(self, data, return_attention=True):
+    def forward(self, data, return_attention=True, fp_features=None):
         """
-        Forward pass with optional attention weight extraction.
+        Forward pass with optional attention weight extraction and ECFP6 fusion.
         
         Args:
             data: PyTorch Geometric Data object with x, edge_index, edge_attr, batch
             return_attention: If True, compute and store attention weights
-            
+            fp_features: ECFP6 fingerprint features [batch_size, 2048] (optional)
+        
         Returns:
             Tuple of (features, predictions, attention_info) where attention_info is:
             - attention_weights: Importance score per atom [num_atoms]
@@ -215,14 +237,14 @@ class AttentionGINet(nn.Module):
         edge_attr = data.edge_attr
         batch = data.batch
         
-        # ═══════════════════════════════════════════════════════════════
+        # ══════════════════════════════════════════════════════════════════
         # Node Embedding
-        # ═══════════════════════════════════════════════════════════════
+        # ══════════════════════════════════════════════════════════════════
         h = self.x_embedding1(x[:, 0]) + self.x_embedding2(x[:, 1])
         
-        # ═══════════════════════════════════════════════════════════════
+        # ═══════════════════════════════════════════════════════════════════
         # Message Passing (5 layers)
-        # ═══════════════════════════════════════════════════════════════
+        # ══════════════════════════════════════════════════════════════════
         for layer in range(self.num_layer):
             h = self.gnns[layer](h, edge_index, edge_attr)
             h = self.batch_norms[layer](h)
@@ -237,34 +259,66 @@ class AttentionGINet(nn.Module):
         # Store node features for explainability
         self._last_node_features = h.detach()
         
-        # ═══════════════════════════════════════════════════════════════
-        # 🔥 Attention Pooling (Novel)
-        # ═══════════════════════════════════════════════════════════════
-        if return_attention:
-            # Compute attention scores manually for extraction
-            gate_scores = self.gate_nn(h)  # [num_atoms, 1]
+        # ══════════════════════════════════════════════════════════════════
+        # 🔥 Multi-task Attention Pooling (Novel)
+        # ══════════════════════════════════════════════════════════════════
+        task_attention_weights = []
+        task_features = []
+        
+        # Compute attention scores and pool for each task
+        for task_idx in range(self.num_tasks):
+            gate_scores = self.task_gate_nns[task_idx](h)  # [num_atoms, 1]
             attention_weights = self._compute_attention_weights(gate_scores, batch)
-            self._last_attention_weights = attention_weights.detach()
+            task_attention_weights.append(attention_weights)
+            
+            # Apply attention pooling for this task
+            h_pooled_task = self.task_attention_pools[task_idx](h, batch)
+            task_features.append(h_pooled_task)
         
-        # Global attention pooling
-        h_pooled = self.attention_pool(h, batch)  # [batch_size, emb_dim]
+        # Store attention weights for first task (for backward compatibility)
+        self._last_attention_weights = task_attention_weights[0].detach()
         
-        # ═══════════════════════════════════════════════════════════════
-        # Feature Projection & Prediction
-        # ═══════════════════════════════════════════════════════════════
-        features = self.feat_lin(h_pooled)  # [batch_size, feat_dim]
-        predictions = self.pred_head(features)  # [batch_size, num_tasks]
+        # ══════════════════════════════════════════════════════════════════
+        # Feature Projection, Fusion, and Predictions per task
+        # ══════════════════════════════════════════════════════════════════
+        predictions_list = []
+        for task_idx in range(self.num_tasks):
+            h_pooled_task = task_features[task_idx]
+            features_task = self.feat_lin(h_pooled_task)
+            
+            # Feature Fusion: ECFP6 + GNN (if fingerprints provided)
+            if fp_features is not None:
+                # Project ECFP6 fingerprints
+                fp_projected = F.relu(self.fp_proj(fp_features))  # [batch_size, feat_dim]
+                
+                # Concatenate GNN features and fingerprint features
+                combined_features = torch.cat([features_task, fp_projected], dim=1)  # [batch_size, feat_dim*2]
+                
+                # Fuse features
+                features_task = F.relu(self.fusion_layer(combined_features))  # [batch_size, feat_dim]
+            
+            pred_task = self.pred_head(features_task)  # [batch_size, num_tasks]
+            predictions_list.append(pred_task[:, task_idx])
+            
+        predictions = torch.stack(predictions_list, dim=1)  # [batch_size, num_tasks]
+        
+        # For compatibility/extracting representations, project first task's features
+        features = self.feat_lin(task_features[0])
+        if fp_features is not None:
+            fp_projected = F.relu(self.fp_proj(fp_features))
+            combined_features = torch.cat([features, fp_projected], dim=1)
+            features = F.relu(self.fusion_layer(combined_features))
         
         if return_attention:
             attention_info = {
-                'attention_weights': self._last_attention_weights,
+                'attention_weights': task_attention_weights[0],  # Tensor of attention weights for first task (backward compatibility)
+                'task_attention_weights': task_attention_weights,  # List of attention weights for all tasks
                 'batch': batch,
                 'node_features': self._last_node_features
             }
             return features, predictions, attention_info
         else:
             return features, predictions
-    
     def _compute_attention_weights(self, gate_scores, batch):
         """
         Compute normalized attention weights per graph.

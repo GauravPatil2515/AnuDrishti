@@ -203,14 +203,16 @@ class MolTestDataset(Dataset):
             start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
             row += [start, end]
             col += [end, start]
-            edge_feat.append([
-                BOND_LIST.index(bond.GetBondType()),
-                BONDDIR_LIST.index(bond.GetBondDir())
-            ])
-            edge_feat.append([
-                BOND_LIST.index(bond.GetBondType()),
-                BONDDIR_LIST.index(bond.GetBondDir())
-            ])
+            
+            # Safe retrieval with fallback index 0
+            bond_type = bond.GetBondType()
+            bond_idx = BOND_LIST.index(bond_type) if bond_type in BOND_LIST else 0
+            
+            bond_dir = bond.GetBondDir()
+            bond_dir_idx = BONDDIR_LIST.index(bond_dir) if bond_dir in BONDDIR_LIST else 0
+            
+            edge_feat.append([bond_idx, bond_dir_idx])
+            edge_feat.append([bond_idx, bond_dir_idx])
 
         edge_index = torch.tensor([row, col], dtype=torch.long)
         edge_attr = torch.tensor(np.array(edge_feat), dtype=torch.long).view(-1, 2)
@@ -220,7 +222,15 @@ class MolTestDataset(Dataset):
             y = torch.tensor(self.labels[index], dtype=torch.float).view(1,-1)
             if self.conversion != 1:
                 y = y * self.conversion
+                
+        # Generate ECFP6 fingerprint (radius=3, nBits=2048) on original molecule
+        mol_no_h = Chem.MolFromSmiles(self.smiles_data[index])
+        fp = AllChem.GetMorganFingerprintAsBitVect(mol_no_h, radius=3, nBits=2048)
+        fp_arr = np.zeros((2048,), dtype=np.float32)
+        AllChem.DataStructs.ConvertToNumpyArray(fp, fp_arr)
+        
         data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr)
+        data.fp = torch.tensor(fp_arr, dtype=torch.float).unsqueeze(0)
         return data
 
     def __len__(self):

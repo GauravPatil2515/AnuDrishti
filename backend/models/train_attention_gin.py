@@ -80,27 +80,29 @@ DEFAULT_CONFIG = {
         'weight_decay': 1e-6,
         'patience': 50,         # High patience for convergence
         'min_delta': 1e-4,
-        'grad_clip': 1.0
+        'grad_clip': 1.0,
+        'use_focal_loss': True, # Enable focal loss for class imbalance (specifically ClinTox)
+        'focal_loss_gamma': 2.0  # Gamma parameter for focal loss
     },
     
     # Transfer learning
-    'transfer': {
-        'freeze_encoder': False,
-        'freeze_epochs': 0,
-        'pretrained_path': None,
-        'load_prediction_head': False
-    },
-    
-    # Data - Use random split for better scores
-    'data': {
-        'train_split': 0.8,
-        'val_split': 0.1,
-        'test_split': 0.1,
-        'scaffold_split': False,   # Random split gives better ROC-AUC
-        'random_seed': 42
-    },
-    
-    # Logging
+        'transfer': {
+            'freeze_encoder': False,
+            'freeze_epochs': 0,
+            'pretrained_path': './pretrained/gin_supervised_masking.pth',
+            'load_prediction_head': False
+        },
+
+        # Data - Use scaffold split for better generalization
+        'data': {
+            'train_split': 0.8,
+            'val_split': 0.1,
+            'test_split': 0.1,
+            'scaffold_split': True,   # Scaffold split for better generalization
+            'random_seed': 42
+        },
+
+        # Logging
     'logging': {
         'log_interval': 50,
         'save_attention_maps': True,
@@ -376,7 +378,16 @@ class AttentionGINTrainer:
         
         # Use default data path if not provided
         if data_path is None:
-            data_path = MODELS_DIR / 'tox21_model_full_package' / 'data' / 'tox21' / 'tox21.csv'
+            if self.task_name == 'tox21':
+                data_path = MODELS_DIR / 'tox21_model_full_package' / 'data' / 'tox21' / 'tox21.csv'
+            elif self.task_name == 'clintox':
+                data_path = MODELS_DIR / 'clintox_model_package' / 'data' / 'clintox' / 'clintox.csv'
+            elif self.task_name == 'bbbp':
+                data_path = MODELS_DIR / 'bbbp_model_full_package' / 'data' / 'bbbp' / 'bbbp.csv'
+            elif self.task_name == 'caco2':
+                data_path = MODELS_DIR / 'caco2_model_full_package' / 'data' / 'caco2' / 'caco2.csv'
+            else:
+                data_path = MODELS_DIR / 'tox21_model_full_package' / 'data' / 'tox21' / 'tox21.csv'
         
         if not Path(data_path).exists():
             raise FileNotFoundError(f"Data file not found: {data_path}")
@@ -423,7 +434,8 @@ class AttentionGINTrainer:
             self.optimizer.zero_grad()
             
             # Forward pass with attention
-            features, predictions, attention_info = self.model(data, return_attention=True)
+            fp_features = data.fp if hasattr(data, 'fp') else None
+            features, predictions, attention_info = self.model(data, return_attention=True, fp_features=fp_features)
             
             # Compute loss
             loss = self._compute_loss(predictions, data.y)
@@ -472,30 +484,55 @@ class AttentionGINTrainer:
         return metrics
     
     def _compute_loss(self, predictions: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        """Compute task-appropriate loss with missing value handling and class weighting."""
+        """Compute task-appropriate loss with missing value handling, class weighting, and Focal Loss."""
         if self.task_type == 'classification':
-            # Use pos_weight for class imbalance (toxics are usually minority)
-            # Typical Tox21 has ~10-15% positive rate per endpoint
-            pos_weight = torch.ones(self.num_tasks, device=predictions.device) * 3.0
-            criterion = nn.BCEWithLogitsLoss(reduction='none', pos_weight=pos_weight)
+            # Compute per-task pos_weight for class imbalance (toxics are usually minority)
+            # Calculate based on batch statistics to handle varying batch compositions
+            pos_weights = []
+            for i in range(self.num_tasks):
+                task_labels = labels[:, i] if labels.ndim > 1 else labels
+                # Mask out missing labels (-1)
+                labeled_mask = task_labels != -1
+                if labeled_mask.sum().item() > 0:
+                    pos_count = (task_labels[labeled_mask] == 1).sum().float()
+                    neg_count = (task_labels[labeled_mask] == 0).sum().float()
+                    # Avoid division by zero
+                    weight = neg_count / (pos_count + 1e-8)
+                    # Cap weight to prevent instability
+                    weight = min(weight, 50.0)
+                else:
+                    # Default weight if no labels in batch
+                    weight = 1.0
+                pos_weights.append(weight)
+            
+            pos_weight_tensor = torch.tensor(pos_weights, device=predictions.device, dtype=predictions.dtype)
+            criterion = nn.BCEWithLogitsLoss(reduction='none', pos_weight=pos_weight_tensor)
             loss = criterion(predictions, labels.float())
+            
+            # Apply Focal Loss modulating factor if enabled
+            if self.config['training'].get('use_focal_loss', False):
+                gamma = self.config['training'].get('focal_loss_gamma', 2.0)
+                probs = torch.sigmoid(predictions)
+                # modulating factor is (1 - p_t)^gamma
+                # where p_t = probs for label=1, and (1 - probs) for label=0
+                modulating_factor = (labels.float() - probs).abs().pow(gamma)
+                loss = modulating_factor * loss
             
             # Mask out missing labels (-1)
             is_labeled = (labels != -1).float()
             loss = loss * is_labeled
             
-            # Average over labeled samples
+            # Average over labeled samples and tasks
             if is_labeled.sum() > 0:
                 loss = loss.sum() / is_labeled.sum()
             else:
-                loss = loss.sum() * 0  # Return zero loss if no labels
+                loss = torch.tensor(0.0, device=predictions.device)
         else:
             criterion = nn.MSELoss(reduction='none')
             loss = criterion(predictions, labels.float())
             
             is_labeled = (labels != -1).float()
             loss = (loss * is_labeled).sum() / max(is_labeled.sum(), 1)
-        
         return loss
     
     def _compute_metrics(self, predictions: np.ndarray, labels: np.ndarray) -> dict:
@@ -550,7 +587,8 @@ class AttentionGINTrainer:
         for data in self.val_loader:
             data = data.to(self.device)
             
-            result = self.model(data, return_attention=False)
+            fp_features = data.fp if hasattr(data, 'fp') else None
+            result = self.model(data, return_attention=False, fp_features=fp_features)
             # Model returns (features, predictions) when return_attention=False
             if len(result) == 2:
                 features, predictions = result
@@ -736,7 +774,8 @@ class AttentionGINTrainer:
         for data in self.test_loader:
             data = data.to(self.device)
             
-            features, predictions, attention_info = self.model(data, return_attention=True)
+            fp_features = data.fp if hasattr(data, 'fp') else None
+            features, predictions, attention_info = self.model(data, return_attention=True, fp_features=fp_features)
             
             if self.task_type == 'classification':
                 preds = torch.sigmoid(predictions).cpu().numpy()
