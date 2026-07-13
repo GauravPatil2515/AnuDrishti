@@ -20,9 +20,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-plt.style.use('seaborn-v0_8-paper')
-sns.set_context("paper", font_scale=1.5)
-sns.set_style("whitegrid")
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Times New Roman"],
+    "axes.linewidth": 1.5,
+    "axes.labelsize": 14,
+    "font.size": 12,
+    "xtick.major.width": 1.5,
+    "ytick.major.width": 1.5,
+    "legend.fontsize": 12,
+    "legend.frameon": True,
+})
+sns.set_style("white")
 
 
 def load_data(csv_path):
@@ -35,20 +44,21 @@ def load_data(csv_path):
 
 def plot_faithfulness_distribution(df, out_dir):
     plt.figure(figsize=(10, 6))
-    # Show the full distribution over claim-bearing molecules (the meaningful
-    # population). Rejections (F=0) are included so the figure reflects reality.
     sub = df[df['n_toxicophores'] > 0] if 'n_toxicophores' in df.columns else df
-    sns.histplot(data=sub, x='faithfulness_score', bins=20, kde=True, color='#2ecc71')
+    sns.violinplot(data=sub, x='faithfulness_score', color='#ecf0f1', inner=None, linewidth=1.5)
+    sns.swarmplot(data=sub, x='faithfulness_score', color='#2ecc71', size=10, alpha=0.9, edgecolor='black', linewidth=1)
     plt.title('Distribution of Faithfulness Scores (claim-bearing molecules)', fontweight='bold')
     plt.xlabel('Faithfulness Score $F$ (0-1)')
-    plt.ylabel('Count')
-    med = sub['faithfulness_score'].median()
-    plt.axvline(med, color='red', linestyle='--', label=f'Median: {med:.3f}')
-    plt.legend()
     plt.tight_layout()
-    plt.savefig(out_dir / 'faithfulness_distribution.png', dpi=300)
+    plt.savefig(out_dir / 'faithfulness_distribution.pdf', dpi=300, format='pdf')
+    
+    # Also save to overleaf
+    overleaf_dir = Path('overleaf/figures')
+    if overleaf_dir.exists():
+        plt.savefig(overleaf_dir / 'faithfulness_distribution.pdf', dpi=300, format='pdf')
+    
     plt.close()
-    print("Generated faithfulness_distribution.png")
+    print("Generated faithfulness_distribution.pdf")
 
 
 def plot_rejection_analysis(df, out_dir):

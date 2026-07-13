@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-23T23:15:10.664843",
+  "timestamp": "2026-06-29T19:28:01.849004",
   "model_type": "UnifiedADMETPredictor",
   "validation_results": [
     {
@@ -8,7 +8,7 @@
       "category": "toxic",
       "expected": "High Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.10681894109390365,
+      "avg_probability": 0.11022013777983375,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -72,19 +72,19 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.014592118561267853,
+          "probability": 0.07008470594882965,
           "prediction": "Non-permeable",
           "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 0.9944350719451904,
+          "probability": 0.7455760836601257,
           "prediction": "Approved",
-          "confidence": "Very High"
+          "confidence": "Medium"
         },
         "CT_TOX": {
-          "probability": 0.006996181793510914,
+          "probability": 0.2513805329799652,
           "prediction": "Safe in Trials",
-          "confidence": "Very High"
+          "confidence": "Medium"
         },
         "Clearance": {
           "probability": 0,
@@ -99,7 +99,7 @@
       "category": "toxic",
       "expected": "High Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.16266978973750762,
+      "avg_probability": 0.1618865678094153,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -113,12 +113,12 @@
           "confidence": "Very High"
         },
         "NR-AhR": {
-          "probability": 0.013054604642093182,
+          "probability": 0.013241301290690899,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "NR-Aromatase": {
-          "probability": 0.0013211746700108051,
+          "probability": 0.0011527467286214232,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -158,24 +158,24 @@
           "confidence": "Very High"
         },
         "SR-p53": {
-          "probability": 0.10893899202346802,
+          "probability": 0.09861384332180023,
           "prediction": "Non-toxic",
-          "confidence": "High"
+          "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.9994925260543823,
+          "probability": 0.999502420425415,
           "prediction": "Permeable",
           "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 0.246456116437912,
-          "prediction": "Not Approved",
-          "confidence": "Medium"
+          "probability": 0.5447500944137573,
+          "prediction": "Approved",
+          "confidence": "Very Low"
         },
         "CT_TOX": {
-          "probability": 0.7697130441665649,
-          "prediction": "Toxic in Trials",
-          "confidence": "Medium"
+          "probability": 0.46996772289276123,
+          "prediction": "Safe in Trials",
+          "confidence": "Very Low"
         },
         "Clearance": {
           "probability": 0,
@@ -190,7 +190,7 @@
       "category": "toxic",
       "expected": "High Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.14508363593971202,
+      "avg_probability": 0.13851684062877515,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -204,12 +204,12 @@
           "confidence": "Very High"
         },
         "NR-AhR": {
-          "probability": 0.0062957704067230225,
+          "probability": 0.006113552022725344,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "NR-Aromatase": {
-          "probability": 0.002061260864138603,
+          "probability": 0.0023715058341622353,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -224,7 +224,7 @@
           "confidence": "Very High"
         },
         "NR-PPAR-gamma": {
-          "probability": 0.0010522155789658427,
+          "probability": 0.001160541782155633,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -234,7 +234,7 @@
           "confidence": "Very High"
         },
         "SR-ATAD5": {
-          "probability": 0.0059090349823236465,
+          "probability": 0.005621491465717554,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -254,17 +254,17 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.9973320960998535,
+          "probability": 0.897093653678894,
           "prediction": "Permeable",
-          "confidence": "Very High"
+          "confidence": "High"
         },
         "FDA_APPROVED": {
-          "probability": 0.9968313574790955,
+          "probability": 0.977035403251648,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 0.007044550031423569,
+          "probability": 0.028628207743167877,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },
@@ -281,7 +281,7 @@
       "category": "toxic",
       "expected": "High Risk",
       "predicted_assessment": "MODERATE TOXICITY \ud83d\udfe1",
-      "avg_probability": 0.5004920425203939,
+      "avg_probability": 0.5210914216625194,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -345,19 +345,19 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.6171545386314392,
+          "probability": 0.9801335334777832,
           "prediction": "Permeable",
-          "confidence": "Low"
+          "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 0.657454252243042,
-          "prediction": "Approved",
-          "confidence": "Low"
+          "probability": 0.4228147268295288,
+          "prediction": "Not Approved",
+          "confidence": "Very Low"
         },
         "CT_TOX": {
-          "probability": 0.3934811055660248,
-          "prediction": "Safe in Trials",
-          "confidence": "Low"
+          "probability": 0.5741323232650757,
+          "prediction": "Toxic in Trials",
+          "confidence": "Very Low"
         },
         "Clearance": {
           "probability": 0,
@@ -372,7 +372,7 @@
       "category": "toxic",
       "expected": "High Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.25237449377297405,
+      "avg_probability": 0.2617214380588848,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -416,12 +416,12 @@
           "confidence": "Very Low"
         },
         "SR-ATAD5": {
-          "probability": 0.25694921612739563,
+          "probability": 0.35813406109809875,
           "prediction": "Non-toxic",
-          "confidence": "Medium"
+          "confidence": "Low"
         },
         "SR-HSE": {
-          "probability": 0.7091075778007507,
+          "probability": 0.7652623057365417,
           "prediction": "Toxic",
           "confidence": "Medium"
         },
@@ -436,17 +436,17 @@
           "confidence": "High"
         },
         "BBBP": {
-          "probability": 0.9998548030853271,
+          "probability": 0.9822942018508911,
           "prediction": "Permeable",
           "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 0.999995231628418,
+          "probability": 0.9996531009674072,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 1.677163345448207e-05,
+          "probability": 0.0007840949110686779,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },
@@ -463,7 +463,7 @@
       "category": "safe",
       "expected": "Low Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.12034322748590683,
+      "avg_probability": 0.13574002594080714,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -527,17 +527,17 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.7642077803611755,
+          "probability": 0.9951177835464478,
           "prediction": "Permeable",
-          "confidence": "Medium"
+          "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 1.0,
+          "probability": 0.9999517202377319,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 6.754335402092693e-08,
+          "probability": 9.03209438547492e-05,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },
@@ -554,7 +554,7 @@
       "category": "safe",
       "expected": "Low Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.17300375915365293,
+      "avg_probability": 0.14468371512290712,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -568,7 +568,7 @@
           "confidence": "Very High"
         },
         "NR-AhR": {
-          "probability": 0.020803119987249374,
+          "probability": 0.020114421844482422,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -618,19 +618,19 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.9877194166183472,
+          "probability": 0.6109844446182251,
           "prediction": "Permeable",
-          "confidence": "Very High"
+          "confidence": "Low"
         },
         "FDA_APPROVED": {
-          "probability": 0.859184205532074,
+          "probability": 0.883077085018158,
           "prediction": "Approved",
           "confidence": "High"
         },
         "CT_TOX": {
-          "probability": 0.22474651038646698,
+          "probability": 0.15347664058208466,
           "prediction": "Safe in Trials",
-          "confidence": "Medium"
+          "confidence": "High"
         },
         "Clearance": {
           "probability": 0,
@@ -645,7 +645,7 @@
       "category": "safe",
       "expected": "Low Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.08930571803357452,
+      "avg_probability": 0.09800818298147836,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -654,12 +654,12 @@
           "confidence": "Very High"
         },
         "NR-AR-LBD": {
-          "probability": 0.0004481111536733806,
+          "probability": 0.0005090773920528591,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "NR-AhR": {
-          "probability": 0.0008234527776949108,
+          "probability": 0.0010089570423588157,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -674,7 +674,7 @@
           "confidence": "Very High"
         },
         "NR-ER-LBD": {
-          "probability": 0.00048546187463216484,
+          "probability": 0.0005224515916779637,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -689,7 +689,7 @@
           "confidence": "Very High"
         },
         "SR-ATAD5": {
-          "probability": 0.00020802387734875083,
+          "probability": 0.00021055516845081002,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -699,7 +699,7 @@
           "confidence": "Very High"
         },
         "SR-MMP": {
-          "probability": 0.002433694200590253,
+          "probability": 0.0023547066375613213,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -709,17 +709,17 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.3074224293231964,
+          "probability": 0.43269777297973633,
           "prediction": "Non-permeable",
-          "confidence": "Low"
+          "confidence": "Very Low"
         },
         "FDA_APPROVED": {
-          "probability": 0.9955741167068481,
+          "probability": 0.9969154596328735,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 0.011007734574377537,
+          "probability": 0.014721018262207508,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },
@@ -736,7 +736,7 @@
       "category": "safe",
       "expected": "Low Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.08625258089596173,
+      "avg_probability": 0.10498634788576358,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -750,17 +750,17 @@
           "confidence": "Very High"
         },
         "NR-AhR": {
-          "probability": 0.006013201549649239,
+          "probability": 0.006099900230765343,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "NR-Aromatase": {
-          "probability": 0.000124870115541853,
+          "probability": 0.00010778786236187443,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "NR-ER": {
-          "probability": 0.009657730348408222,
+          "probability": 0.0089509142562747,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -800,19 +800,19 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.17995978891849518,
-          "prediction": "Non-permeable",
-          "confidence": "High"
+          "probability": 0.5171213150024414,
+          "prediction": "Permeable",
+          "confidence": "Very Low"
         },
         "FDA_APPROVED": {
-          "probability": 0.8195030093193054,
+          "probability": 0.9975448250770569,
           "prediction": "Approved",
-          "confidence": "High"
+          "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 0.24186500906944275,
+          "probability": 0.00830537173897028,
           "prediction": "Safe in Trials",
-          "confidence": "Medium"
+          "confidence": "Very High"
         },
         "Clearance": {
           "probability": 0,
@@ -827,7 +827,7 @@
       "category": "safe",
       "expected": "Low Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.08614670583242515,
+      "avg_probability": 0.09564731594679567,
       "is_correct": true,
       "endpoint_details": {
         "NR-AR": {
@@ -836,7 +836,7 @@
           "confidence": "Very High"
         },
         "NR-AR-LBD": {
-          "probability": 0.0009141310583800077,
+          "probability": 0.0009174625156447291,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -866,7 +866,7 @@
           "confidence": "Very High"
         },
         "SR-ARE": {
-          "probability": 0.022719619795680046,
+          "probability": 0.024914536625146866,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -886,22 +886,22 @@
           "confidence": "Very High"
         },
         "SR-p53": {
-          "probability": 0.011595524847507477,
+          "probability": 0.012308163568377495,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.23137924075126648,
+          "probability": 0.37092846632003784,
           "prediction": "Non-permeable",
-          "confidence": "Medium"
+          "confidence": "Low"
         },
         "FDA_APPROVED": {
-          "probability": 0.9999996423721313,
+          "probability": 0.9999673366546631,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 9.91422211882309e-07,
+          "probability": 8.233627886511385e-05,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },
@@ -918,7 +918,7 @@
       "category": "moderate",
       "expected": "Moderate Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.14351338918980522,
+      "avg_probability": 0.14721837105656352,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -927,7 +927,7 @@
           "confidence": "Very High"
         },
         "NR-AR-LBD": {
-          "probability": 0.0012547803344205022,
+          "probability": 0.001030938234180212,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -937,7 +937,7 @@
           "confidence": "Very High"
         },
         "NR-Aromatase": {
-          "probability": 0.0003267698921263218,
+          "probability": 0.0004304713220335543,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -962,7 +962,7 @@
           "confidence": "Very High"
         },
         "SR-ATAD5": {
-          "probability": 0.0018952155951410532,
+          "probability": 0.0017701109172776341,
           "prediction": "Non-toxic",
           "confidence": "Very High"
         },
@@ -982,19 +982,19 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.9699066281318665,
+          "probability": 0.9937705397605896,
           "prediction": "Permeable",
           "confidence": "Very High"
         },
         "FDA_APPROVED": {
-          "probability": 0.993678867816925,
+          "probability": 0.8460012078285217,
           "prediction": "Approved",
-          "confidence": "Very High"
+          "confidence": "High"
         },
         "CT_TOX": {
-          "probability": 0.010393291711807251,
+          "probability": 0.19002701342105865,
           "prediction": "Safe in Trials",
-          "confidence": "Very High"
+          "confidence": "High"
         },
         "Clearance": {
           "probability": 0,
@@ -1009,7 +1009,7 @@
       "category": "moderate",
       "expected": "Moderate Risk",
       "predicted_assessment": "VERY LOW TOXICITY \u2705",
-      "avg_probability": 0.10482948932428068,
+      "avg_probability": 0.10819450676693426,
       "is_correct": false,
       "endpoint_details": {
         "NR-AR": {
@@ -1048,9 +1048,9 @@
           "confidence": "Very High"
         },
         "SR-ARE": {
-          "probability": 0.062436629086732864,
+          "probability": 0.10673009604215622,
           "prediction": "Non-toxic",
-          "confidence": "Very High"
+          "confidence": "High"
         },
         "SR-ATAD5": {
           "probability": 0.0011057804804295301,
@@ -1073,17 +1073,17 @@
           "confidence": "Very High"
         },
         "BBBP": {
-          "probability": 0.14110122621059418,
+          "probability": 0.1467127799987793,
           "prediction": "Non-permeable",
           "confidence": "High"
         },
         "FDA_APPROVED": {
-          "probability": 0.9999276399612427,
+          "probability": 0.999484658241272,
           "prediction": "Approved",
           "confidence": "Very High"
         },
         "CT_TOX": {
-          "probability": 0.0001740459119901061,
+          "probability": 0.0011872685281559825,
           "prediction": "Safe in Trials",
           "confidence": "Very High"
         },

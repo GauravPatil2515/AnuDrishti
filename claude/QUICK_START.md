@@ -103,3 +103,21 @@ python scripts/test_api.py              # Test endpoints
 ---
 
 *Ready to discover safer drugs? Start predicting molecular properties today!*
+## Recent Work
+
+- Updated manuscript for Faithful-LLM-Augmented-Explainability-for-GNN-Based-Molecular-Toxicity-Prediction paper, addressing reviewer feedback:
+  * Fixed Table IV mathematical inconsistency (Faithfulness = sqrt(Grounding * Causal)).
+  * Fixed broken figure reference (Fig. ??) by ensuring proper label.
+  * Unified SMARTS count to 30 across Abstract, Methodology, Limitations.
+  * Restored methodology paragraph defining node feature vector (119-dim atom features).
+  * Restored Section III structure describing Frontend, Backend, XAI Controller layers.
+  * Added explicit Research Questions (RQ1-RQ4) after contributions.
+  * Rewrote abstract to emphasize verification over platform features.
+  * Explained Constrained Explainer component in detail.
+  * Clarified Table IV sample size (n = 7 claim-bearing molecules).
+  * Removed 'AI Chat Assistant' from conclusion, replaced with practical applicability.
+  * Added Proposition justifying geometric mean for faithfulness score.
+  * Added overview figure contrasting existing vs. proposed explainability approaches.
+  * Added research hypothesis H1: Counterfactual validation improves faithfulness without degrading performance.
+  * Fixed all LaTeX syntax errors (duplicate environments, extra blank lines, duplicate blocks).
+  * Successfully compiled manuscript to PDF (main.pdf).

@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Python caches and virtual environments
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+
+# Node / Frontend dependencies and builds
+**/node_modules/
+**/dist/
+**/build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific caches, temp files, and outputs
+.pytest_cache/
+.ipynb_checkpoints/
+**/batch_results/
+**/uploads/
+results/baseline_faithfulness.json

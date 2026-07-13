@@ -3,9 +3,13 @@ import pandas as pd
 from pathlib import Path
 
 def select_case_studies():
-    json_path = Path('results/eval_tox21_200/explanations.json')
+    json_path = Path('results/eval_tox21_fixed/explanations.json')
     output_path = Path('results/paper_figures/selected_cases.md')
     
+    if not json_path.exists():
+        # Fallback to eval_tox21_200 if fixed is not present
+        json_path = Path('results/eval_tox21_200/explanations.json')
+        
     with open(json_path) as f:
         data = json.load(f)
         
@@ -13,10 +17,20 @@ def select_case_studies():
     
     # 1. Best Success Case
     # Sort by faithfulness score (descending) and filter for high confident prediction
-    success_cases = [d for d in data if d['explanation']['validation_passed']]
+    # and require at least one identified toxicophore for chemical descriptiveness.
+    success_cases = [
+        d for d in data 
+        if d['explanation']['validation_passed'] 
+        and d['explanation'].get('identified_toxicophores') 
+        and len(d['explanation']['identified_toxicophores']) > 0
+    ]
+    if not success_cases:
+        # Fallback to any success case
+        success_cases = [d for d in data if d['explanation']['validation_passed']]
+        
     success_cases.sort(key=lambda x: (x['explanation']['faithfulness_score'], x['explanation']['prediction']), reverse=True)
     
-    best_case = success_cases[0]
+    best_case = success_cases[0] if success_cases else None
     
     # 2. Failure Case
     fail_cases = [d for d in data if not d['explanation']['validation_passed']]

@@ -1,0 +1,20 @@
+{
+  "toxicophore_recall_mean": 0.5,
+  "toxicophore_recall_std": 0.5,
+  "toxicophore_precision_mean": 0.375,
+  "toxicophore_precision_std": 0.4366062299143245,
+  "toxicophore_f1": 0.42857142857142855,
+  "attention_on_toxicophores_mean": 0.13544293940067292,
+  "prediction_expected_correlation": 0.43992716953538064,
+  "attention_entropy_mean": 0.8296112445126326,
+  "attention_focus": 0.17038875548736743,
+  "comprehensiveness_mean": 0.1572360476013273,
+  "comprehensiveness_std": 0.21493724779955653,
+  "sufficiency_mean": 0.04234681352972984,
+  "sufficiency_std": 0.039612347730473306,
+  "deletion_auc_mean": 0.037299930437778434,
+  "stability_mean": 0.6262785449624062,
+  "faithfulness_score_mean": 0.05803587512345443,
+  "n_molecules": 10,
+  "n_toxicophores_detected_total": 9
+}
