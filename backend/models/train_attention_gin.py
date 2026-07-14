@@ -836,6 +836,12 @@ def main():
                        help='Learning rate')
     parser.add_argument('--freeze_encoder', action='store_true',
                        help='Freeze GNN encoder (train only attention)')
+    parser.add_argument('--patience', type=int, default=50,
+                       help='Early stopping patience')
+    parser.add_argument('--no_focal_loss', action='store_true',
+                       help='Disable focal loss')
+    parser.add_argument('--focal_loss_gamma', type=float, default=2.0,
+                       help='Focal loss gamma parameter')
     
     args = parser.parse_args()
     
@@ -845,6 +851,9 @@ def main():
     config['training']['batch_size'] = args.batch_size
     config['training']['learning_rate'] = args.lr
     config['transfer']['freeze_encoder'] = args.freeze_encoder
+    config['training']['patience'] = args.patience
+    config['training']['use_focal_loss'] = not args.no_focal_loss
+    config['training']['focal_loss_gamma'] = args.focal_loss_gamma
     
     if args.pretrained:
         config['transfer']['pretrained_path'] = args.pretrained
