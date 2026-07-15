@@ -1,0 +1,2421 @@
+[
+  {
+    "smiles": "Cc1ccc(Nc2nccc(N(C)c3ccc4c(C)n(C)nc4c3)n2)cc1S(N)(=O)=O",
+    "explanation": {
+      "smiles": "Cc1ccc(Nc2nccc(N(C)c3ccc4c(C)n(C)nc4c3)n2)cc1S(N)(=O)=O",
+      "prediction": 0.6601082682609558,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 2,
+          "passed": 0,
+          "failed": [
+            "sulfonamide",
+            "primary_amine"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CO[C@H](C(=O)[C@@H](O)[C@@H](C)O)[C@@H]1Cc2cc3cc(O[C@H]4C[C@@H](O[C@@H]5C[C@@H](O)[C@@H](OC)[C@@H](C)O5)[C@@H](OC(=O)O)[C@@H](C)O4)c(C)c(O)c3c(O)c2C(=O)[C@H]1O[C@H]1C[C@@H](O[C@H]2C[C@@H](O[C@H]3C[C@](C)(O)[C@@H](OC(C)=O)[C@H](C)O3)[C@H](O)[C@@H](C)O2)[C@H](O)[C@@H](C)O1",
+    "explanation": {
+      "smiles": "CO[C@H](C(=O)[C@@H](O)[C@@H](C)O)[C@@H]1Cc2cc3cc(O[C@H]4C[C@@H](O[C@@H]5C[C@@H](O)[C@@H](OC)[C@@H](C)O5)[C@@H](OC(=O)O)[C@@H](C)O4)c(C)c(O)c3c(O)c2C(=O)[C@H]1O[C@H]1C[C@@H](O[C@H]2C[C@@H](O[C@H]3C[C@](C)(O)[C@@H](OC(C)=O)[C@H](C)O3)[C@H](O)[C@@H](C)O2)[C@H](O)[C@@H](C)O1",
+      "prediction": 0.7709599733352661,
+      "executive_summary": "The molecule exhibits a high toxicity risk of 77.1%, primarily driven by the presence of polycyclic aromatic hydrocarbons. The toxicophores identified contribute to the molecule's potential to intercalate DNA and form mutagenic compounds. The overall mechanism involves the metabolism of these hydrocarbons to diol-epoxides, leading to potential carcinogenic effects.",
+      "mechanism": "The molecule's toxicity is primarily driven by the presence of polycyclic aromatic hydrocarbons, which are metabolized to diol-epoxides that intercalate DNA and form mutagenic compounds. The benzene rings and hydroxyl groups contribute to the molecule's lipophilicity, pi-stacking, and solubility, potentially enhancing its ability to interact with biological targets. The ketone group acts as a hydrogen-bond acceptor and reductive site, potentially contributing to the molecule's reactivity and toxicity.",
+      "identified_toxicophores": [
+        {
+          "name": "polycyclic_aromatic",
+          "smarts_pattern": "c1ccc2c(c1)cccc2",
+          "atom_indices": [
+            12,
+            47,
+            45,
+            44,
+            14,
+            13,
+            15,
+            16,
+            40,
+            42
+          ],
+          "attention_score": 0.0165,
+          "mechanism": "Polycyclic aromatic hydrocarbons are metabolized to diol-epoxides that intercalate DNA and form mutagenic compounds."
+        },
+        {
+          "name": "benzene_ring",
+          "smarts_pattern": "c1ccccc1",
+          "atom_indices": [
+            14,
+            15,
+            16,
+            40,
+            42,
+            44
+          ],
+          "attention_score": 0.0169,
+          "mechanism": "Influencing lipophilicity and pi-stacking, potentially enhancing the molecule's ability to interact with biological targets."
+        },
+        {
+          "name": "benzene_ring",
+          "smarts_pattern": "c1ccccc1",
+          "atom_indices": [
+            14,
+            15,
+            16,
+            40,
+            42,
+            44
+          ],
+          "attention_score": 0.0165,
+          "mechanism": "Influencing lipophilicity and pi-stacking, potentially enhancing the molecule's ability to interact with biological targets."
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            36
+          ],
+          "attention_score": 0.0165,
+          "mechanism": "Affecting solubility and metabolism, potentially influencing the molecule's bioavailability and toxicity profile."
+        },
+        {
+          "name": "ketone",
+          "smarts_pattern": "[#6][CX3](=O)[#6]",
+          "atom_indices": [
+            47,
+            48,
+            49,
+            50
+          ],
+          "attention_score": 0.0192,
+          "mechanism": "Acting as a hydrogen-bond acceptor and reductive site, potentially contributing to the molecule's reactivity and toxicity."
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 5,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 3,
+          "passed": 3,
+          "failed": [
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 3,
+          "consistent": 3
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 5,
+          "grounded": 5,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC(C)CCOC(=O)c1ccccc1",
+    "explanation": {
+      "smiles": "CC(C)CCOC(=O)c1ccccc1",
+      "prediction": 0.6604260206222534,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)COC(=O)c1ccccc1O",
+    "explanation": {
+      "smiles": "CC(C)COC(=O)c1ccccc1O",
+      "prediction": 0.7396264672279358,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)CCCCCCCOC(=O)c1ccc(C(=O)OCCCCCCCC(C)C)c(C(=O)OCCCCCCCC(C)C)c1",
+    "explanation": {
+      "smiles": "CC(C)CCCCCCCOC(=O)c1ccc(C(=O)OCCCCCCCC(C)C)c(C(=O)OCCCCCCCC(C)C)c1",
+      "prediction": 0.5284005403518677,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COP(=O)(OC)OC(=CCl)c1cc(Cl)c(Cl)cc1Cl",
+    "explanation": {
+      "smiles": "COP(=O)(OC)OC(=CCl)c1cc(Cl)c(Cl)cc1Cl",
+      "prediction": 0.9419375061988831,
+      "executive_summary": "The molecule COP(=O)(OC)OC(=CCl)c1cc(Cl)c(Cl)cc1Cl is predicted to be highly toxic, with a predicted toxicity of 94.2%. The primary toxicophore is the phosphate ester group, which is known to be neurotoxic. This group is likely to be the main contributor to the molecule's overall toxicity.",
+      "mechanism": "The molecule's toxicity is primarily due to the phosphate ester group, which inhibits acetylcholinesterase and causes a cholinergic crisis. This mechanism is well-established for organophosphates, and the high attention score for the phosphate ester group suggests that it is the main contributor to the molecule's toxicity. The predicted toxicity of 94.2% suggests a high risk of adverse effects.",
+      "identified_toxicophores": [
+        {
+          "name": "phosphate_ester",
+          "smarts_pattern": "OP(=O)(O)O",
+          "atom_indices": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ],
+          "attention_score": 0.1461,
+          "mechanism": "Organophosphates inhibit acetylcholinesterase, causing cholinergic crisis."
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)C(=S)SSC(=S)N(CC)CC",
+    "explanation": {
+      "smiles": "CCN(CC)C(=S)SSC(=S)N(CC)CC",
+      "prediction": 0.9832131862640381,
+      "executive_summary": "The molecule is predicted to be highly toxic, with a predicted toxicity of 98.3%, primarily due to the presence of tertiary amine and thiocarbonyl substructures. The tertiary amine groups are likely to act as basic centers and N-dealkylation sites, while the thiocarbonyls may be metabolized to reactive sulfur species. The disulfide substructure may also contribute to the toxicity by undergoing thiol-disulfide exchange.",
+      "mechanism": "The molecule's toxicity is primarily driven by the presence of tertiary amine groups, which act as basic centers and N-dealkylation sites. The thiocarbonyl substructures may also contribute to the toxicity by being metabolized to reactive sulfur species, while the disulfide substructure may undergo thiol-disulfide exchange, potentially inactivating critical enzymes. The combination of these mechanisms may lead to the predicted high toxicity of the molecule.",
+      "identified_toxicophores": [
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            11
+          ],
+          "attention_score": 0.1254,
+          "mechanism": "Tertiary amine; basic center, N-dealkylation site"
+        },
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            11
+          ],
+          "attention_score": 0.1254,
+          "mechanism": "acts as a basic center and N-dealkylation site, similar to the primary toxicophore"
+        },
+        {
+          "name": "thiocarbonyl",
+          "smarts_pattern": "C=S",
+          "atom_indices": [
+            9,
+            10
+          ],
+          "attention_score": 0.0754,
+          "mechanism": "may be metabolized to reactive sulfur species that modify cellular proteins"
+        },
+        {
+          "name": "disulfide",
+          "smarts_pattern": "SS",
+          "atom_indices": [
+            7,
+            8
+          ],
+          "attention_score": 0.0579,
+          "mechanism": "may undergo thiol-disulfide exchange, potentially inactivating critical enzymes"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 3,
+          "passed": 4,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCCc1cc(O)c2c(c1)OC(C)(C)[C@@H]1CCC(C)=C[C@@H]21",
+    "explanation": {
+      "smiles": "CCCCCc1cc(O)c2c(c1)OC(C)(C)[C@@H]1CCC(C)=C[C@@H]21",
+      "prediction": 0.9482024908065796,
+      "executive_summary": "The molecule exhibits a high toxicity risk, primarily due to the presence of ether and ether_aromatic substructures, which are sites of oxidative O-dealkylation. The benzene ring also contributes to the toxicity, influencing lipophilicity and pi-stacking. Overall, the predicted toxicity is 94.8%.",
+      "mechanism": "The molecule's toxicity is primarily driven by the ether and ether_aromatic substructures, which are sites of oxidative O-dealkylation. The benzene ring also plays a role, influencing lipophilicity and pi-stacking, and contributing to the overall toxicity. The combination of these features results in a predicted toxicity of 94.8%.",
+      "identified_toxicophores": [
+        {
+          "name": "ether",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            12,
+            10,
+            13
+          ],
+          "attention_score": 0.0866,
+          "mechanism": "Ether linkage; site of oxidative O-dealkylation"
+        },
+        {
+          "name": "ether_aromatic",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            12,
+            10,
+            13
+          ],
+          "attention_score": 0.0866,
+          "mechanism": "Contributes to the toxicity as an aryl ether, which is a metabolic site for O-dealkylation"
+        },
+        {
+          "name": "benzene_ring",
+          "smarts_pattern": "c1ccccc1",
+          "atom_indices": [
+            5,
+            6,
+            7,
+            9,
+            10,
+            11
+          ],
+          "attention_score": 0.0488,
+          "mechanism": "Influences lipophilicity and pi-stacking, contributing to the overall toxicity"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1",
+      "prediction": 0.9999918937683105,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "halogen"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=S1(=O)OCC2C(CO1)C1(Cl)C(Cl)=C(Cl)C2(Cl)C1(Cl)Cl",
+    "explanation": {
+      "smiles": "O=S1(=O)OCC2C(CO1)C1(Cl)C(Cl)=C(Cl)C2(Cl)C1(Cl)Cl",
+      "prediction": 0.9657278656959534,
+      "executive_summary": "The molecule is predicted to be highly toxic, with a predicted toxicity of 96.6%. The primary contributor to this toxicity is the alkene substructure. This functional group is likely to undergo epoxidation or oxidative metabolism, leading to toxic effects.",
+      "mechanism": "The alkene substructure is the primary toxicophore, with an attention score of 0.0855. This functional group is likely to undergo epoxidation or oxidative metabolism, leading to toxic effects. The exact mechanism of toxicity is not fully elucidated, but the alkene substructure is the primary contributor to the predicted toxicity.",
+      "identified_toxicophores": [
+        {
+          "name": "alkene",
+          "smarts_pattern": "[CX3]=[CX3]",
+          "atom_indices": [
+            11,
+            13
+          ],
+          "attention_score": 0.0855,
+          "mechanism": "site of epoxidation/oxidative metabolism"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Brc1nc2ccccc2s1",
+    "explanation": {
+      "smiles": "Brc1nc2ccccc2s1",
+      "prediction": 0.7212277054786682,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "N#CCc1ccccc1",
+    "explanation": {
+      "smiles": "N#CCc1ccccc1",
+      "prediction": 0.5143569707870483,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CN1CC(O)C2=C/C(=N/NC(N)=O)C(=O)C=C21",
+    "explanation": {
+      "smiles": "CN1CC(O)C2=C/C(=N/NC(N)=O)C(=O)C=C21",
+      "prediction": 0.5213086605072021,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 52.1%, primarily due to the presence of a tertiary amine substructure. This functional group is a basic center and a potential N-dealkylation site, contributing to the molecule's toxicity. The alkene substructure also plays a role in the molecule's toxicity, albeit to a lesser extent.",
+      "mechanism": "The tertiary amine substructure, with an attention score of 0.1327, is the primary contributor to the molecule's toxicity, acting as a basic center and potential N-dealkylation site. The alkene substructure, with an attention score of 0.0799, also contributes to the toxicity by serving as a site of epoxidation/oxidative metabolism. The combined effects of these substructures result in a predicted toxicity of 52.1%.",
+      "identified_toxicophores": [
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            1
+          ],
+          "attention_score": 0.1327,
+          "mechanism": "Tertiary amine; basic center, N-dealkylation site"
+        },
+        {
+          "name": "alkene",
+          "smarts_pattern": "[CX3]=[CX3]",
+          "atom_indices": [
+            5,
+            6
+          ],
+          "attention_score": 0.0799,
+          "mechanism": "site of epoxidation/oxidative metabolism"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 2,
+          "passed": 2,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 3,
+          "consistent": 3
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.9993036985397339,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 2,
+          "passed": 0,
+          "failed": [
+            "halogen",
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "N=C(N)c1ccc(OCCCOc2ccc(C(=N)N)cc2Br)c(Br)c1",
+    "explanation": {
+      "smiles": "N=C(N)c1ccc(OCCCOc2ccc(C(=N)N)cc2Br)c(Br)c1",
+      "prediction": 0.535699188709259,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "primary_amine",
+            "primary_amine"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C(Cl)/C=C/C(=O)Cl",
+    "explanation": {
+      "smiles": "O=C(Cl)/C=C/C(=O)Cl",
+      "prediction": 0.5052267909049988,
+      "executive_summary": "The molecule O=C(Cl)/C=C/C(=O)Cl has a predicted toxicity of 50.5%, primarily due to the presence of an alkene substructure. This functional group is a site of epoxidation/oxidative metabolism, contributing to the molecule's toxicity. The alkene substructure is the primary toxicophore, with a significant attention score.",
+      "mechanism": "The molecule's toxicity is primarily driven by the alkene substructure, which is a site of epoxidation/oxidative metabolism. This mechanism contributes to the molecule's overall toxicity, with an attention score of 0.2588 (attention score: 0.2588). The predicted toxicity of 50.5% is likely a result of this toxicophore.",
+      "identified_toxicophores": [
+        {
+          "name": "alkene",
+          "smarts_pattern": "[CX3]=[CX3]",
+          "atom_indices": [
+            3,
+            4
+          ],
+          "attention_score": 0.2588,
+          "mechanism": "site of epoxidation/oxidative metabolism"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C1OC2(c3ccccc31)c1cc(I)c(O)c(I)c1Oc1c2cc(I)c(O)c1I",
+    "explanation": {
+      "smiles": "O=C1OC2(c3ccccc31)c1cc(I)c(O)c(I)c1Oc1c2cc(I)c(O)c1I",
+      "prediction": 0.9916107058525085,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "halogen"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COCCCOc1ccnc(CS(=O)c2nc3ccccc3[n-]2)c1C",
+    "explanation": {
+      "smiles": "COCCCOc1ccnc(CS(=O)c2nc3ccccc3[n-]2)c1C",
+      "prediction": 0.7798203229904175,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCc1ccc(CCOc2ccc(CC3SC(=O)NC3=O)cc2)nc1",
+    "explanation": {
+      "smiles": "CCc1ccc(CCOc2ccc(CC3SC(=O)NC3=O)cc2)nc1",
+      "prediction": 0.7420463562011719,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 74.2%, primarily due to the presence of amide substructures. These functional groups are known to contribute to metabolic stability and hydrogen-bonding properties. The high attention scores for these substructures indicate their significant role in the predicted toxicity.",
+      "mechanism": "The predicted toxicity of the molecule can be attributed to the presence of amide substructures, which are known to contribute to metabolic stability and hydrogen-bonding properties. The high attention scores for these substructures indicate their significant role in the predicted toxicity. The amide bonds in the molecule may facilitate interactions with biological targets, leading to potential toxic effects.",
+      "identified_toxicophores": [
+        {
+          "name": "amide",
+          "smarts_pattern": "C(=O)N",
+          "atom_indices": [
+            19,
+            20,
+            18
+          ],
+          "attention_score": 0.0667,
+          "mechanism": "Amide bond; metabolically stable hydrogen-bonding group"
+        },
+        {
+          "name": "amide",
+          "smarts_pattern": "C(=O)N",
+          "atom_indices": [
+            19,
+            20,
+            18
+          ],
+          "attention_score": 0.0572,
+          "mechanism": "Contributes to metabolic stability and hydrogen-bonding properties, further increasing the predicted toxicity"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 2,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1.OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1",
+    "explanation": {
+      "smiles": "OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1.OCCOCCN1CCN(C2=Nc3ccccc3Sc3ccccc32)CC1",
+      "prediction": 0.719909131526947,
+      "executive_summary": "The molecule exhibits a high toxicity risk of 72.0%, primarily due to the presence of tertiary amine substructures. These substructures have attention scores of 2.82% each, indicating their significant contribution to the predicted toxicity. The hydroxyl groups also play a role, albeit with lower attention scores of 1.93% each.",
+      "mechanism": "The predicted toxicity of the molecule can be attributed to the presence of tertiary amine substructures, which act as basic centers and N-dealkylation sites. The hydroxyl groups also contribute to the toxicity by affecting solubility and metabolism as hydrogen-bond donors. The combined effect of these substructures leads to a high toxicity risk of 72.0%.",
+      "identified_toxicophores": [
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            36
+          ],
+          "attention_score": 0.0282,
+          "mechanism": "Tertiary amine; basic center, N-dealkylation site"
+        },
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            36
+          ],
+          "attention_score": 0.0282,
+          "mechanism": "Contributes to the toxicity as a basic center and N-dealkylation site, similar to the primary toxicophore"
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            0
+          ],
+          "attention_score": 0.0193,
+          "mechanism": "Affects solubility and metabolism as a hydrogen-bond donor"
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            0
+          ],
+          "attention_score": 0.0193,
+          "mechanism": "Affects solubility and metabolism as a hydrogen-bond donor, similar to the other hydroxyl group"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 2,
+          "passed": 2,
+          "failed": [
+            "hydroxyl",
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)CCCC[C@@H]1SC[C@@H]2NC(=O)N[C@H]12",
+    "explanation": {
+      "smiles": "O=C(O)CCCC[C@@H]1SC[C@@H]2NC(=O)N[C@H]12",
+      "prediction": 0.8157966732978821,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C[C@](O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1",
+    "explanation": {
+      "smiles": "C[C@](O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1",
+      "prediction": 0.7207825183868408,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "CCCCC(=O)O[C@]1(C(=O)CO)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.9972338080406189,
+      "executive_summary": "The molecule exhibits a high toxicity risk of 99.7%, primarily due to the presence of a halogen substituent and other functional groups. The halogen substituent is the most critical toxicophore, modulating lipophilicity and metabolic stability. The combination of these features contributes to the overall toxicity of the molecule.",
+      "mechanism": "The molecule's toxicity is primarily driven by the halogen substituent, which modulates lipophilicity and metabolic stability. The ketone, hydroxyl, and ether functional groups also contribute to the toxicity by acting as hydrogen-bond acceptors and donors, and sites of oxidative metabolism. The combination of these features leads to a high toxicity risk of 99.7%.",
+      "identified_toxicophores": [
+        {
+          "name": "halogen",
+          "smarts_pattern": "[F,Cl,Br,I]",
+          "atom_indices": [
+            28
+          ],
+          "attention_score": 0.0485,
+          "mechanism": "Halogen substituent; modulates lipophilicity and metabolic stability"
+        },
+        {
+          "name": "ketone",
+          "smarts_pattern": "[#6][CX3](=O)[#6]",
+          "atom_indices": [
+            7,
+            8,
+            9,
+            10
+          ],
+          "attention_score": 0.0404,
+          "mechanism": "acts as a hydrogen-bond acceptor and reductive site"
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            30
+          ],
+          "attention_score": 0.0335,
+          "mechanism": "acts as a hydrogen-bond donor affecting solubility and metabolism"
+        },
+        {
+          "name": "ether",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            6,
+            4,
+            7
+          ],
+          "attention_score": 0.0328,
+          "mechanism": "site of oxidative O-dealkylation"
+        }
+      ],
+      "faithfulness_score": 0.7071067811865476,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 0.7071067811865476,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 0.5,
+          "tested": 4,
+          "passed": 2,
+          "failed": [
+            "halogen",
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC(=O)O[C@]1(C(=O)COC(=O)CC)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+    "explanation": {
+      "smiles": "CCCC(=O)O[C@]1(C(=O)COC(=O)CC)[C@@H](C)C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]21C",
+      "prediction": 0.9975281357765198,
+      "executive_summary": "The molecule exhibits a high toxicity risk of 99.8%, primarily due to the presence of a halogen substituent and other functional groups. The halogen substituent is the most significant contributor to the toxicity, with an attention score of 0.0479. The overall mechanism involves modulation of lipophilicity and metabolic stability, as well as hydrogen-bonding and reductive sites.",
+      "mechanism": "The molecule's toxicity is primarily driven by the halogen substituent, which modulates lipophilicity and metabolic stability. The ketone, hydroxyl, and ether functional groups also contribute to the toxicity by acting as hydrogen-bond acceptors and donors, and sites of oxidative metabolism. The combined effects of these functional groups result in a high toxicity risk.",
+      "identified_toxicophores": [
+        {
+          "name": "halogen",
+          "smarts_pattern": "[F,Cl,Br,I]",
+          "atom_indices": [
+            31
+          ],
+          "attention_score": 0.0479,
+          "mechanism": "Halogen substituent; modulates lipophilicity and metabolic stability"
+        },
+        {
+          "name": "ketone",
+          "smarts_pattern": "[#6][CX3](=O)[#6]",
+          "atom_indices": [
+            6,
+            7,
+            8,
+            9
+          ],
+          "attention_score": 0.0382,
+          "mechanism": "contributes as a hydrogen-bond acceptor and reductive site"
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            33
+          ],
+          "attention_score": 0.0332,
+          "mechanism": "affects solubility and metabolism as a hydrogen-bond donor"
+        },
+        {
+          "name": "ether",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            5,
+            3,
+            6
+          ],
+          "attention_score": 0.0309,
+          "mechanism": "site of oxidative O-dealkylation"
+        }
+      ],
+      "faithfulness_score": 0.7071067811865476,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 0.7071067811865476,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 0.5,
+          "tested": 4,
+          "passed": 2,
+          "failed": [
+            "halogen",
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=P(O)(Oc1ccccc1)Oc1ccccc1",
+    "explanation": {
+      "smiles": "O=P(O)(Oc1ccccc1)Oc1ccccc1",
+      "prediction": 0.9439112544059753,
+      "executive_summary": "The molecule O=P(O)(Oc1ccccc1)Oc1ccccc1 is predicted to be highly toxic, with a predicted toxicity of 94.4%. The primary toxicophore is a phosphate ester group, which is known to be neurotoxic. This group is likely to be the main contributor to the molecule's toxicity.",
+      "mechanism": "The phosphate ester group in the molecule is likely to inhibit acetylcholinesterase, leading to a cholinergic crisis. This is the primary mechanism by which the molecule exerts its neurotoxic effects. The high attention score for this group suggests that it is the main contributor to the molecule's toxicity.",
+      "identified_toxicophores": [
+        {
+          "name": "phosphate_ester",
+          "smarts_pattern": "OP(=O)(O)O",
+          "atom_indices": [
+            2,
+            1,
+            0,
+            3,
+            10
+          ],
+          "attention_score": 0.1284,
+          "mechanism": "Organophosphates inhibit acetylcholinesterase, causing cholinergic crisis."
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(Oc1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "O=C(Oc1ccccc1)c1ccccc1",
+      "prediction": 0.9210371971130371,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O",
+    "explanation": {
+      "smiles": "CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CC[C@@H](O)C[C@@H](O)CC(=O)O",
+      "prediction": 0.8001340627670288,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.5773502691896257,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.5773502691896257,
+        "validation_result": "partial",
+        "passed": false,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 0.3333333333333333,
+          "tested": 3,
+          "passed": 1,
+          "failed": [
+            "hydroxyl",
+            "carboxylic_acid"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1cc(C2(c3cc(C)c(O)cc3C)OS(=O)(=O)c3ccccc32)c(C)cc1O",
+    "explanation": {
+      "smiles": "Cc1cc(C2(c3cc(C)c(O)cc3C)OS(=O)(=O)c3ccccc32)c(C)cc1O",
+      "prediction": 0.9430157542228699,
+      "executive_summary": "The molecule is predicted to be highly toxic with a predicted toxicity of 94.3%. However, no specific high-attention substructures were identified. The model does not provide sufficient evidence to pinpoint a primary toxicophore or secondary features.",
+      "mechanism": "The model does not provide sufficient evidence to propose a detailed mechanism of toxicity. The lack of high-attention substructures suggests that the model's prediction is based on more general molecular features. However, without more specific information, it is not possible to provide a detailed explanation of the molecule's toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 0,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 0,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Cc1ncc(CSSCc2cnc(C)c(O)c2CO)c(CO)c1O",
+    "explanation": {
+      "smiles": "Cc1ncc(CSSCc2cnc(C)c(O)c2CO)c(CO)c1O",
+      "prediction": 0.5801283121109009,
+      "executive_summary": "The molecule is predicted to have a toxicity risk of 58.0%, primarily due to the presence of hydroxyl groups. These functional groups are known to affect solubility and metabolism. The high attention scores on these groups indicate their significant contribution to the predicted toxicity.",
+      "mechanism": "The presence of hydroxyl groups in the molecule is likely to affect its solubility and metabolism, leading to a predicted toxicity risk of 58.0%. The hydroxyl groups act as hydrogen-bond donors, which can influence the molecule's interactions with biological systems. The attention scores on these groups indicate their significant contribution to the predicted toxicity.",
+      "identified_toxicophores": [
+        {
+          "name": "Hydroxyl Group",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            18,
+            21
+          ],
+          "attention_score": 0.0665,
+          "mechanism": "Hydroxyl group acts as a hydrogen-bond donor, affecting solubility and metabolism."
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCCOC(=O)c1ccc(N)cc1",
+    "explanation": {
+      "smiles": "CCCCOC(=O)c1ccc(N)cc1",
+      "prediction": 0.7820742130279541,
+      "executive_summary": "The molecule CCCCOC(=O)c1ccc(N)cc1 is predicted to have a high toxicity risk of 78.2%, primarily due to the presence of aromatic amine substructures. The primary amine and aniline groups are identified as key contributors to this toxicity. The aminoaromatic substructure is also highlighted as a carcinogenic concern.",
+      "mechanism": "The molecule's toxicity is primarily driven by the aniline substructure, which is a site of N-oxidation. The primary amine group contributes to this toxicity through its basic, ionizable, and hydrogen-bond donor properties. Additionally, the aminoaromatic substructure is metabolically activated to form DNA adducts, posing a carcinogenic risk.",
+      "identified_toxicophores": [
+        {
+          "name": "aniline",
+          "smarts_pattern": "c[NX3;H2,H1]",
+          "atom_indices": [
+            10,
+            11
+          ],
+          "attention_score": 0.1438,
+          "mechanism": "Aromatic amine; site of N-oxidation"
+        },
+        {
+          "name": "primary_amine",
+          "smarts_pattern": "[NX3;H2;!$(NC=O)]",
+          "atom_indices": [
+            11
+          ],
+          "attention_score": 0.1464,
+          "mechanism": "basic, ionizable, hydrogen-bond donor properties contribute to toxicity"
+        },
+        {
+          "name": "aminoaromatic",
+          "smarts_pattern": "c-[NH2]",
+          "atom_indices": [
+            10,
+            11
+          ],
+          "attention_score": 0.1438,
+          "mechanism": "metabolically activated to N-hydroxy derivatives that form DNA adducts, contributing to carcinogenicity"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCN(CC)C(=O)[C@@H]1C=C2c3cccc4[nH]cc(c34)C[C@H]2N(C)C1",
+    "explanation": {
+      "smiles": "CCN(CC)C(=O)[C@@H]1C=C2c3cccc4[nH]cc(c34)C[C@H]2N(C)C1",
+      "prediction": 0.8884687423706055,
+      "executive_summary": "The molecule is predicted to be toxic with a risk of 88.8%, primarily due to the presence of a tertiary amine and an alkene. These substructures are likely to contribute to the molecule's toxicity through N-dealkylation and epoxidation/oxidative metabolism, respectively. The high attention scores for these substructures indicate their significant role in the predicted toxicity.",
+      "mechanism": "The predicted toxicity of the molecule is likely due to the presence of a tertiary amine, which can act as a basic center and undergo N-dealkylation. The alkene substructure may also contribute to the toxicity through epoxidation or oxidative metabolism. The combination of these substructures and their corresponding mechanisms may lead to the high predicted toxicity of the molecule.",
+      "identified_toxicophores": [
+        {
+          "name": "tertiary_amine",
+          "smarts_pattern": "[NX3;H0;!$(NC=O);!$(N=*)]",
+          "atom_indices": [
+            21
+          ],
+          "attention_score": 0.0919,
+          "mechanism": "Tertiary amine; basic center, N-dealkylation site"
+        },
+        {
+          "name": "alkene",
+          "smarts_pattern": "[CX3]=[CX3]",
+          "atom_indices": [
+            8,
+            9
+          ],
+          "attention_score": 0.0848,
+          "mechanism": "site of epoxidation/oxidative metabolism"
+        }
+      ],
+      "faithfulness_score": 0.7071067811865476,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 0.7071067811865476,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.5,
+          "tested": 2,
+          "passed": 1,
+          "failed": [
+            "tertiary_amine"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Cc1nn(-c2cc(NS(C)(=O)=O)c(Cl)cc2Cl)c(=O)n1C(F)F",
+    "explanation": {
+      "smiles": "Cc1nn(-c2cc(NS(C)(=O)=O)c(Cl)cc2Cl)c(=O)n1C(F)F",
+      "prediction": 0.6277170777320862,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 62.8%, primarily due to the presence of a secondary amine group. This group, along with aniline and sulfonamide substructures, contributes to the overall toxicity. The secondary amine group is the most significant contributor to the toxicity risk.",
+      "mechanism": "The secondary amine group acts as a basic center, affecting the distribution of the molecule, while the aniline substructure provides a site for N-oxidation. The sulfonamide group contributes to the toxicity through its hydrogen-bonding pharmacophore. These substructures collectively contribute to the predicted toxicity of 62.8%.",
+      "identified_toxicophores": [
+        {
+          "name": "secondary_amine",
+          "smarts_pattern": "[NX3;H1;!$(NC=O)]",
+          "atom_indices": [
+            7
+          ],
+          "attention_score": 0.1756,
+          "mechanism": "Secondary amine; basic center affecting distribution"
+        },
+        {
+          "name": "aniline",
+          "smarts_pattern": "c[NX3;H2,H1]",
+          "atom_indices": [
+            6,
+            7
+          ],
+          "attention_score": 0.1172,
+          "mechanism": "Aromatic amine; site of N-oxidation"
+        },
+        {
+          "name": "sulfonamide",
+          "smarts_pattern": "S(=O)(=O)N",
+          "atom_indices": [
+            8,
+            10,
+            11,
+            7
+          ],
+          "attention_score": 0.0811,
+          "mechanism": "Sulfonamide; hydrogen-bonding pharmacophore"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 2,
+          "passed": 2,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "OC(c1ccc(Cl)cc1)(c1cncnc1)c1ccccc1Cl",
+    "explanation": {
+      "smiles": "OC(c1ccc(Cl)cc1)(c1cncnc1)c1ccccc1Cl",
+      "prediction": 0.9214168190956116,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCOC(=O)C(C)Oc1ccc(Oc2nc3ccc(Cl)cc3o2)cc1",
+    "explanation": {
+      "smiles": "CCOC(=O)C(C)Oc1ccc(Oc2nc3ccc(Cl)cc3o2)cc1",
+      "prediction": 0.7623677253723145,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "N#Cc1c[nH]cc1-c1cccc2c1OC(F)(F)O2",
+    "explanation": {
+      "smiles": "N#Cc1c[nH]cc1-c1cccc2c1OC(F)(F)O2",
+      "prediction": 0.891973078250885,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl",
+    "explanation": {
+      "smiles": "COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl",
+      "prediction": 0.9852686524391174,
+      "executive_summary": "The molecule COP(=S)(OC)Oc1c(Cl)cc(C)cc1Cl is predicted to have a high toxicity risk of 98.5%. However, no specific high-attention substructures were identified. The model does not provide sufficient evidence to pinpoint a particular toxicophore or mechanism.",
+      "mechanism": "The model does not provide sufficient evidence to propose a detailed mechanism of toxicity. The predicted toxicity of 98.5% suggests a potential risk, but the lack of high-attention substructures limits further interpretation. No specific toxicophore or feature can be identified as contributing to the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 0,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 0,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(NC(=O)c1c(F)cccc1F)Nc1ccc(OC(F)(F)C(F)OC(F)(F)F)c(Cl)c1",
+    "explanation": {
+      "smiles": "O=C(NC(=O)c1c(F)cccc1F)Nc1ccc(OC(F)(F)C(F)OC(F)(F)F)c(Cl)c1",
+      "prediction": 0.7361819744110107,
+      "executive_summary": "The molecule exhibits a high toxicity risk of 73.6%, primarily due to the presence of ether and amide substructures. The ether linkages are potential sites of oxidative O-dealkylation, contributing to the toxicity. The amide bonds are metabolically stable but may also play a role in the overall toxicity.",
+      "mechanism": "The molecule's toxicity is primarily driven by the ether linkages, which are potential sites of oxidative O-dealkylation. The amide bonds, although metabolically stable, may also contribute to the toxicity. The presence of multiple ether and amide substructures with attention scores above 0.1 suggests a complex mechanism of action.",
+      "identified_toxicophores": [
+        {
+          "name": "ether",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            18,
+            17,
+            19
+          ],
+          "attention_score": 0.1215,
+          "mechanism": "Ether linkage; site of oxidative O-dealkylation"
+        },
+        {
+          "name": "ether_aromatic",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            18,
+            17,
+            19
+          ],
+          "attention_score": 0.1215,
+          "mechanism": "Aryl ether; O-dealkylation metabolic site, contributing to the toxicity"
+        },
+        {
+          "name": "amide",
+          "smarts_pattern": "C(=O)N",
+          "atom_indices": [
+            3,
+            4,
+            2
+          ],
+          "attention_score": 0.0738,
+          "mechanism": "Amide bond; metabolically stable hydrogen-bonding group, potentially influencing the toxicity"
+        },
+        {
+          "name": "amide",
+          "smarts_pattern": "C(=O)N",
+          "atom_indices": [
+            3,
+            4,
+            2
+          ],
+          "attention_score": 0.0584,
+          "mechanism": "Amide bond; metabolically stable hydrogen-bonding group, potentially influencing the toxicity"
+        },
+        {
+          "name": "ether",
+          "smarts_pattern": "[OD2]([#6])[#6]",
+          "atom_indices": [
+            18,
+            17,
+            19
+          ],
+          "attention_score": 0.0536,
+          "mechanism": "Ether linkage; site of oxidative O-dealkylation, contributing to the toxicity"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 5,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 2,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 3,
+          "consistent": 3
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 5,
+          "grounded": 5,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CCCC[n+]1ccc(C)cc1.O=S(=O)([O-])C(F)(F)F",
+    "explanation": {
+      "smiles": "CCCC[n+]1ccc(C)cc1.O=S(=O)([O-])C(F)(F)F",
+      "prediction": 0.5193822383880615,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 51.9%, primarily due to the presence of a pyridine substructure. This substructure is likely to contribute to the molecule's toxicity through N-oxidation or binding interactions. The overall toxicity risk is moderate to high.",
+      "mechanism": "The pyridine substructure is the primary contributor to the molecule's toxicity, with a possible mechanism involving N-oxidation or binding interactions. The attention score for this substructure is 0.06, indicating a moderate level of importance. No other substructures have an attention score greater than 0.1, and therefore, are not considered significant contributors to the molecule's toxicity.",
+      "identified_toxicophores": [
+        {
+          "name": "pyridine",
+          "smarts_pattern": "c1ccncc1",
+          "atom_indices": [
+            7,
+            6,
+            5,
+            4,
+            10,
+            9
+          ],
+          "attention_score": 0.06,
+          "mechanism": "Pyridine nitrogen can be N-oxidized or participate in binding interactions"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 1,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC1(C(=O)Nc2ccc(O)c(Cl)c2Cl)CCCCC1",
+    "explanation": {
+      "smiles": "CC1(C(=O)Nc2ccc(O)c(Cl)c2Cl)CCCCC1",
+      "prediction": 0.9506115317344666,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "amide"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCC(C)Nc1ccc(NC(C)CC)cc1",
+    "explanation": {
+      "smiles": "CCC(C)Nc1ccc(NC(C)CC)cc1",
+      "prediction": 0.6665889024734497,
+      "executive_summary": "The molecule exhibits a predicted toxicity of 66.7%, primarily due to the presence of secondary amine substructures. These functional groups have a significant impact on the molecule's distribution and basic center. The high attention scores for these substructures indicate their crucial role in the molecule's toxicity.",
+      "mechanism": "The molecule's toxicity is primarily driven by the presence of secondary amine substructures, which affect its distribution and basic center. The secondary amine at atoms [9] also contributes to this mechanism, albeit with the same attention score as the primary toxicophore. The combined effect of these substructures leads to the predicted toxicity of 66.7%.",
+      "identified_toxicophores": [
+        {
+          "name": "secondary_amine",
+          "smarts_pattern": "[NX3;H1;!$(NC=O)]",
+          "atom_indices": [
+            4
+          ],
+          "attention_score": 0.0669,
+          "mechanism": "Secondary amine; basic center affecting distribution"
+        },
+        {
+          "name": "secondary_amine",
+          "smarts_pattern": "[NX3;H1;!$(NC=O)]",
+          "atom_indices": [
+            4
+          ],
+          "attention_score": 0.0669,
+          "mechanism": "Contributes to the molecule's basic center and distribution, similar to the primary toxicophore"
+        }
+      ],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 1,
+          "passed": 2,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 1,
+          "consistent": 1
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "O=C(O)c1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+    "explanation": {
+      "smiles": "O=C(O)c1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+      "prediction": 0.6180229187011719,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.5,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.5,
+        "validation_result": "partial",
+        "passed": false,
+        "n_claims": 4,
+        "causal_consistency": {
+          "score": 0.25,
+          "tested": 4,
+          "passed": 1,
+          "failed": [
+            "tertiary_amine",
+            "hydroxyl",
+            "carboxylic_acid"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 4,
+          "grounded": 4,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Oc1ccc(C2CNCCc3c2cc(O)c(O)c3Cl)cc1",
+    "explanation": {
+      "smiles": "Oc1ccc(C2CNCCc3c2cc(O)c(O)c3Cl)cc1",
+      "prediction": 0.84683758020401,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 1,
+          "passed": 0,
+          "failed": [
+            "secondary_amine"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 1,
+          "grounded": 1,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "Oc1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+    "explanation": {
+      "smiles": "Oc1ccc2[nH]cc(CCCCN3CC=C(c4ccccc4)CC3)c2c1",
+      "prediction": 0.8173533082008362,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 2,
+          "passed": 0,
+          "failed": [
+            "tertiary_amine",
+            "alkene"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCOC(=O)NNc1nncc2ccccc12",
+    "explanation": {
+      "smiles": "CCOC(=O)NNc1nncc2ccccc12",
+      "prediction": 0.8151507377624512,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 2,
+          "passed": 0,
+          "failed": [
+            "ether",
+            "ester"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CCN(CC)Cc1nccn1-c1ccc([N+](=O)[O-])cc1C(=O)c1ccccc1Cl",
+    "explanation": {
+      "smiles": "CCN(CC)Cc1nccn1-c1ccc([N+](=O)[O-])cc1C(=O)c1ccccc1Cl",
+      "prediction": 0.5635827779769897,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 3,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 3,
+          "passed": 0,
+          "failed": [
+            "tertiary_amine",
+            "nitroso",
+            "n_oxide"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 3,
+          "grounded": 3,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "CC(C)(C)CC(=O)OCC(=O)[C@@]12OC(C)(C)O[C@@H]1C[C@H]1[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]12C",
+    "explanation": {
+      "smiles": "CC(C)(C)CC(=O)OCC(=O)[C@@]12OC(C)(C)O[C@@H]1C[C@H]1[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@@]12C",
+      "prediction": 0.9827035665512085,
+      "executive_summary": "The molecule is predicted to be highly toxic, with a predicted toxicity of 98.3%. The primary toxicophore is the halogen substituent, which modulates lipophilicity and metabolic stability. The hydroxyl group also contributes to the toxicity by affecting solubility and metabolism.",
+      "mechanism": "The halogen substituent is the primary contributor to the molecule's toxicity, modulating lipophilicity and metabolic stability. The hydroxyl group also plays a role by affecting solubility and metabolism, although to a lesser extent. The combined effect of these features leads to the high predicted toxicity of the molecule.",
+      "identified_toxicophores": [
+        {
+          "name": "halogen",
+          "smarts_pattern": "[F,Cl,Br,I]",
+          "atom_indices": [
+            32
+          ],
+          "attention_score": 0.067,
+          "mechanism": "Halogen substituent; modulates lipophilicity and metabolic stability"
+        },
+        {
+          "name": "hydroxyl",
+          "smarts_pattern": "[OX2H]",
+          "atom_indices": [
+            34
+          ],
+          "attention_score": 0.0427,
+          "mechanism": "affects solubility and metabolism"
+        }
+      ],
+      "faithfulness_score": 0.7071067811865476,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 0.7071067811865476,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 2,
+        "causal_consistency": {
+          "score": 0.5,
+          "tested": 2,
+          "passed": 1,
+          "failed": [
+            "hydroxyl"
+          ]
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 2,
+          "grounded": 2,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "CC=CC=NNC(=O)c1ccncc1",
+    "explanation": {
+      "smiles": "CC=CC=NNC(=O)c1ccncc1",
+      "prediction": 0.6184819340705872,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {
+        "overall_score": 0.0,
+        "validation_result": "failed",
+        "passed": false,
+        "n_claims": 1,
+        "causal_consistency": {
+          "score": 0.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 0.5,
+          "tested": 0,
+          "consistent": 0
+        },
+        "grounding": {
+          "score": 0.0,
+          "total_claims": 1,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "O=C1C(=O)c2ncccc2-c2cccnc21",
+    "explanation": {
+      "smiles": "O=C1C(=O)c2ncccc2-c2cccnc21",
+      "prediction": 0.8962362408638,
+      "executive_summary": "The molecule is predicted to be toxic with a probability of 89.6%. However, no specific high-attention substructures were identified. The model does not provide sufficient evidence to pinpoint a particular toxicophore or mechanism.",
+      "mechanism": "The model does not provide sufficient evidence to propose a detailed mechanism of toxicity. The lack of high-attention substructures makes it difficult to determine the primary toxicophore or contributing features. Further analysis is needed to understand the molecular basis of the predicted toxicity.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 1.0,
+      "validation_passed": true,
+      "rejection_reason": null,
+      "faithfulness_details": {
+        "overall_score": 1.0,
+        "validation_result": "passed",
+        "passed": true,
+        "n_claims": 0,
+        "causal_consistency": {
+          "score": 1.0,
+          "tested": 0,
+          "passed": 0,
+          "failed": []
+        },
+        "counterfactual_sensitivity": {
+          "score": 1.0,
+          "tested": 2,
+          "consistent": 2
+        },
+        "grounding": {
+          "score": 1.0,
+          "total_claims": 0,
+          "grounded": 0,
+          "ungrounded": []
+        }
+      },
+      "generation_attempts": 1
+    }
+  },
+  {
+    "smiles": "Nc1ccc(C(=O)Nc2ccccc2N)cc1",
+    "explanation": {
+      "smiles": "Nc1ccc(C(=O)Nc2ccccc2N)cc1",
+      "prediction": 0.9739142656326294,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {},
+      "generation_attempts": 3
+    }
+  },
+  {
+    "smiles": "C[N+](C)(C)CCOC(=O)C(O)(c1ccccc1)c1ccccc1",
+    "explanation": {
+      "smiles": "C[N+](C)(C)CCOC(=O)C(O)(c1ccccc1)c1ccccc1",
+      "prediction": 0.5760505199432373,
+      "executive_summary": "[Explanation generation failed faithfulness constraints]",
+      "mechanism": "The system could not verify the scientific validity of the explanation.",
+      "identified_toxicophores": [],
+      "faithfulness_score": 0.0,
+      "validation_passed": false,
+      "rejection_reason": "Failed faithfulness validation after max attempts",
+      "faithfulness_details": {},
+      "generation_attempts": 3
+    }
+  }
+]

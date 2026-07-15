@@ -23,14 +23,19 @@
 % Every \TODO mark below flags a number that must be replaced before submission.
 % ---------------------------------------------------------------------------
 \newcommand{\TODO}[1]{\textcolor{red}{\textbf{[#1]}}}
-\newcommand{\Fconstrained}{0.865}   % mean faithfulness, constrained (claim-bearing)
-\newcommand{\Funconstrained}{0.020}  % mean faithfulness, unconstrained baseline
-\newcommand{\RejRate}{13.5\%}            % rejection rate, constrained (claim-bearing)
-\newcommand{\Gconstr}{1.000}            % grounding, constrained
-\newcommand{\Guncon}{0.125}             % grounding, unconstrained
-\newcommand{\Cconstr}{0.865}            % causal, constrained
-\newcommand{\Cuncon}{0.080}             % causal, unconstrained
-\newcommand{\NwithClaims}{7}    % # molecules with >=1 toxicophore claim
+% REAL numbers from run_faithful_eval.py with live LLaMA-3.3-70B (Groq),
+% 50 toxic-predicted Tox21 test molecules (max-endpoint prob >= 0.5), 2026-07.
+\newcommand{\Fconstrained}{0.941}   % mean faithfulness F, constrained, claim-bearing (n=20)
+\newcommand{\RejRate}{54\%}         % rejection rate, constrained (over 50 attempts)
+\newcommand{\Gconstr}{0.854}        % mean grounding, constrained
+\newcommand{\Cconstr}{0.450}        % mean causal, constrained
+\newcommand{\NwithClaims}{20}       % # molecules (of 50 toxic-predicted) with >=1 claim
+\newcommand{\Ntoxic}{50}            % # toxic-predicted molecules evaluated
+% Unconstrained baseline PENDING: the constrained run exhausted the Groq free-tier
+% daily token cap, so the baseline could not run. Re-run on a fresh quota/key.
+\newcommand{\Funconstrained}{\TODO{unconstrained F pending}}
+\newcommand{\Guncon}{\TODO{?}}
+\newcommand{\Cuncon}{\TODO{?}}
 
 \begin{document}
 
@@ -55,7 +60,7 @@ parth.parmar.btech2028@atlasskilltech.university}
 \maketitle
 
 \begin{abstract}
-LLMs are increasingly used to translate GNN internal representations into natural language explanations, but these explanations are frequently \emph{unfaithful}---they cite chemical features that did not drive the model's prediction. Existing XAI methods produce attribution scores but provide no mechanism to verify that an LLM's narrative reflects those attributions. We address this gap with \textbf{DeNovo}, a neuro-symbolic framework that enforces causal faithfulness between GNN attention and LLM-generated explanations, evaluated on molecular toxicity prediction. DeNovo's core contribution is the \textbf{Faithful XAI Engine}: a ``Reject-and-Retry'' validation loop that (1)~extracts attention-grounded chemical evidence via a SMARTS-based Substructure Mapper, (2)~constrains LLM generation to that evidence, and (3)~validates each explanation through counterfactual intervention before presenting it to the user. Faithfulness is quantified as the geometric mean of a \emph{grounding} score (cited features carry high model attention) and a \emph{causal-consistency} score (removing cited features changes the prediction). On the Tox21 benchmark, our Attention-GIN achieves a test ROC-AUC of 0.802 (validation 0.837), and the reject-and-retry mechanism raises mean faithfulness from \Funconstrained{} (unconstrained LLM) to \Fconstrained{} over the full test population (bootstrap 95\% CI $[0.815, 0.910]$), rejecting \RejRate{} of explanations as unfaithful. Causal faithfulness validation is the primary scientific contribution; we demonstrate the framework on molecular toxicity prediction using the Tox21 benchmark; the surrounding production platform demonstrates practical applicability.
+LLMs are increasingly used to translate GNN internal representations into natural language explanations, but these explanations are frequently \emph{unfaithful}---they cite chemical features that did not drive the model's prediction. Existing XAI methods produce attribution scores but provide no mechanism to verify that an LLM's narrative reflects those attributions. We address this gap with \textbf{DeNovo}, a neuro-symbolic framework that enforces causal faithfulness between GNN attention and LLM-generated explanations, evaluated on molecular toxicity prediction. DeNovo's core contribution is the \textbf{Faithful XAI Engine}: a ``Reject-and-Retry'' validation loop that (1)~extracts attention-grounded chemical evidence via a SMARTS-based Substructure Mapper, (2)~constrains LLM generation to that evidence, and (3)~validates each explanation through counterfactual intervention before presenting it to the user. Faithfulness is quantified as the geometric mean of a \emph{grounding} score (cited features carry high model attention) and a \emph{causal-consistency} score (removing cited features changes the prediction). On the Tox21 benchmark, our Attention-GIN achieves a test ROC-AUC of 0.802 (validation 0.837). Evaluated with a live LLaMA-3.3-70B model over \Ntoxic{} toxic-predicted test molecules, the reject-and-retry mechanism yields a mean faithfulness of \Fconstrained{} on the claim-bearing explanations it accepts (grounding \Gconstr{}, causal consistency \Cconstr{}) while rejecting \RejRate{} of generation attempts as unfaithful. Causal faithfulness validation is the primary scientific contribution; we demonstrate the framework on molecular toxicity prediction using the Tox21 benchmark; the surrounding production platform demonstrates practical applicability.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -525,11 +530,11 @@ Full DeNovo & 0.837 & \Fconstrained{} \\
 
 \subsection{Faithfulness Analysis}
 
-We evaluated faithfulness on the claim-bearing subset of the Tox21 test set ($\NwithClaims{}$ molecules), comparing the constrained DeNovo pipeline against the unconstrained LLM baseline under the identical metric (Table~\ref{tab:faith_compare}).
+We evaluated faithfulness with a live LLaMA-3.3-70B model over \Ntoxic{} toxic-predicted Tox21 test molecules (max-endpoint probability $\geq 0.5$), the setting in which a toxicity explanation is meaningful. Of these, \NwithClaims{} yield at least one groundable structural claim; Table~\ref{tab:faith_compare} reports the constrained DeNovo pipeline on this claim-bearing subset. The unconstrained-LLM baseline, scored under the identical metric, is pending: the constrained run exhausted the Groq free-tier daily token budget before the baseline could complete, so those cells are placeholders to be filled on re-run.
 
 \begin{table}[h]
 \centering
-\caption{Faithfulness Comparison on Tox21 (\NwithClaims{} claim-bearing molecules out of 200 test samples; bootstrap $95\%$ CIs: DeNovo $[0.815, 0.910]$, Unconstrained $[0.005, 0.040]$; per-cell CIs omitted for space).}
+\caption{Faithfulness of the constrained DeNovo pipeline on Tox21 (\NwithClaims{} claim-bearing molecules of \Ntoxic{} toxic-predicted; live LLaMA-3.3-70B). The unconstrained-LLM baseline column is pending a re-run on a fresh token budget.}
 \label{tab:faith_compare}
 \begin{tabular}{lcc}
 \toprule
@@ -553,7 +558,7 @@ Rejection rate & \RejRate{} & --- \\
     \label{fig:faithfulness}
 \end{figure}
 
-The constrained mechanism raises mean faithfulness from \Funconstrained{} to \Fconstrained{}, rejecting \RejRate{} of generated explanations as unfaithful. The improvement is concentrated in the grounding component, confirming our central hypothesis: an unconstrained LLM frequently cites chemically plausible substructures that the GNN did not actually attend to, whereas the reject-and-retry loop suppresses these attention-unfaithful rationalizations. We emphasize that a non-trivial rejection rate is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy.
+Over \Ntoxic{} toxic-predicted molecules, \NwithClaims{} yield at least one groundable structural claim; on these, the constrained mechanism attains a mean faithfulness of \Fconstrained{} (grounding \Gconstr{}, causal consistency \Cconstr{}), while \RejRate{} of generation attempts are rejected as unfaithful. The high grounding score confirms that accepted explanations cite substructures the GNN actually attended to, and the causal component confirms those substructures measurably drive the prediction. We emphasize that a non-trivial rejection rate is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy. \TODO{Add the unconstrained-LLM baseline comparison once re-run on a fresh token budget (the constrained run exhausted the Groq free-tier daily cap).}
 
 \subsection{Sensitivity Analysis}
 
@@ -561,7 +566,7 @@ To ensure our results are not artifacts of specific parameter choices, we vary t
 
 \begin{table}[h]
 \centering
-\caption{Sensitivity Analysis for the Adaptive Cutoff Factor $\kappa$ and Causal Threshold $\delta$}
+\caption{Sensitivity Analysis for the Adaptive Cutoff Factor $\kappa$ and Causal Threshold $\delta$. \TODO{These values must be regenerated with the live LLM; the current table predates the real-LLM evaluation.}}
 \label{tab:sensitivity}
 \begin{tabular}{cccc}
 \toprule
@@ -680,7 +685,7 @@ We envision a ``Generative Feedback Loop'' where DeNovo serves as a critic for a
 \section{Conclusion}
 %=====================================================================
 
-We have demonstrated that faithful explainability requires verifying the causal link between LLM-generated text and a model's actual reasoning---not merely generating fluent rationales. The proposed counterfactual validation framework raises mean faithfulness from \Funconstrained{} (unconstrained LLM) to \Fconstrained{} over the full test population (bootstrap $95\%$ CI $[0.815, 0.910]$), rejecting \RejRate{} of explanations as unfaithful---a statistically significant improvement achieved without degrading predictive performance.
+We have demonstrated that faithful explainability requires verifying the causal link between LLM-generated text and a model's actual reasoning---not merely generating fluent rationales. Evaluated with a live LLaMA-3.3-70B model over \Ntoxic{} toxic-predicted Tox21 molecules, the proposed counterfactual validation framework attains a mean faithfulness of \Fconstrained{} on the explanations it accepts while rejecting \RejRate{} of generation attempts as unfaithful---all without degrading predictive performance.
 
 The verification framework achieves:
 \begin{itemize}
