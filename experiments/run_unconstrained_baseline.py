@@ -192,10 +192,12 @@ def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules
     logger.info(f"LLM provider: {type(llm).__name__} "
                 f"(model={getattr(llm, 'MODEL_ID', 'n/a')}, mock={getattr(llm, 'is_mock', False)})")
 
+    # Scan the full test split and evaluate the first n toxic-predicted molecules
+    # (same population selection as the constrained eval), rather than truncating
+    # to the first n rows and then filtering (which yields a different, smaller set).
     df_test = load_test_data(dataset_path)
-    if len(df_test) > n_molecules:
-        df_test = df_test.head(n_molecules)
-    logger.info(f"Evaluating {len(df_test)} molecules (unconstrained)")
+    logger.info(f"Scanning {len(df_test)} test molecules for toxic-predicted "
+                f"(max-endpoint >= {min_prediction}), target n={n_molecules}")
 
     results = []
     for idx, row in tqdm(df_test.iterrows(), total=len(df_test), desc="Baseline"):

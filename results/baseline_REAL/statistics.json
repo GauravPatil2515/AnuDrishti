@@ -1,0 +1,14 @@
+{
+  "baseline": "unconstrained_llm",
+  "n_evaluated": 50,
+  "mean_faithfulness": 0.05435298734444732,
+  "std_faithfulness": 0.16612557570955466,
+  "median_faithfulness": 0.0,
+  "rejection_rate": 1.0,
+  "mean_grounding": 0.07999999999999999,
+  "mean_causal": 0.5033333333333334,
+  "n_with_claims": 50,
+  "n_without_claims": 0,
+  "mean_faithfulness_claims": 0.05435298734444732,
+  "parse_failure_rate": 0.0
+}
