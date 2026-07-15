@@ -842,6 +842,8 @@ def main():
                        help='Disable focal loss')
     parser.add_argument('--focal_loss_gamma', type=float, default=2.0,
                        help='Focal loss gamma parameter')
+    parser.add_argument('--seed', type=int, default=42,
+                       help='Random seed')
     
     args = parser.parse_args()
     
@@ -854,6 +856,7 @@ def main():
     config['training']['patience'] = args.patience
     config['training']['use_focal_loss'] = not args.no_focal_loss
     config['training']['focal_loss_gamma'] = args.focal_loss_gamma
+    config['data']['random_seed'] = args.seed
     
     if args.pretrained:
         config['transfer']['pretrained_path'] = args.pretrained
