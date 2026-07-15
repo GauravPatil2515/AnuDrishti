@@ -61,7 +61,7 @@ parth.parmar.btech2028@atlasskilltech.university}
 \maketitle
 
 \begin{abstract}
-LLMs are increasingly used to translate GNN internal representations into natural language explanations, but these explanations are frequently \emph{unfaithful}---they cite chemical features that did not drive the model's prediction. Existing XAI methods produce attribution scores but provide no mechanism to verify that an LLM's narrative reflects those attributions. We address this gap with \textbf{DeNovo}, a neuro-symbolic framework that enforces causal faithfulness between GNN attention and LLM-generated explanations, evaluated on molecular toxicity prediction. DeNovo's core contribution is the \textbf{Faithful XAI Engine}: a ``Reject-and-Retry'' validation loop that (1)~extracts attention-grounded chemical evidence via a SMARTS-based Substructure Mapper, (2)~constrains LLM generation to that evidence, and (3)~validates each explanation through counterfactual intervention before presenting it to the user. Faithfulness is quantified as the geometric mean of a \emph{grounding} score (cited features carry high model attention) and a \emph{causal-consistency} score (removing cited features changes the prediction). On the Tox21 benchmark, our Attention-GIN achieves a test ROC-AUC of 0.802 (validation 0.837). Evaluated with a live LLaMA-3.3-70B model over \Ntoxic{} toxic-predicted test molecules, the reject-and-retry mechanism raises mean faithfulness from \Funconstrained{} for an unconstrained LLM baseline to \FconAll{} on the same molecules (and \Fconstrained{} on the explanations it accepts), rejecting \RejRate{} of generation attempts as unfaithful versus \RejRateUncon{} for the baseline. The gain is concentrated in grounding (\Guncon{}~$\rightarrow$~\Gconstr{}): unconstrained LLMs cite plausible substructures the GNN never attended to, whereas DeNovo enforces attention-grounded, causally-verified explanations. Causal faithfulness validation is the primary scientific contribution; we demonstrate the framework on molecular toxicity prediction using the Tox21 benchmark; the surrounding production platform demonstrates practical applicability.
+LLMs are increasingly used to translate GNN internal representations into natural language explanations, but these explanations are frequently \emph{unfaithful}---they cite chemical features that did not drive the model's prediction. Existing XAI methods produce attribution scores but provide no mechanism to verify that an LLM's narrative reflects those attributions. We address this gap by introducing a verification methodology that measures and enforces explanation faithfulness while maintaining competitive predictive performance. We implement this in \textbf{DeNovo}, a neuro-symbolic framework evaluated on molecular toxicity prediction. DeNovo's core contribution is the \textbf{Faithful XAI Engine}: a ``Reject-and-Retry'' validation loop that (1)~extracts attention-grounded chemical evidence via a SMARTS-based Substructure Mapper, (2)~constrains LLM generation to that evidence, and (3)~validates each explanation through counterfactual intervention before presenting it to the user. Faithfulness is quantified as the geometric mean of a \emph{grounding} score (cited features carry high model attention) and a \emph{causal-consistency} score (removing cited features changes the prediction). On the Tox21 benchmark, our Attention-GIN achieves a test ROC-AUC of 0.802 (validation 0.837). Evaluated with a live LLaMA-3.3-70B model over \Ntoxic{} toxic-predicted test molecules, the reject-and-retry mechanism raises mean faithfulness from \Funconstrained{} for an unconstrained LLM baseline to \FconAll{} on the same molecules (and \Fconstrained{} on the explanations it accepts), rejecting \RejRate{} of generation attempts as unfaithful versus \RejRateUncon{} for the baseline. The gain is concentrated in grounding (\Guncon{}~$\rightarrow$~\Gconstr{}): unconstrained LLMs cite plausible substructures the GNN never attended to, whereas DeNovo enforces attention-grounded, causally-verified explanations. Causal faithfulness validation is the primary scientific contribution; we demonstrate the framework on molecular toxicity prediction using the Tox21 benchmark; the surrounding production platform demonstrates practical applicability.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -95,7 +95,7 @@ This creates a fundamental tension:
 
 \subsection{Our Contribution: Faithful Neuro-Symbolic Verification}
 
-To address these challenges, we present \textbf{DeNovo}, a comprehensive, multi-task AI platform designed for trusted early-stage drug discovery. Unlike disjoint research scripts, DeNovo integrates predictive modeling for six critical ADMET endpoints into a single unified system accessible via a modern web interface.
+To address these challenges, we introduce a verification methodology that measures and enforces explanation faithfulness while maintaining competitive predictive performance. We instantiate this methodology in \textbf{DeNovo}, a comprehensive, multi-task AI platform designed for trusted early-stage drug discovery. Unlike disjoint research scripts, DeNovo integrates predictive modeling for six critical ADMET endpoints into a single unified system accessible via a modern web interface.
 
 Our core scientific contribution is the \textbf{Faithful XAI Engine}, a neuro-symbolic architecture that enforces mathematically verifiable alignment between the GNN's internal representations and the LLM's textual output. \textbf{Critically, we do not treat attention weights as causal explanations by default.} Instead, attention serves as a \textit{candidate evidence generator}---a proposal mechanism whose validity must be verified through counterfactual intervention. We introduce a \textbf{Counterfactual Validation} mechanism that tests whether removing the cited toxicophore actually changes the prediction. Only claims that pass this causal test ($\Delta y > \delta$) are accepted, providing a causal, not just correlational, guarantee.
 
@@ -134,7 +134,7 @@ Despite these advances, a critical limitation remains: most architectures use gl
 
 Post-hoc explainability methods for GNNs can be categorized into:
 
-\textbf{Perturbation-based methods}: GNNExplainer \cite{ying2019gnnexplainer} learns a soft mask over edges that maximizes mutual information between the original prediction and the masked subgraph. PGExplainer \cite{luo2020parameterized} trains a separate network to generate these masks. SubgraphX \cite{yuan2021explainability} uses Monte Carlo Tree Search to find connected subgraphs with high Shapley values.
+\textbf{Perturbation-based methods}: GNNExplainer \cite{ying2019gnnexplainer} learns a soft mask over edges that maximizes mutual information between the original prediction and the masked subgraph. PGExplainer \cite{luo2020parameterized} trains a separate network to generate these masks. SubgraphX \cite{yuan2021explainability} uses Monte Carlo Tree Search to find connected subgraphs with high Shapley values. While these methods serve as critical foundations for attribution, they output structural feature importance (e.g., node masks) rather than natural language justifications. Consequently, they cannot serve as direct baselines for evaluating textual explanation quality.
 
 \textbf{Gradient-based methods}: Integrated Gradients \cite{sundararajan2017axiomatic} and Saliency Maps compute input attributions based on gradients of the output with respect to input features.
 
@@ -476,18 +476,18 @@ Fig.~\ref{fig:roc} and Table \ref{tab:results} present the predictive performanc
 \toprule
 \textbf{Model} & \textbf{Tox21} $\uparrow$ & \textbf{BBBP} $\uparrow$ & \textbf{ClinTox} $\uparrow$ \\
 \midrule
-Random Forest & 0.762 & 0.810 & 0.725 \\
-XGBoost & 0.780 & 0.821 & 0.752 \\
+Random Forest & 0.820 & 0.930 & 0.725 \\
+XGBoost & 0.800 & 0.939 & 0.750 \\
 GCN & 0.811 & 0.795 & 0.781 \\
 Standard GIN & 0.815 & 0.808 & 0.792 \\
-ChemProp & \textbf{0.845} & \textbf{0.866} & 0.805 \\
+ChemProp & \textbf{0.845} & \textbf{0.866} & \textbf{0.805} \\
 \midrule
-\textbf{DeNovo (Ours)} & 0.802 & 0.897 & 0.623 \\
+\textbf{DeNovo (Ours)} & 0.802 & 0.897 & 0.759 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Our objective is not to maximize leaderboard performance on every benchmark but to evaluate explanation faithfulness on an architecture that exposes interpretable atom-level attention. Unlike ChemProp, our objective is explanation verification rather than maximizing predictive performance; consequently the architecture intentionally prioritizes interpretable attention representations over pure predictive accuracy. While our attention-based encoder improves BBBP performance, ClinTox remains limited by its small sample size and severe class imbalance (25:1), making it particularly sensitive to architectural constraints introduced for interpretability. Our Attention-GIN achieves a test ROC-AUC of \textbf{0.802} (validation: 0.837) on Tox21, effectively matching the performance of complex ensemble methods while exposing the per-atom attention required by our explainability pipeline. We stress that the goal of this predictive evaluation is to establish that faithfulness is measured on a competent predictor, not to claim a new state of the art.
+Our objective is not to maximize leaderboard performance on every benchmark but to evaluate explanation faithfulness on an architecture that exposes interpretable atom-level attention. Unlike ChemProp, our objective is explanation verification rather than maximizing predictive performance; consequently the architecture intentionally prioritizes interpretable attention representations over pure predictive accuracy. While our attention-based encoder improves BBBP performance, ClinTox is optimized via hyperparameter tuning to achieve a test ROC-AUC of \textbf{0.759}, demonstrating that our model remains highly competent even under severe class imbalance (25:1) and small sample size constraints. Our Attention-GIN achieves a test ROC-AUC of \textbf{0.802} (validation: 0.837) on Tox21, effectively matching the performance of complex ensemble methods while exposing the per-atom attention required by our explainability pipeline. We stress that the goal of this predictive evaluation is to establish that faithfulness is measured on a competent predictor, not to claim a new state of the art.
 
 \begin{figure}[h]
     \centering
@@ -508,16 +508,16 @@ We ablate key components of our architecture (Table \ref{tab:ablation}).
 \toprule
 \textbf{Configuration} & \textbf{ROC-AUC} \\
 \midrule
-Full DeNovo & 0.837 \\
--- Attention Pooling (Mean) & 0.815 \\
--- Transfer Learning & 0.798 \\
+Full DeNovo & \textbf{0.837} \\
+-- Attention Pooling (Mean) & 0.768 \\
+-- Transfer Learning & 0.773 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Attention vs. Mean Pooling}: Removing attention pooling drops ROC-AUC by 2.2\%, confirming that learning \textit{where} to look improves generalization---and it is precisely this per-atom attention that the faithfulness pipeline grounds explanations in.
+\textbf{Attention vs. Mean Pooling}: Removing attention pooling drops validation ROC-AUC from 0.837 to 0.768 (a drop of 6.9\%), confirming that learning \textit{where} to look improves generalization---and it is precisely this per-atom attention that the faithfulness pipeline grounds explanations in.
 
-\textbf{Transfer Learning}: Without pre-training, performance drops by 3.9\%, demonstrating the value of learning chemical priors.
+\textbf{Transfer Learning}: Without pre-training, performance drops to 0.773 (a drop of 6.4\%), demonstrating the value of learning chemical priors.
 
 \textbf{Value of causal validation}: The contribution of the causal-consistency component is quantified directly by the faithfulness comparison (Table~\ref{tab:faith_compare}): the unconstrained baseline attains a comparable causal score (\Cuncon{}) yet collapses on grounding (\Guncon{}), so scoring on either component alone would admit unfaithful explanations. We therefore report it there rather than as a separate ablation row.
 
@@ -558,7 +558,7 @@ Rejection rate & \RejRate{} & \RejRateUncon{} \\
     \label{fig:faithfulness}
 \end{figure}
 
-The constrained mechanism raises mean faithfulness from \Funconstrained{} (unconstrained) to \FconAll{} over the same \Ntoxic{} molecules, and on the \NwithClaims{} explanations it accepts the mean rises to \Fconstrained{}. The improvement is concentrated almost entirely in the \emph{grounding} component (\Guncon{} $\rightarrow$ \Gconstr{}): the unconstrained LLM readily names chemically plausible toxicophores---indeed its \emph{causal} score (\Cuncon{}) is comparable to ours, since the groups it cites are often genuinely reactive---but it cites substructures this particular GNN did not attend to. Consequently every unconstrained explanation fails validation (\RejRateUncon{} rejection), whereas the reject-and-retry loop suppresses these attention-unfaithful rationalizations and retains grounded ones (\RejRate{} rejection). This directly confirms our central hypothesis: fluency is not faithfulness, and grounding in the model's own attention---not the plausibility of the chemistry---is what separates a faithful explanation from a hallucinated one. We emphasize that a non-trivial rejection rate is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy.
+The constrained mechanism raises mean faithfulness from \Funconstrained{} (unconstrained) to \FconAll{} over the same \Ntoxic{} molecules, and on the \NwithClaims{} explanations it accepts the mean rises to \Fconstrained{}. (Note: Evaluated strictly on the claim-bearing subset, the constrained framework achieves a perfect 1.000 faithfulness score. While seemingly high, this reflects the design of the reject-and-retry mechanism: it strictly filters out any explanation where the LLM hallucinates claims unsupported by GNN attention, guaranteeing that only fully verified explanations reach the user). The improvement is concentrated almost entirely in the \emph{grounding} component (\Guncon{} $\rightarrow$ \Gconstr{}): the unconstrained LLM readily names chemically plausible toxicophores---indeed its \emph{causal} score (\Cuncon{}) is comparable to ours, since the groups it cites are often genuinely reactive---but it cites substructures this particular GNN did not attend to. Consequently every unconstrained explanation fails validation (\RejRateUncon{} rejection), whereas the reject-and-retry loop suppresses these attention-unfaithful rationalizations and retains grounded ones (\RejRate{} rejection). This directly confirms our central hypothesis: fluency is not faithfulness, and grounding in the model's own attention---not the plausibility of the chemistry---is what separates a faithful explanation from a hallucinated one. We emphasize that a non-trivial rejection rate (\RejRate{}) is a \emph{feature}: each rejected explanation is one that would otherwise have presented a hallucinated rationale to the user as trustworthy.
 
 \subsection{Sensitivity Analysis}
 

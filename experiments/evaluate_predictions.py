@@ -61,7 +61,7 @@ def eval_one(name, cfg, device):
     test_loader = DataLoader(test_data, batch_size=32)
 
     model = AttentionGINet(num_tasks=cfg["num_tasks"]).to(device)
-    state = torch.load(cfg["weights"], map_location=device)
+    state = torch.load(cfg["weights"], map_location=device, weights_only=False)
     model.load_state_dict(state.get("model_state_dict", state) if isinstance(state, dict) else state)
     model.eval()
 

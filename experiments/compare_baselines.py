@@ -56,7 +56,7 @@ def main():
     u_g = g(u, 'mean_grounding')
     c_c = g(c, 'mean_causal')
     u_c = g(u, 'mean_causal')
-    c_rej = g(c, 'rejection_rate_claims', 'rejection_rate')
+    c_rej = g(c, 'rejection_rate')
     u_rej = g(u, 'rejection_rate')
 
     delta = (c_f - u_f) if (c_f is not None and u_f is not None) else None
@@ -71,8 +71,7 @@ def main():
     print(f"{'mean causal':22s} {fmt(c_c):>12s} {fmt(u_c):>14s}")
     print(f"{'rejection rate':22s} {fmt(c_rej):>12s} {fmt(u_rej):>14s}")
     if delta is not None:
-        print(f"\nAbsolute improvement in F: {delta:+.3f}"
-              + (f"  ({rel:+.1f}% relative)" if rel is not None else ""))
+        print(f"\nAbsolute improvement in F: {delta:+.3f}")
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

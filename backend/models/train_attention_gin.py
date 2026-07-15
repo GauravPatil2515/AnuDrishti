@@ -68,7 +68,8 @@ DEFAULT_CONFIG = {
         'feat_dim': 512,
         'drop_ratio': 0.2,      # Reduced for better learning
         'pred_n_layer': 2,
-        'pred_act': 'softplus'
+        'pred_act': 'softplus',
+        'pool': 'attention'
     },
     
     # Training parameters - OPTIMIZED for ROC-AUC >= 0.82
@@ -268,14 +269,17 @@ class AttentionGINTrainer:
             drop_ratio=self.config['model']['drop_ratio'],
             num_tasks=self.num_tasks,
             pred_n_layer=self.config['model']['pred_n_layer'],
-            pred_act=self.config['model']['pred_act']
+            pred_act=self.config['model']['pred_act'],
+            pool=self.config['model'].get('pool', 'attention')
         )
         
         # Load pre-trained weights if available
-        pretrained_path = pretrained_path or self.config['transfer']['pretrained_path']
-        if pretrained_path and Path(pretrained_path).exists():
+        pretrained_path = pretrained_path or self.config['transfer'].get('pretrained_path')
+        if self.config['transfer'].get('no_load', False) or pretrained_path == 'none':
+            logger.info("Training from scratch (explicitly requested).")
+        elif pretrained_path and Path(pretrained_path).exists():
             self._load_pretrained_weights(pretrained_path)
-        elif self.task_config['model_path'].exists():
+        elif self.task_config['model_path'].exists() and not self.config['transfer'].get('no_load', False):
             self._load_pretrained_weights(self.task_config['model_path'])
         else:
             logger.info("No pre-trained weights found. Training from scratch.")
@@ -295,7 +299,7 @@ class AttentionGINTrainer:
         logger.info(f"Loading pre-trained weights from: {path}")
         
         try:
-            state_dict = torch.load(path, map_location=self.device)
+            state_dict = torch.load(path, map_location=self.device, weights_only=False)
             loaded, skipped = self.model.load_pretrained_ginet(
                 state_dict, 
                 strict=False
@@ -844,11 +848,20 @@ def main():
                        help='Focal loss gamma parameter')
     parser.add_argument('--seed', type=int, default=42,
                        help='Random seed')
+    parser.add_argument('--pool', type=str, default='attention',
+                       choices=['attention', 'mean'],
+                       help='Pooling type')
     
     args = parser.parse_args()
     
     # Update config with command line args
     config = DEFAULT_CONFIG.copy()
+    config['model'] = DEFAULT_CONFIG['model'].copy()
+    config['training'] = DEFAULT_CONFIG['training'].copy()
+    config['transfer'] = DEFAULT_CONFIG['transfer'].copy()
+    config['data'] = DEFAULT_CONFIG['data'].copy()
+    config['logging'] = DEFAULT_CONFIG['logging'].copy()
+    
     config['training']['epochs'] = args.epochs
     config['training']['batch_size'] = args.batch_size
     config['training']['learning_rate'] = args.lr
@@ -857,6 +870,7 @@ def main():
     config['training']['use_focal_loss'] = not args.no_focal_loss
     config['training']['focal_loss_gamma'] = args.focal_loss_gamma
     config['data']['random_seed'] = args.seed
+    config['model']['pool'] = args.pool
     
     if args.pretrained:
         config['transfer']['pretrained_path'] = args.pretrained

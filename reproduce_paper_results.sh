@@ -31,7 +31,7 @@ $PYTHON_CMD validate_models.py
 echo "📊 [2/6] Running Faithfulness Evaluation Baseline Comparisons..."
 $PYTHON_CMD experiments/compare_baselines.py \
     --constrained results/eval_tox21_fixed/statistics.json \
-    --unconstrained results/baseline_unconstrained_tox21/statistics.json \
+    --unconstrained results/baseline_REAL/statistics.json \
     --out results/faithfulness_comparison
 
 echo "📈 [3/6] Plotting Sensitivity/Pareto trade-off curves..."

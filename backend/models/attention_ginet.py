@@ -113,7 +113,8 @@ class AttentionGINet(nn.Module):
         drop_ratio=0.3,
         num_tasks=1,
         pred_n_layer=2,
-        pred_act='softplus'
+        pred_act='softplus',
+        pool='attention'
     ):
         super(AttentionGINet, self).__init__()
         
@@ -123,6 +124,7 @@ class AttentionGINet(nn.Module):
         self.drop_ratio = drop_ratio
         self.task = task
         self.num_tasks = num_tasks
+        self.pool_type = pool
         
         # ═══════════════════════════════════════════════════════════════
         # Node Embeddings
@@ -197,7 +199,7 @@ class AttentionGINet(nn.Module):
         self._last_attention_weights = None
         self._last_node_features = None
     
-    def forward(self, data, return_attention=True):
+    def forward(self, data, return_attention=True, fp_features=None, **kwargs):
         """
         Forward pass with optional attention weight extraction.
         
@@ -218,7 +220,7 @@ class AttentionGINet(nn.Module):
         # ═══════════════════════════════════════════════════════════════
         # Node Embedding
         # ═══════════════════════════════════════════════════════════════
-        print(f"DEBUG: x[:,0].max()={x[:,0].max()}, x[:,1].max()={x[:,1].max()}"); h = self.x_embedding1(x[:, 0]) + self.x_embedding2(x[:, 1])
+        h = self.x_embedding1(x[:, 0].long()) + self.x_embedding2(x[:, 1].long())
         
         # ═══════════════════════════════════════════════════════════════
         # Message Passing (5 layers)
@@ -247,7 +249,10 @@ class AttentionGINet(nn.Module):
             self._last_attention_weights = attention_weights.detach()
         
         # Global attention pooling
-        h_pooled = self.attention_pool(h, batch)  # [batch_size, emb_dim]
+        if hasattr(self, 'pool_type') and self.pool_type == 'mean':
+            h_pooled = self.mean_pool(h, batch)
+        else:
+            h_pooled = self.attention_pool(h, batch)
         
         # ═══════════════════════════════════════════════════════════════
         # Feature Projection & Prediction
@@ -342,7 +347,7 @@ class AttentionGINetWrapper:
         self.model = AttentionGINet(num_tasks=num_tasks)
         
         # Load checkpoint
-        checkpoint = torch.load(model_path, map_location=self.device)
+        checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(checkpoint)
         self.model.to(self.device)
         self.model.eval()
