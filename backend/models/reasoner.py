@@ -477,17 +477,26 @@ class OpenAILLMProvider(LLMProvider):
     is_mock = False
     MODEL_ID = os.getenv('OPENAI_MODEL', 'gpt-4o')
 
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None,
+                 base_url: Optional[str] = None):
+        # OPENAI_BASE_URL lets this same provider target any OpenAI-compatible
+        # gateway (e.g. OpenRouter: https://openrouter.ai/api/v1). Set OPENAI_MODEL
+        # to that gateway's model id, e.g. meta-llama/llama-3.3-70b-instruct.
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY') or os.getenv('OPENROUTER_API_KEY')
         self.MODEL_ID = model or self.MODEL_ID
+        self.base_url = base_url or os.getenv('OPENAI_BASE_URL')
         self._client = None
         if not self.api_key:
             logger.warning("OPENAI_API_KEY not found. OpenAI provider disabled.")
             return
         try:
             from openai import OpenAI
-            self._client = OpenAI(api_key=self.api_key)
-            logger.info(f"OpenAI client initialized with model: {self.MODEL_ID}")
+            kwargs = {'api_key': self.api_key}
+            if self.base_url:
+                kwargs['base_url'] = self.base_url
+            self._client = OpenAI(**kwargs)
+            logger.info(f"OpenAI-compatible client initialized: model={self.MODEL_ID} "
+                        f"base_url={self.base_url or 'default'}")
         except ImportError:
             logger.error("openai package not installed. Run: pip install openai")
         except Exception as e:
