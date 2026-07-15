@@ -103,7 +103,7 @@ Our contributions are:
     \item \textbf{Faithful XAI Engine (Core Contribution)}: A neuro-symbolic validation framework that ensures LLM-generated explanations are causally grounded in the GNN's decision process, not hallucinated post-hoc rationalizations.
     \item \textbf{Attention-GIN Architecture}: A novel GNN variant with 5 GINEConv layers, 300-dimensional embeddings, and a learnable Global Attention Pooling mechanism that produces interpretable per-atom importance scores.
     \item \textbf{Counterfactual Validation}: A mechanism that tests whether removing cited toxicophores actually changes predictions, providing causal rather than correlational guarantees.
-    \item \textbf{Supporting Infrastructure}: Substructure Mapper (45 SMARTS patterns) with a size-invariant adaptive attention cutoff, an ADMET Rule Engine (decision-support flagging), and a production web platform demonstrating real-world applicability.
+    \item \textbf{Supporting Infrastructure}: Substructure Mapper (28 toxicophore alerts plus 20 common functional groups) with a size-invariant adaptive attention cutoff, an ADMET Rule Engine (decision-support flagging), and a production web platform demonstrating real-world applicability.
 \end{enumerate}
 
 The remainder of this paper demonstrates that counterfactual validation substantially improves explanation faithfulness while maintaining competitive predictive performance.
@@ -293,7 +293,7 @@ Training deep GNNs on small toxicity datasets (e.g., ClinTox with 1,478 samples)
 
 \subsection{Substructure Mapper}
 
-Post-inference, we convert attention weights into chemically meaningful explanations. The Substructure Mapper maintains a database of 45 known toxicophores encoded as SMARTS patterns, organized by toxicity mechanism:
+Post-inference, we convert attention weights into chemically meaningful explanations. The Substructure Mapper maintains a database of 28 known toxicophores encoded as SMARTS patterns, organized by toxicity mechanism, augmented with 20 common drug-like functional groups (48 patterns total) so that most molecules yield at least one candidate substructure for grounding:
 
 \begin{itemize}
     \item \textbf{Reactive Species}: Nitro ($[N+](=O)[O-]$), Epoxide ($C1OC1$), Acyl halide ($C(=O)[F,Cl,Br,I]$).
@@ -637,7 +637,9 @@ DeNovo ensures the LLM accurately describes what the GNN believes, but cannot gu
 
 \textbf{Computational Cost}: The Generate-Validate loop adds latency (\textasciitilde2-5 seconds per explanation) due to multiple LLM calls and counterfactual inference. \textbf{Design Trade-off}: DeNovo is optimized for \textit{decision support}, not high-throughput explanation generation. Predictions are fast (\textasciitilde50ms); detailed explanations are optional. For batch screening of 1000+ molecules, users can disable LLM explanations and rely solely on attention heatmaps.
 
-\textbf{Toxicophore Coverage}: Our SMARTS database covers 45 known patterns, but novel toxic moieties may not be recognized. The system will still produce accurate predictions, but explanations may be less specific.
+\textbf{Substructure Coverage}: Our SMARTS vocabulary comprises 28 toxicity-specific alerts augmented with 20 common drug-like functional groups (48 patterns total). It is limited to organic chemistry: as the fluorotriphenyltin case above shows, organometallic toxicophores (e.g.\ the tin centre of organotins) are not represented, so explanations for such molecules are correctly rejected rather than fabricated. Extending the vocabulary to organometallic and other under-covered motifs is future work.
+
+\textbf{Evaluation scope}: Faithfulness is evaluated on molecules the model predicts as toxic (max-endpoint probability $\geq 0.5$), the regime in which a toxicity explanation is meaningful and the causal test is well defined; a negative prediction has no toxic decision to explain. Of the toxic-predicted molecules, faithfulness is quantified on the claim-bearing subset (those with at least one groundable substructure); molecules whose attention concentrates on motifs outside the vocabulary yield no falsifiable claim.
 
 \textbf{No Human Expert Validation}: Our evaluation focuses on automated causal verification. Future work will include human-in-the-loop validation with medicinal chemists to assess whether the explanations align with domain expertise and improve decision-making in practice.
 
