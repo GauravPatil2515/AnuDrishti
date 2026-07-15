@@ -589,45 +589,25 @@ We expect the operating point $\kappa = 2$, $\delta = 0.1$ to provide a balanced
 \section{Qualitative Case Studies}
 %=====================================================================
 
-% TODO(numbers): the per-molecule faithfulness scores and prediction drops in the
-% case studies below are illustrative; replace with the exact values from
-% results/<eval>/explanations.json (via select_case_studies.py) before submission.
-\subsection{Case 1: Nitrobenzene (True Positive)}
+The following two cases are drawn directly from the live-LLM evaluation
+(LLaMA-3.3-70B), not constructed for illustration; the scores are the exact
+values written to \texttt{results/eval\_tox21\_REAL/explanations.json}.
 
-Molecule: $C_6H_5NO_2$ (SMILES: c1ccc([N+](=O)[O-])cc1)
+\subsection{Case 1: Accepted --- Fluorinated Steroid Ester}
 
-\textbf{Prediction}: Toxic (0.89 confidence)
+Molecule: a fluorinated steroid ester (SMILES \texttt{CCCC(=O)O[C@]1(C(=O)COC(=O)CC)[C@@H](C)C[C@H]2...[C@@]3(F)[C@@H](O)...}; full string in the results file), which the GNN flags as toxic with a max-endpoint probability of $0.998$.
 
-\textbf{Unconstrained LLM}: ``The benzene ring suggests potential carcinogenicity due to hydroxylation metabolites...''
+On its first generation attempt, the constrained LLM produced: \textit{``The molecule exhibits a high toxicity risk of 99.8\%, primarily due to the presence of a halogen substituent and other functional groups. The halogen substituent is the most significant contributor\ldots''}, citing the fluorine substituent together with a ketone, a hydroxyl, and an ether. All cited substructures lay within the model's high-attention region (grounding $S_{\text{grounding}} = 1.0$), and half survived counterfactual removal (causal $S_{\text{causal}} = 0.5$), giving $F = \sqrt{1.0 \times 0.5} = 0.707$. The explanation was \textcolor{teal}{\textbf{ACCEPTED}}. The partial causal score is instructive: not every cited group is load-bearing, and the metric reports this honestly rather than rounding up.
 
-\textbf{DeNovo Validator}: \textcolor{red}{REJECTED} (Causal Failure). Removing the benzene ring reduced prediction by only 0.02.
+\subsection{Case 2: Rejected --- Fluorotriphenyltin (Hallucination Caught)}
 
-\textbf{DeNovo (Retry)}: ``The toxicity is driven by the \textbf{Nitro group} ($[N+](=O)[O-]$), which contributes 35\% of the total attention. Nitro groups are known metabolic alerts due to their susceptibility to nitroreduction, generating reactive intermediates.''
+Molecule: triphenyltin fluoride (SMILES \texttt{F[Sn](c1ccccc1)(c1ccccc1)c1ccccc1}), a highly toxic organotin biocide. The GNN correctly assigns it a max-endpoint probability of $1.0$.
 
-\textbf{Faithfulness Score}: 0.823
+Across all three generation attempts, no explanation produced a structural claim that survived counterfactual validation ($S_{\text{causal}} = 0$), and the Reject-and-Retry loop \textcolor{red}{\textbf{REJECTED}} the explanation ($F = 0.0$). The mechanism is chemically telling: organotin toxicity is driven by the tin centre, which lies outside our SMARTS vocabulary of organic toxicophores and functional groups. Rather than emit a plausible-but-unfaithful rationale attributing the toxicity to the phenyl rings, the system withholds an explanation it cannot causally justify. This case illustrates both the intended behaviour and a concrete limitation---the vocabulary does not yet cover organometallic toxicophores.
 
-\textbf{Analysis}: The unconstrained LLM defaulted to a generic ``benzene is dangerous'' heuristic. DeNovo's counterfactual test proved that removing the benzene ring had minimal impact, while removing the nitro group dropped the prediction by 0.41.
+\subsection{Discussion of Cases}
 
-\subsection{Case 2: Caffeine (True Negative)}
-
-Molecule: $C_8H_{10}N_4O_2$ (SMILES: Cn1cnc2c1c(=O)n(c(=O)n2C)C)
-
-\textbf{Predictions}:
-\begin{itemize}
-    \item Toxicity: Low (0.12)
-    \item BBB Penetration: High (99.2\% confidence)
-    \item Absorption: High (-4.649 log Papp)
-\end{itemize}
-
-\textbf{DeNovo Explanation}: ``Despite containing a purine scaffold similar to known toxins, the toxicity is predicted LOW because: (1) The xanthine core is extensively metabolized via well-characterized CYP1A2 pathways, (2) No known toxicophores (nitro, epoxide, acyl halide) are present, and (3) The molecule is consistent with established pharmacological knowledge.''
-
-\textbf{Faithfulness Score}: 0.912
-
-\textbf{Analysis}: DeNovo correctly identifies that the generic scaffold is not predictive of toxicity and grounds the explanation in the absence of specific functional groups.
-
-\subsection{Literature Validation}
-
-Both case studies were cross-checked against established toxicology literature. The identification of nitro groups as metabolic alerts aligns with FDA guidance on structural alerts and the Benigni-Bossa rulebase for mutagenicity. The caffeine analysis correctly reflects known CYP1A2 metabolism pathways documented in pharmacokinetic databases. This provides indirect validation that DeNovo's explanations align with domain knowledge, though formal human expert studies remain future work.
+Together these cases exhibit the metric's two regimes: accepted explanations whose cited substructures are both attention-grounded and at least partly causal, and rejected explanations where no faithful claim can be made. Consistent with our design goal, DeNovo prefers to withhold rather than fabricate. The identification of fluorine and carbonyl substituents as attention drivers is chemically reasonable, and the rejection of the organotin surfaces a coverage gap honestly rather than masking it. Formal human-expert evaluation of the accepted explanations remains future work.
 
 
 %=====================================================================
