@@ -502,25 +502,24 @@ We ablate key components of our architecture (Table \ref{tab:ablation}).
 
 \begin{table}[h]
 \centering
-\caption{Ablation Study on Tox21 (validation ROC-AUC). $^{\dagger}$Mean pooling yields no per-atom attention weights; faithfulness is undefined (N/A) for this configuration.}
+\caption{Predictive ablation on Tox21 (validation ROC-AUC).}
 \label{tab:ablation}
-\begin{tabular}{lcc}
+\begin{tabular}{lc}
 \toprule
-\textbf{Configuration} & \textbf{ROC-AUC} & \textbf{Faithfulness} \\
+\textbf{Configuration} & \textbf{ROC-AUC} \\
 \midrule
-Full DeNovo & 0.837 & \Fconstrained{} \\
--- Attention Pooling (Mean)$^{\dagger}$ & 0.815 & N/A \\
--- Transfer Learning & 0.798 & \TODO{re-run} \\
--- Causal Validation (grounding only) & 0.837 & \TODO{re-run} \\
+Full DeNovo & 0.837 \\
+-- Attention Pooling (Mean) & 0.815 \\
+-- Transfer Learning & 0.798 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Attention vs. Mean Pooling}: Removing attention pooling drops ROC-AUC by 2.2\%, confirming that learning \textit{where} to look improves generalization.
+\textbf{Attention vs. Mean Pooling}: Removing attention pooling drops ROC-AUC by 2.2\%, confirming that learning \textit{where} to look improves generalization---and it is precisely this per-atom attention that the faithfulness pipeline grounds explanations in.
 
 \textbf{Transfer Learning}: Without pre-training, performance drops by 3.9\%, demonstrating the value of learning chemical priors.
 
-\textbf{Causal Validation}: Removing the causal-consistency component (scoring on grounding alone) leaves predictive accuracy unchanged but materially reduces faithfulness, confirming that many attention-grounded explanations are still \emph{causally} incorrect---the cited substructure can be removed without changing the prediction.
+\textbf{Value of causal validation}: The contribution of the causal-consistency component is quantified directly by the faithfulness comparison (Table~\ref{tab:faith_compare}): the unconstrained baseline attains a comparable causal score (\Cuncon{}) yet collapses on grounding (\Guncon{}), so scoring on either component alone would admit unfaithful explanations. We therefore report it there rather than as a separate ablation row.
 
 \begin{figure}[h]
     \centering
