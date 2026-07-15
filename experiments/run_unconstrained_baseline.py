@@ -155,14 +155,17 @@ def map_claims_to_evidence(llm_output, smiles, toxicophore_db):
 
 
 def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules=200,
-                               allow_mock=False):
+                               allow_mock=False, min_prediction=0.5):
     import torch
     from attention_ginet import AttentionGINet
     from faithfulness_validator import FaithfulnessValidator
     from counterfactual_generator import CounterfactualGenerator
-    from substructure_mapper import TOXICOPHORES
+    from substructure_mapper import TOXICOPHORES, FUNCTIONAL_GROUPS
     from reasoner import get_llm_provider, assert_real_llm
     from run_faithful_eval import smiles_to_data, load_test_data
+
+    # Same vocabulary the constrained pipeline uses, so both are scored identically.
+    VOCAB = {**FUNCTIONAL_GROUPS, **TOXICOPHORES}
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -204,7 +207,9 @@ def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules
             with torch.no_grad():
                 _, predictions, attention_info = model(data, return_attention=True)
             probs = torch.sigmoid(predictions).cpu().numpy()[0]
-            avg_toxicity = float(np.mean(probs))
+            avg_toxicity = float(np.max(probs))  # strongest endpoint (see constrained eval)
+            if avg_toxicity < min_prediction:
+                continue
             attention_weights = attention_info['attention_weights'].cpu().numpy()
 
             # Unconstrained generation: no evidence list provided.
@@ -220,7 +225,7 @@ def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules
                 })
                 continue
 
-            claims = map_claims_to_evidence(llm_output, smiles, TOXICOPHORES)
+            claims = map_claims_to_evidence(llm_output, smiles, VOCAB)
             explanation = {'identified_toxicophores': claims}
 
             # Score with the SAME validator used by the constrained pipeline.
@@ -238,6 +243,8 @@ def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules
                 'score_grounding': fs.grounding.score,
                 'parse_failed': False,
             })
+            if len(results) >= n_molecules:
+                break
         except Exception as e:
             logger.error(f"Failed on {smiles[:40]}: {e}")
             continue
@@ -287,6 +294,8 @@ def main():
     parser.add_argument('--n-molecules', type=int, default=200)
     parser.add_argument('--allow-mock', action='store_true',
                         help='DEV ONLY: permit MockLLMProvider. Never use for paper numbers.')
+    parser.add_argument('--min-prediction', type=float, default=0.5,
+                        help='Only evaluate molecules whose max-endpoint toxicity >= this (default 0.5)')
     args = parser.parse_args()
 
     run_unconstrained_baseline(
@@ -295,6 +304,7 @@ def main():
         output_dir=args.output,
         n_molecules=args.n_molecules,
         allow_mock=args.allow_mock,
+        min_prediction=args.min_prediction,
     )
 
 

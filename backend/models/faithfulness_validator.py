@@ -301,8 +301,11 @@ class FaithfulnessValidator:
                             failed_claims.append(name)
                             logger.debug(f"✗ {name}: prediction only dropped {prediction_drop:.3f}")
         
+        # details is keyed by claim name, so duplicate-named claims (e.g. the LLM
+        # citing the same toxicophore as both primary and secondary) can make
+        # passed_claims exceed len(details); clamp to [0, 1].
         tested_claims = len(details)
-        score = passed_claims / tested_claims if tested_claims > 0 else 0.0
+        score = min(1.0, passed_claims / tested_claims) if tested_claims > 0 else 0.0
         
         return CausalConsistencyResult(
             score=score,
@@ -483,9 +486,11 @@ class FaithfulnessValidator:
                 data = data.to(next(self.model.parameters()).device)
                 _, predictions = self.model(data, return_attention=False)
                 
-                # Average across tasks
+                # Max across tasks: consistent with the toxicity signal used in
+                # evaluation (strongest endpoint). The causal test asks whether
+                # removing the cited driver drops the flagged (max) prediction.
                 probs = torch.sigmoid(predictions).cpu().numpy()[0]
-                return float(np.mean(probs))
+                return float(np.max(probs))
                 
         except Exception as e:
             logger.error(f"Prediction failed for {smiles[:50]}: {e}")

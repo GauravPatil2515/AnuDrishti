@@ -53,7 +53,8 @@ def run_faithful_evaluation(
     disable_counterfactual: bool = False,
     disable_grounding: bool = False,
     attention_threshold: float = 0.1,
-    allow_mock: bool = False
+    allow_mock: bool = False,
+    min_prediction: float = 0.5
 ):
     """
     Run comprehensive faithful explanation evaluation.
@@ -131,12 +132,15 @@ def run_faithful_evaluation(
     # 3. Load test data
     logger.info(f"\n[3/6] Loading test data from {dataset_path}...")
     df_test = load_test_data(dataset_path)
-    
-    # Limit to n_molecules
-    if len(df_test) > n_molecules:
-        df_test = df_test.head(n_molecules)
-    
-    logger.info(f"✅ Evaluating {len(df_test)} molecules")
+
+    # Faithfulness of a toxicity explanation is only meaningful when the model
+    # predicts the molecule as toxic (there must be a positive decision to
+    # explain, and the causal test -- "removing the driver drops the prediction"
+    # -- is undefined for an already-negative prediction). We therefore scan the
+    # full test split and evaluate the first n_molecules whose max-endpoint
+    # probability exceeds min_prediction, rather than the first n rows.
+    logger.info(f"✅ Scanning {len(df_test)} test molecules for toxic-predicted "
+                f"(max-endpoint prob >= {min_prediction}), target n={n_molecules}")
     
     # 4. Run evaluation
     logger.info(f"\n[4/6] Running evaluation...")
@@ -162,11 +166,16 @@ def run_faithful_evaluation(
             
             with torch.no_grad():
                 features, predictions, attention_info = model(data, return_attention=True)
-            
-            # Get prediction
+
+            # Toxicity signal = strongest endpoint (the one the molecule is most
+            # flagged on). Averaging over 12 tasks dilutes any positive signal.
             probs = torch.sigmoid(predictions).cpu().numpy()[0]
-            avg_toxicity = float(np.mean(probs))
-            
+            avg_toxicity = float(np.max(probs))
+
+            # Skip molecules the model does not predict as toxic.
+            if avg_toxicity < min_prediction:
+                continue
+
             # Get attention
             attention_weights = attention_info['attention_weights'].cpu().numpy()
             
@@ -203,7 +212,10 @@ def run_faithful_evaluation(
                 'smiles': smiles,
                 'explanation': explanation.to_dict()
             })
-            
+
+            if len(results) >= n_molecules:
+                break
+
         except Exception as e:
             logger.error(f"Failed on {smiles}: {e}")
             continue
@@ -374,6 +386,8 @@ def main():
                        help='Attention threshold for claims')
     parser.add_argument('--allow-mock', action='store_true',
                        help='DEV ONLY: permit MockLLMProvider. Never use for paper numbers.')
+    parser.add_argument('--min-prediction', type=float, default=0.5,
+                       help='Only evaluate molecules whose max-endpoint toxicity >= this (default 0.5)')
 
     args = parser.parse_args()
     
@@ -387,7 +401,8 @@ def main():
         disable_counterfactual=args.disable_counterfactual,
         disable_grounding=args.disable_grounding,
         attention_threshold=args.attention_threshold,
-        allow_mock=args.allow_mock
+        allow_mock=args.allow_mock,
+        min_prediction=args.min_prediction
     )
 
 
