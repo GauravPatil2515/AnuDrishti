@@ -1,0 +1,22 @@
+{
+  "bbbp": {
+    "test_roc_auc": 0.8971,
+    "per_task": null,
+    "n_test": 201,
+    "sota_ref": "ChemProp ~0.90 (MoleculeNet, scaffold)"
+  },
+  "clintox": {
+    "test_roc_auc": 0.623,
+    "per_task": [
+      0.6059397163120567,
+      0.6399868247694335
+    ],
+    "n_test": 149,
+    "sota_ref": "ChemProp ~0.88-0.90 (MoleculeNet)"
+  },
+  "tox21": {
+    "test_roc_auc": 0.8023,
+    "source": "logged at training (seeded random split)",
+    "sota_ref": "ChemProp ~0.845 (MoleculeNet)"
+  }
+}
