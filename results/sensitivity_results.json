@@ -1,0 +1,47 @@
+[
+  {
+    "kappa": 1.5,
+    "delta": 0.1,
+    "n_evaluated": 12,
+    "rejection_rate": 0.5,
+    "mean_faithfulness": 0.5328205708431126,
+    "mean_faithfulness_claims": 0.9694160968212877,
+    "n_with_claims": 6
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.1,
+    "n_evaluated": 12,
+    "rejection_rate": 0.5833333333333333,
+    "mean_faithfulness": 0.4166666666666667,
+    "mean_faithfulness_claims": 1.0,
+    "n_with_claims": 5
+  },
+  {
+    "kappa": 3.0,
+    "delta": 0.1,
+    "n_evaluated": 12,
+    "rejection_rate": 0.75,
+    "mean_faithfulness": 0.25,
+    "mean_faithfulness_claims": 1.0,
+    "n_with_claims": 2
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.05,
+    "n_evaluated": 12,
+    "rejection_rate": 0.5833333333333333,
+    "mean_faithfulness": 0.40137471507731054,
+    "mean_faithfulness_claims": 0.9632993161855452,
+    "n_with_claims": 5
+  },
+  {
+    "kappa": 2.0,
+    "delta": 0.15,
+    "n_evaluated": 12,
+    "rejection_rate": 0.5833333333333333,
+    "mean_faithfulness": 0.40137471507731054,
+    "mean_faithfulness_claims": 0.9632993161855452,
+    "n_with_claims": 5
+  }
+]

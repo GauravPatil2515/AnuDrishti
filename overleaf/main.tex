@@ -566,22 +566,22 @@ To ensure our results are not artifacts of specific parameter choices, we vary t
 
 \begin{table}[h]
 \centering
-\caption{Sensitivity Analysis for the Adaptive Cutoff Factor $\kappa$ and Causal Threshold $\delta$. \TODO{These values must be regenerated with the live LLM; the current table predates the real-LLM evaluation.}}
+\caption{Sensitivity to the adaptive-cutoff factor $\kappa$ and causal threshold $\delta$ (live LLaMA-3.3-70B; 12 toxic-predicted molecules per cell). Mean $F$ is over all 12; the accepted explanations retain a mean $F \geq 0.96$ in every cell.}
 \label{tab:sensitivity}
 \begin{tabular}{cccc}
 \toprule
-\textbf{$\kappa$} & \textbf{$\delta$} & \textbf{Rejection Rate} & \textbf{Avg Faithfulness} \\
+\textbf{$\kappa$} & \textbf{$\delta$} & \textbf{Rejection Rate} & \textbf{Mean $F$} \\
 \midrule
-1.5 & 0.10 & 18.5\% & 0.815 \\
-\textbf{2.0} & \textbf{0.10} & \RejRate{} & \Fconstrained{} \\
-3.0 & 0.10 & 4.5\% & 0.955 \\
-2.0 & 0.05 & 12.0\% & 0.880 \\
-2.0 & 0.15 & 14.0\% & 0.860 \\
+1.5 & 0.10 & 50.0\% & 0.533 \\
+\textbf{2.0} & \textbf{0.10} & \textbf{58.3\%} & \textbf{0.417} \\
+3.0 & 0.10 & 75.0\% & 0.250 \\
+2.0 & 0.05 & 58.3\% & 0.401 \\
+2.0 & 0.15 & 58.3\% & 0.401 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-We expect the operating point $\kappa = 2$, $\delta = 0.1$ to provide a balanced trade-off: a stricter cutoff (larger $\kappa$) or a larger required drop $\delta$ increases the rejection rate (more conservative) at the cost of fewer accepted explanations. These values are selected on the validation set, not hand-tuned on the test set.
+The adaptive cutoff $\kappa$ behaves as a coverage/strictness knob: a stricter cutoff (larger $\kappa$) admits fewer substructures as evidence, so fewer molecules yield a groundable claim and more explanations are rejected (rejection rises $50\% \rightarrow 58\% \rightarrow 75\%$ as $\kappa: 1.5 \rightarrow 2.0 \rightarrow 3.0$), lowering mean $F$ over the full set. The causal threshold $\delta$ has little effect over the tested range ($0.05$--$0.15$). Crucially, the \emph{accepted} explanations remain highly faithful across every setting (mean $F \geq 0.96$); $\kappa$ and $\delta$ trade coverage against conservativeness, not explanation quality. We adopt $\kappa = 2$, $\delta = 0.1$ as a balanced operating point, consistent with the full $n{=}\Ntoxic{}$ run reported above. \emph{These cells use only 12 molecules each to fit within budget and therefore carry higher variance than the main result.}
 
 
 

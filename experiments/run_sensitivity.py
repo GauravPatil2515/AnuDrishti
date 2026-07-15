@@ -12,6 +12,7 @@ Usage:
 Author: DeNovo-XAI Research Team
 """
 
+import os
 import sys
 import json
 import numpy as np
@@ -40,7 +41,10 @@ def main():
 
     model_path = 'results/trained_models/attention_gin_model.pth'
     dataset_path = 'data_packages/tox21_model_full_package/data/tox21/tox21.csv'
-    n_molecules = 200
+    # Reduced n per cell: 5 cells x a full run would exceed a single day's LLM
+    # token budget. 12 toxic-predicted molecules/cell keeps the whole sweep within
+    # ~100k tokens; the resulting rates carry more variance (reported as such).
+    n_molecules = int(os.getenv('SENS_N', '12'))
 
     results = []
 
@@ -70,20 +74,28 @@ def main():
             
             FaithfulnessValidator.__init__ = make_patched_val_init(kappa, delta)
             SubstructureMapper.__init__ = make_patched_map_init(kappa)
-            
-            stats = run_faithful_evaluation(
-                model_path=model_path,
-                dataset_path=dataset_path,
-                output_dir=f'results/sensitivity_kappa_{kappa}_delta_{delta}',
-                n_molecules=n_molecules,
-                validate_faithfulness=True
-            )
-            
+
+            try:
+                stats = run_faithful_evaluation(
+                    model_path=model_path,
+                    dataset_path=dataset_path,
+                    output_dir=f'results/sensitivity_kappa_{kappa}_delta_{delta}',
+                    n_molecules=n_molecules,
+                    validate_faithfulness=True
+                )
+            except Exception as e:
+                print(f"  cell kappa={kappa} delta={delta} FAILED: {e}")
+                results.append({'kappa': kappa, 'delta': delta, 'error': str(e)})
+                continue
+
             results.append({
                 'kappa': kappa,
                 'delta': delta,
+                'n_evaluated': stats.get('n_evaluated'),
                 'rejection_rate': stats['rejection_rate'],
-                'mean_faithfulness': stats['mean_faithfulness']
+                'mean_faithfulness': stats['mean_faithfulness'],
+                'mean_faithfulness_claims': stats.get('mean_faithfulness_claims'),
+                'n_with_claims': stats.get('n_with_claims')
             })
             
     finally:
