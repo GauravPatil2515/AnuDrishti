@@ -154,13 +154,14 @@ def map_claims_to_evidence(llm_output, smiles, toxicophore_db):
     return evidence
 
 
-def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules=200):
+def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules=200,
+                               allow_mock=False):
     import torch
     from attention_ginet import AttentionGINet
     from faithfulness_validator import FaithfulnessValidator
     from counterfactual_generator import CounterfactualGenerator
     from substructure_mapper import TOXICOPHORES
-    from reasoner import GroqLLMProvider, MockLLMProvider
+    from reasoner import get_llm_provider, assert_real_llm
     from run_faithful_eval import smiles_to_data, load_test_data
 
     output_dir = Path(output_dir)
@@ -182,13 +183,11 @@ def run_unconstrained_baseline(model_path, dataset_path, output_dir, n_molecules
         counterfactual_generator=CounterfactualGenerator(),
     )
 
-    try:
-        llm = GroqLLMProvider()
-        if not llm.is_available():
-            logger.warning("Groq unavailable -> Mock LLM (baseline numbers will be meaningless)")
-            llm = MockLLMProvider()
-    except Exception:
-        llm = MockLLMProvider()
+    llm = get_llm_provider(allow_mock=allow_mock)
+    if not allow_mock:
+        assert_real_llm(llm)
+    logger.info(f"LLM provider: {type(llm).__name__} "
+                f"(model={getattr(llm, 'MODEL_ID', 'n/a')}, mock={getattr(llm, 'is_mock', False)})")
 
     df_test = load_test_data(dataset_path)
     if len(df_test) > n_molecules:
@@ -286,6 +285,8 @@ def main():
     parser.add_argument('--output', type=str, default='./results/baseline_unconstrained',
                         help='Output directory')
     parser.add_argument('--n-molecules', type=int, default=200)
+    parser.add_argument('--allow-mock', action='store_true',
+                        help='DEV ONLY: permit MockLLMProvider. Never use for paper numbers.')
     args = parser.parse_args()
 
     run_unconstrained_baseline(
@@ -293,6 +294,7 @@ def main():
         dataset_path=args.dataset,
         output_dir=args.output,
         n_molecules=args.n_molecules,
+        allow_mock=args.allow_mock,
     )
 
 

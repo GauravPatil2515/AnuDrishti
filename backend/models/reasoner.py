@@ -247,7 +247,8 @@ class GroqLLMProvider(LLMProvider):
     Groq LLM provider for high-speed inference.
     Uses LLaMA 3.3 70B for scientific reasoning.
     """
-    
+
+    is_mock = False
     MODEL_ID = "llama-3.3-70b-versatile"
     
     def __init__(self, api_key: Optional[str] = None):
@@ -328,8 +329,14 @@ class MockLLMProvider(LLMProvider):
     """
     Mock LLM provider for testing without API access.
     Returns template-based responses for development.
+
+    WARNING: This provider fabricates responses. Any faithfulness/baseline number
+    produced with it is NOT a scientific result and must never appear in the paper.
+    Evaluation scripts refuse to use it unless --allow-mock is passed explicitly.
     """
-    
+
+    is_mock = True
+
     def is_available(self) -> bool:
         return True
     
@@ -459,6 +466,117 @@ class MockLLMProvider(LLMProvider):
                    "3. **Carbon tetrachloride** - Halogenated compound toxicity")
         else:
             return "[Mock LLM response for testing]"
+
+
+class OpenAILLMProvider(LLMProvider):
+    """
+    OpenAI provider (GPT-4 family) for scientific reasoning.
+    Uses the OpenAI Python SDK (>=1.0). Reads OPENAI_API_KEY.
+    """
+
+    is_mock = False
+    MODEL_ID = os.getenv('OPENAI_MODEL', 'gpt-4o')
+
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+        self.MODEL_ID = model or self.MODEL_ID
+        self._client = None
+        if not self.api_key:
+            logger.warning("OPENAI_API_KEY not found. OpenAI provider disabled.")
+            return
+        try:
+            from openai import OpenAI
+            self._client = OpenAI(api_key=self.api_key)
+            logger.info(f"OpenAI client initialized with model: {self.MODEL_ID}")
+        except ImportError:
+            logger.error("openai package not installed. Run: pip install openai")
+        except Exception as e:
+            logger.error(f"Failed to initialize OpenAI client: {e}")
+
+    def is_available(self) -> bool:
+        return self._client is not None
+
+    def generate(self, prompt: str, max_tokens: int = 1500,
+                 temperature: float = 0.3, system_prompt: Optional[str] = None) -> str:
+        if not self.is_available():
+            return "[LLM reasoning unavailable - OpenAI key not configured]"
+        try:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+            resp = self._client.chat.completions.create(
+                model=self.MODEL_ID, messages=messages,
+                temperature=temperature, max_tokens=max_tokens, top_p=0.9,
+            )
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            logger.error(f"OpenAI API error: {e}")
+            return f"[LLM reasoning failed: {str(e)}]"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Provider factory + integrity guard
+# ═══════════════════════════════════════════════════════════════════════════
+
+def get_llm_provider(preference: Optional[str] = None, allow_mock: bool = False) -> LLMProvider:
+    """Return a real LLM provider, or raise rather than silently falling back to mock.
+
+    Selection order (unless ``preference`` forces one):
+      1. env LLM_PROVIDER in {groq, openai, mock}
+      2. Groq if GROQ_API_KEY is set
+      3. OpenAI if OPENAI_API_KEY is set
+
+    A mock is returned ONLY when explicitly requested (preference/env == 'mock')
+    AND allow_mock is True. This makes it impossible to produce mock-generated
+    "results" by accident -- the root cause of the earlier invalid numbers.
+
+    Set the model via GROQ (fixed) or OPENAI_MODEL env var.
+    """
+    pref = (preference or os.getenv('LLM_PROVIDER', 'auto')).lower()
+
+    def _mock():
+        if not allow_mock:
+            raise RuntimeError(
+                "Refusing to use MockLLMProvider for a real run. A mock fabricates "
+                "responses; its numbers are not scientific results. Set GROQ_API_KEY "
+                "or OPENAI_API_KEY, or pass allow_mock=True (test/dev only)."
+            )
+        logger.warning("Using MockLLMProvider (allow_mock=True) -- NOT for paper results.")
+        return MockLLMProvider()
+
+    if pref == 'mock':
+        return _mock()
+    if pref == 'groq':
+        p = GroqLLMProvider()
+        if p.is_available():
+            return p
+        raise RuntimeError("LLM_PROVIDER=groq but GROQ_API_KEY missing/invalid.")
+    if pref == 'openai':
+        p = OpenAILLMProvider()
+        if p.is_available():
+            return p
+        raise RuntimeError("LLM_PROVIDER=openai but OPENAI_API_KEY missing/invalid.")
+
+    # auto: try Groq, then OpenAI, else fail loudly
+    groq = GroqLLMProvider()
+    if groq.is_available():
+        return groq
+    openai_p = OpenAILLMProvider()
+    if openai_p.is_available():
+        return openai_p
+    return _mock()
+
+
+def assert_real_llm(llm: LLMProvider) -> LLMProvider:
+    """Raise if ``llm`` is a mock. Call this at the top of any evaluation that
+    writes numbers intended for the paper."""
+    if getattr(llm, 'is_mock', False):
+        raise RuntimeError(
+            "A MockLLMProvider is in use. Refusing to produce paper numbers from "
+            "fabricated LLM output. Configure GROQ_API_KEY or OPENAI_API_KEY."
+        )
+    return llm
 
 
 class NeuroSymbolicReasoner:

@@ -52,7 +52,8 @@ def run_faithful_evaluation(
     disable_causal: bool = False,
     disable_counterfactual: bool = False,
     disable_grounding: bool = False,
-    attention_threshold: float = 0.1
+    attention_threshold: float = 0.1,
+    allow_mock: bool = False
 ):
     """
     Run comprehensive faithful explanation evaluation.
@@ -72,7 +73,7 @@ def run_faithful_evaluation(
     from counterfactual_generator import CounterfactualGenerator
     from faithfulness_validator import FaithfulnessValidator
     from constrained_explainer import ConstrainedExplainer
-    from reasoner import GroqLLMProvider, MockLLMProvider
+    from reasoner import get_llm_provider, assert_real_llm
     
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -110,15 +111,12 @@ def run_faithful_evaluation(
         attention_threshold=attention_threshold
     )
     
-    # LLM (try Groq, fallback to Mock)
-    try:
-        llm = GroqLLMProvider()
-        if not llm.is_available():
-            logger.warning("Groq API not available, using Mock LLM")
-            llm = MockLLMProvider()
-    except:
-        logger.warning("Using Mock LLM")
-        llm = MockLLMProvider()
+    # LLM: real provider (Groq/OpenAI). Refuses to silently fall back to a mock,
+    # which is what previously injected fabricated numbers into results.
+    llm = get_llm_provider(allow_mock=allow_mock)
+    assert_real_llm(llm) if not allow_mock else None
+    logger.info(f"LLM provider: {type(llm).__name__} "
+                f"(model={getattr(llm, 'MODEL_ID', 'n/a')}, mock={getattr(llm, 'is_mock', False)})")
     
     explainer = ConstrainedExplainer(
         model=model,
@@ -374,7 +372,9 @@ def main():
     
     parser.add_argument('--attention-threshold', type=float, default=0.1,
                        help='Attention threshold for claims')
-    
+    parser.add_argument('--allow-mock', action='store_true',
+                       help='DEV ONLY: permit MockLLMProvider. Never use for paper numbers.')
+
     args = parser.parse_args()
     
     run_faithful_evaluation(
@@ -386,7 +386,8 @@ def main():
         disable_causal=args.disable_causal,
         disable_counterfactual=args.disable_counterfactual,
         disable_grounding=args.disable_grounding,
-        attention_threshold=args.attention_threshold
+        attention_threshold=args.attention_threshold,
+        allow_mock=args.allow_mock
     )
 
 

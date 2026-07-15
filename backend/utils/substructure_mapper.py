@@ -208,6 +208,41 @@ TOXICOPHORES = {
 }
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# General Functional-Group Vocabulary
+# ═══════════════════════════════════════════════════════════════════════════
+# The 28 toxicophores above are rare: on Tox21, most molecules contain none of
+# them at their high-attention atoms, so faithfulness had almost no testable
+# claims (3-10/200 molecules). Grounding an explanation only requires a
+# chemically meaningful substructure the model attended to -- not necessarily a
+# known toxicophore. This broader vocabulary of common drug-like functional
+# groups gives most molecules >=1 candidate claim, so grounding/causal scores
+# become measurable and vary across molecules. Category 'FunctionalGroup'
+# distinguishes these from the toxicity-specific alerts above.
+FUNCTIONAL_GROUPS = {
+    'benzene_ring':      {'smarts': 'c1ccccc1',          'category': 'FunctionalGroup', 'mechanism': 'Aromatic benzene ring; common scaffold influencing lipophilicity and pi-stacking.'},
+    'hydroxyl':          {'smarts': '[OX2H]',             'category': 'FunctionalGroup', 'mechanism': 'Hydroxyl group; hydrogen-bond donor affecting solubility and metabolism.'},
+    'carboxylic_acid':   {'smarts': 'C(=O)[OX2H1]',       'category': 'FunctionalGroup', 'mechanism': 'Carboxylic acid; ionizable, affects permeability and clearance.'},
+    'ester':             {'smarts': '[CX3](=O)[OX2H0][#6]','category': 'FunctionalGroup', 'mechanism': 'Ester; hydrolysis-labile linkage often cleaved by esterases.'},
+    'amide':             {'smarts': 'C(=O)N',              'category': 'FunctionalGroup', 'mechanism': 'Amide bond; metabolically stable hydrogen-bonding group.'},
+    'ether':             {'smarts': '[OD2]([#6])[#6]',     'category': 'FunctionalGroup', 'mechanism': 'Ether linkage; site of oxidative O-dealkylation.'},
+    'ketone':            {'smarts': '[#6][CX3](=O)[#6]',   'category': 'FunctionalGroup', 'mechanism': 'Ketone carbonyl; hydrogen-bond acceptor and reductive site.'},
+    'primary_amine':     {'smarts': '[NX3;H2;!$(NC=O)]',   'category': 'FunctionalGroup', 'mechanism': 'Primary amine; basic, ionizable, hydrogen-bond donor.'},
+    'secondary_amine':   {'smarts': '[NX3;H1;!$(NC=O)]',   'category': 'FunctionalGroup', 'mechanism': 'Secondary amine; basic center affecting distribution.'},
+    'tertiary_amine':    {'smarts': '[NX3;H0;!$(NC=O);!$(N=*)]', 'category': 'FunctionalGroup', 'mechanism': 'Tertiary amine; basic center, N-dealkylation site.'},
+    'nitrile':           {'smarts': '[NX1]#[CX2]',         'category': 'FunctionalGroup', 'mechanism': 'Nitrile; polar, metabolically variable group.'},
+    'sulfonamide':       {'smarts': 'S(=O)(=O)N',          'category': 'FunctionalGroup', 'mechanism': 'Sulfonamide; hydrogen-bonding pharmacophore.'},
+    'sulfone':           {'smarts': '[#6]S(=O)(=O)[#6]',   'category': 'FunctionalGroup', 'mechanism': 'Sulfone; strongly polar, metabolically stable.'},
+    'phenol':            {'smarts': 'c[OX2H]',             'category': 'FunctionalGroup', 'mechanism': 'Phenol; antioxidant/redox-active, glucuronidation site.'},
+    'aniline':           {'smarts': 'c[NX3;H2,H1]',        'category': 'FunctionalGroup', 'mechanism': 'Aromatic amine; site of N-oxidation.'},
+    'halogen':           {'smarts': '[F,Cl,Br,I]',         'category': 'FunctionalGroup', 'mechanism': 'Halogen substituent; modulates lipophilicity and metabolic stability.'},
+    'alkene':            {'smarts': '[CX3]=[CX3]',         'category': 'FunctionalGroup', 'mechanism': 'Alkene; site of epoxidation/oxidative metabolism.'},
+    'ureido':            {'smarts': 'NC(=O)N',             'category': 'FunctionalGroup', 'mechanism': 'Urea moiety; hydrogen-bonding, metabolically stable.'},
+    'carbamate':         {'smarts': 'OC(=O)N',             'category': 'FunctionalGroup', 'mechanism': 'Carbamate; hydrolysis-sensitive linkage.'},
+    'ether_aromatic':    {'smarts': 'c[OX2][#6]',          'category': 'FunctionalGroup', 'mechanism': 'Aryl ether; O-dealkylation metabolic site.'},
+}
+
+
 def adaptive_attention_cutoff(
     attention_weights: np.ndarray,
     relative_factor: float = 2.0,
@@ -245,17 +280,28 @@ class SubstructureMapper:
     Provides human-interpretable explanations for toxicity predictions.
     """
     
-    def __init__(self, custom_toxicophores: Optional[Dict] = None):
+    def __init__(self, custom_toxicophores: Optional[Dict] = None,
+                 include_functional_groups: bool = True):
         """
         Initialize mapper with toxicophore database.
-        
+
         Args:
             custom_toxicophores: Optional additional patterns to include
+            include_functional_groups: If True (default), also match common
+                drug-like functional groups (FUNCTIONAL_GROUPS), not just the
+                28 toxicity-specific alerts. This raises claim coverage from a
+                handful of molecules to most of the dataset, so faithfulness
+                scores become measurable. Set False to restrict to toxicophores.
         """
         if not RDKIT_AVAILABLE:
             raise ImportError("RDKit is required for substructure mapping")
-        
+
         self.toxicophores = TOXICOPHORES.copy()
+        if include_functional_groups:
+            # Toxicophores take precedence on name collisions (e.g. furan).
+            merged = FUNCTIONAL_GROUPS.copy()
+            merged.update(self.toxicophores)
+            self.toxicophores = merged
         if custom_toxicophores:
             self.toxicophores.update(custom_toxicophores)
         
