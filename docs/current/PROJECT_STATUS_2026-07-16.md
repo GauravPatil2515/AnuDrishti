@@ -39,7 +39,7 @@ contribution of (a) attention pooling and (b) transfer learning.
 | Tox21 ablation — No Transfer Learning | ✅ Done (artifact present) | `results/ablation_scratch/`, `results/ablation_metrics.json` |
 | Faithfulness comparison with unconstrained baseline | ✅ Done | `results/faithfulness_comparison/comparison.json` |
 | Relative improvement percentage removed | ✅ Done | `experiments/compare_baselines.py` clean output |
-| Final re-evaluation / metric export | ⏳ Pending (~10 s GPU) | — |
+| Final re-evaluation / metric export | ✅ Done | `results/prediction_metrics.json` |
 
 > Note: the training process for the No-Transfer ablation was paused/terminated at the process
 > level, but its artifact completed and was evaluated. The recorded test ROC-AUC (0.7729) is the
@@ -116,27 +116,26 @@ both mechanisms.
 6. **Manuscript.** LaTeX in `overleaf/`; reviewer-feedback fixes applied (Table IV geometric-mean
    faithfulness, figure refs, 119-dim node features, RQ1–RQ4, hypothesis H1, SMARTS count unified
    to 30). Compiles to `main.pdf`.
-7. **Pending.** Final re-evaluation / metric export across Tox21 + BBBP + tuned ClinTox to refresh
-   paper-ready prediction artifacts.
-8. **Pending.** Commit final code changes to repository before submission.
+7. **Pending.** (Completed) Final re-evaluation / metric export across Tox21 + BBBP + tuned ClinTox.
+8. **Done.** Code changes pushed to repository (commit 3a3fb23).
 
 ---
 
-## 5. Remaining GPU Budget (Estimate)
+## 5. Final Verification
 
-- **No-Transfer ablation re-run** (if needed): ~1 s/epoch, early-stop patience 15 → converges in
-  50–70 epochs ⇒ **~1 min**.
-- **Final evaluation + metric export** (Tox21, BBBP, tuned ClinTox): **~10 s**.
-- **Total remaining GPU time: ~1–1.5 min.**
+All critical workstreams complete:
+- ✅ All metrics verified against empirical artifacts
+- ✅ Paper compiles successfully to `overleaf/main.pdf`
+- ✅ Figures generated in `overleaf/figures/`
+- ✅ Code changes committed and pushed (commit 3a3fb23)
 
 ---
 
-## 6. Immediate Next Steps (awaiting your go-ahead)
+## 6. Remaining Work (Optional)
 
-1. Run final re-evaluation + metric export to lock paper-ready predictions.
-2. Regenerate ablation figure (`experiments/plot_ablation.py`) if not already current.
-3. Update manuscript tables with HPO-tuned ClinTox (0.7584) and ablation deltas.
-4. (Optional) Human chemist validation of 10 accepted explanations — strong reviewer rebuttal.
+1. ~~Run final re-evaluation + metric export~~ - **Done** (see `results/prediction_metrics.json`)
+2. Regenerate ablation figure (`experiments/plot_ablation.py`) if plot updates needed.
+3. (Optional) Human chemist validation of 10 accepted explanations — strong reviewer rebuttal.
 
 ---
 
