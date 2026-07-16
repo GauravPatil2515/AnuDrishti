@@ -5,8 +5,7 @@ Constrained vs. Unconstrained Comparison
 Reads the statistics.json produced by run_faithful_eval.py (constrained DeNovo)
 and run_unconstrained_baseline.py (unconstrained LLM) and emits the headline
 faithfulness comparison: mean F, grounding, causal, and rejection rate for each,
-plus the absolute and relative improvement. Also writes a ready-to-paste LaTeX
-table fragment.
+plus the absolute improvement. Also writes a ready-to-paste LaTeX table fragment.
 
 Usage:
     python compare_baselines.py \
@@ -60,7 +59,6 @@ def main():
     u_rej = g(u, 'rejection_rate')
 
     delta = (c_f - u_f) if (c_f is not None and u_f is not None) else None
-    rel = (100.0 * delta / u_f) if (delta is not None and u_f) else None
 
     print("=" * 64)
     print("FAITHFULNESS: CONSTRAINED (DeNovo) vs UNCONSTRAINED LLM")
@@ -92,7 +90,7 @@ def main():
     summary = {
         'constrained': {'F': c_f, 'grounding': c_g, 'causal': c_c, 'rejection': c_rej},
         'unconstrained': {'F': u_f, 'grounding': u_g, 'causal': u_c, 'rejection': u_rej},
-        'delta_F': delta, 'relative_pct': rel,
+        'delta_F': delta,
     }
     (out / 'comparison.json').write_text(json.dumps(summary, indent=2))
     print(f"\nWrote {out/'faithfulness_comparison.tex'} and comparison.json")

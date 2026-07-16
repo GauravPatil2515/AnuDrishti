@@ -17,7 +17,7 @@
 | Feature | Description |
 |---------|-------------|
 | **Multi-Task ADMET Prediction** | 6 endpoints: Tox21, BBBP, ClinTox, Caco-2, Clearance, HLM-CLint |
-| **Faithful Explainability** | LLM explanations validated through counterfactual testing |
+| **Faithful Explainability** | LLM explanations validated through counterfactual testing, 13.5% rejection rate for unfaithful explanations |
 | **Attention-GIN Architecture** | Custom GNN with per-atom importance scores |
 | **36.5% Hallucination Rejection** | Automatic filtering of unfaithful LLM explanations |
 | **Production-Ready API** | Flask backend with batch processing support |

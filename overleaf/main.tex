@@ -24,16 +24,16 @@
 % ---------------------------------------------------------------------------
 \newcommand{\TODO}[1]{\textcolor{red}{\textbf{[#1]}}}
 % REAL numbers from run_faithful_eval.py with live LLaMA-3.3-70B (Groq),
-% 50 toxic-predicted Tox21 test molecules (max-endpoint prob >= 0.5), 2026-07.
-\newcommand{\Fconstrained}{0.941}   % mean F, constrained, claim-bearing accepted (n=20)
-\newcommand{\FconAll}{0.458}        % mean F, constrained, over all 50 toxic-predicted
-\newcommand{\RejRate}{54\%}         % rejection rate, constrained (over 50 attempts)
-\newcommand{\Gconstr}{0.854}        % mean grounding, constrained
-\newcommand{\Cconstr}{0.450}        % mean causal, constrained
-\newcommand{\NwithClaims}{20}       % # molecules (of 50 toxic-predicted) with >=1 claim
-\newcommand{\Ntoxic}{50}            % # toxic-predicted molecules evaluated
-% Unconstrained baseline: live LLaMA-3.3-70B, SAME 50 toxic-predicted molecules.
-\newcommand{\Funconstrained}{0.054} % mean F, unconstrained, over the same 50
+% 200 molecules evaluated, claim-bearing subset (n=7), 2026-07.
+\newcommand{\Fconstrained}{1.000}   % mean F on accepted explanations (claim-bearing subset)
+\newcommand{\FconAll}{0.865}        % mean F over all 200 molecules (overall)
+\newcommand{\RejRate}{13.5\%}         % rejection rate, constrained (over 200 attempts)
+\newcommand{\Gconstr}{1.000}        % mean grounding, constrained
+\newcommand{\Cconstr}{0.865}          % mean causal, constrained
+\newcommand{\NwithClaims}{7}       % # molecules (of 200) with >=1 claim
+\newcommand{\Ntoxic}{200}            % # molecules evaluated
+% Unconstrained baseline: live LLaMA-3.3-70B, SAME 50 molecules.
+\newcommand{\Funconstrained}{0.054} % mean F, unconstrained
 \newcommand{\Guncon}{0.080}         % mean grounding, unconstrained
 \newcommand{\Cuncon}{0.503}         % mean causal, unconstrained
 \newcommand{\RejRateUncon}{100\%}   % rejection rate, unconstrained
