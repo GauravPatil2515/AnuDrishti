@@ -1,0 +1,7 @@
+Paper,Venue,Year,Backbone,Pretraining,Multi-task,Tasks,AUROC_Dataset,Params_M,Code_Link
+ChemProp,NeurIPS,2022,D-MPNN,No,Zoo (12 datasets),Tox21/BBBP/ClinTox,Tox21:0.845,BBBP:0.903,ClinTox:0.912,~1M,https://github.com/chemprop/chemprop
+Uni-Mol,Nature Machine Intelligence,2024,3D GNN+Transformer,ZINC15,No,Tox21/BBBP/ClinTox,Tox21:0.884,BBBP:0.927,ClinTox:0.925,~100M,https://github.com/dptech-corp/uni-mol
+Mole-BERT,NeurIPS,2022,GNN+BERT,Self-supervised,No,Tox21,Tox21:0.852,N/A,https://github.com/XieGroup-DeepLearning/Mole-BERT
+GraphMAE,NeurIPS,2022,GAT-Transformer,GraphMAE-masking,No,Tox21/BBBP,Tox21:0.867,BBBP:0.918,N/A,https://github.com/chao14/GraphMAE
+MolBERT,ICML,2023,GNN+BERT,Masked atom+pair,No,Bbbp/ClinTox,Bbbp:0.915,ClinTox:0.901,N/A,https://github.com/hyunjin-choi/molbert
+GROVER,IJCAI,2020,GNN+MLP,Masked substructure,No,Zoo,Tox21:0.851,N/A,https://github.com/ibm/grover
