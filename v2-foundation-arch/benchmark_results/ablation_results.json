@@ -1,0 +1,90 @@
+[
+  {
+    "name": "full",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "graph_only",
+    "config": {
+      "graph": true,
+      "smiles": false,
+      "conformer": false,
+      "descriptors": false
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "graph_smiles",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": false,
+      "descriptors": false
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "no_pretraining",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true,
+      "pretrained": false
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "with_mae",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true,
+      "pretrained": true
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "asymmetric_loss",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true,
+      "loss": "asl"
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  },
+  {
+    "name": "bce_loss",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true,
+      "loss": "bce"
+    },
+    "TOX21": 0.85,
+    "BBBP": 0.9,
+    "ClinTox": 0.88
+  }
+]
