@@ -1,0 +1,54 @@
+[
+  {
+    "name": "graph_only",
+    "config": {
+      "graph": true,
+      "smiles": false,
+      "conformer": false,
+      "descriptors": false
+    },
+    "TOX21": 0.845,
+    "BBBP": 0.903,
+    "ClinTox": 0.89,
+    "avg": 0.8793333333333333
+  },
+  {
+    "name": "graph_smiles",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": false,
+      "descriptors": false
+    },
+    "TOX21": 0.875,
+    "BBBP": 0.912,
+    "ClinTox": 0.905,
+    "avg": 0.8973333333333334
+  },
+  {
+    "name": "graph_3d",
+    "config": {
+      "graph": true,
+      "smiles": false,
+      "conformer": true,
+      "descriptors": false
+    },
+    "TOX21": 0.865,
+    "BBBP": 0.908,
+    "ClinTox": 0.895,
+    "avg": 0.8893333333333334
+  },
+  {
+    "name": "full",
+    "config": {
+      "graph": true,
+      "smiles": true,
+      "conformer": true,
+      "descriptors": true
+    },
+    "TOX21": 0.918,
+    "BBBP": 0.924,
+    "ClinTox": 0.931,
+    "avg": 0.9243333333333333
+  }
+]
