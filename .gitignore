@@ -90,3 +90,8 @@ overleaf/*.out
 
 # Zip files (generated)
 *.zip
+
+# Model Checkpoints
+checkpoints/
+*.pt
+

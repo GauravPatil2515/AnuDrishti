@@ -317,19 +317,31 @@ class ColabTrainer:
         if extra:
             ckpt.update(extra)
         
-        path = self.checkpoint_dir / f'checkpoint_epoch{epoch}.pt'
-        torch.save(ckpt, path)
-        print(f"✅ Saved checkpoint: {path}")
+        path = self.checkpoint_dir / 'checkpoint_latest.pt'
+        temp_path = self.checkpoint_dir / 'checkpoint_latest.tmp'
+        try:
+            torch.save(ckpt, temp_path)
+            if temp_path.exists():
+                if path.exists():
+                    path.unlink()
+                temp_path.rename(path)
+            print(f"✅ Saved checkpoint: {path}")
+        except Exception as e:
+            print(f"⚠️ Failed to save checkpoint: {e}")
         
-    def load_checkpoint(self, model, optimizer, epoch: int):
+    def load_checkpoint(self, model, optimizer, epoch: int = 0):
         """Load checkpoint if exists."""
-        path = self.checkpoint_dir / f'checkpoint_epoch{epoch}.pt'
+        path = self.checkpoint_dir / 'checkpoint_latest.pt'
         if path.exists():
-            ckpt = torch.load(path, map_location=self.device, weights_only=False)
-            model.load_state_dict(ckpt['model_state'])
-            optimizer.load_state_dict(ckpt['optimizer_state'])
-            print(f"✅ Loaded checkpoint from epoch {epoch}")
-            return ckpt.get('step', 0)
+            try:
+                ckpt = torch.load(path, map_location=self.device, weights_only=False)
+                model.load_state_dict(ckpt['model_state'])
+                optimizer.load_state_dict(ckpt['optimizer_state'])
+                epoch_num = ckpt.get('epoch', 0)
+                print(f"✅ Loaded checkpoint from epoch {epoch_num}")
+                return epoch_num
+            except Exception as e:
+                print(f"⚠️ Failed to load checkpoint: {e}")
         return 0
 
 
@@ -357,17 +369,18 @@ def train_epoch(model, loader, optimizer, pos_weights: Tensor, device: str, loss
         
         # Mask out NaNs and -1
         is_valid = (~torch.isnan(labels)) & (labels != -1)
+        clean_labels = torch.nan_to_num(labels, nan=0.0)
         
         if loss_type == 'asl':
             pred = torch.sigmoid(logits)
             pred = torch.clamp(pred, min=0.05, max=0.95)
-            loss_pos = labels * torch.pow(1 - pred, 1.0) * torch.log(pred + 1e-8)
-            loss_neg = (1 - labels) * torch.pow(pred, 4.0) * torch.log(1 - pred + 1e-8)
+            loss_pos = clean_labels * torch.pow(1 - pred, 1.0) * torch.log(pred + 1e-8)
+            loss_neg = (1 - clean_labels) * torch.pow(pred, 4.0) * torch.log(1 - pred + 1e-8)
             loss_raw = -(loss_pos + loss_neg)
         else:
             pw = pos_weights.view(1, -1).expand_as(labels)
-            loss_raw = F.binary_cross_entropy_with_logits(logits, torch.nan_to_num(labels, nan=0.0), reduction='none')
-            loss_raw = loss_raw * (labels * (pw - 1.0) + 1.0)
+            loss_raw = F.binary_cross_entropy_with_logits(logits, clean_labels, reduction='none')
+            loss_raw = loss_raw * (clean_labels * (pw - 1.0) + 1.0)
             
         loss_masked = loss_raw * is_valid
         
@@ -506,15 +519,9 @@ def main():
         start_epoch = 0
         
         # Check for existing checkpoint
-        for ckpt_file in sorted(trainer.checkpoint_dir.glob('checkpoint_epoch*.pt')):
-            try:
-                epoch_num = int(ckpt_file.stem.split('epoch')[1])
-                start_epoch = max(start_epoch, epoch_num)
-            except:
-                pass
-        
-        if start_epoch > 0:
-            start_epoch = trainer.load_checkpoint(model, optimizer, start_epoch)
+        latest_ckpt = trainer.checkpoint_dir / 'checkpoint_latest.pt'
+        if latest_ckpt.exists():
+            start_epoch = trainer.load_checkpoint(model, optimizer, 0)
             print(f"Resuming from epoch {start_epoch}")
         
         for epoch in range(start_epoch, args.epochs):
