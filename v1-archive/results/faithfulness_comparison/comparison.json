@@ -1,0 +1,15 @@
+{
+  "constrained": {
+    "F": 1.0,
+    "grounding": 1.0,
+    "causal": 0.865,
+    "rejection": 0.135
+  },
+  "unconstrained": {
+    "F": 0.05435298734444732,
+    "grounding": 0.07999999999999999,
+    "causal": 0.5033333333333334,
+    "rejection": 1.0
+  },
+  "delta_F": 0.9456470126555527
+}

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeNovo v1 Architecture: Attention-GIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --bg-card: #0f172a;
+            --cyan: #22d3ee;
+            --emerald: #34d399;
+            --violet: #a78bfa;
+            --rose: #fb7185;
+            --slate: #94a3b8;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--cyan);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        svg { width: 100%; height: auto; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .card h3 { font-size: 14px; font-weight: 500; }
+        .card ul { list-style: none; font-size: 12px; color: var(--text-secondary); }
+        .card li { margin-bottom: 6px; }
+        .legend {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .legend-box { width: 12px; height: 12px; border: 1px solid; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="dot"></span> DeNovo v1 Architecture: Attention-GIN</h1>
+        <p class="subtitle">Graph Isomorphism Network with Global Attention Pooling for Explainable Toxicity Prediction</p>
+        
+        <div class="diagram-container" style="position: relative;">
+            <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+                    </pattern>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" fill="#94a3b8">
+                        <path d="M 0 0 L 10 5 L 0 10 z" />
+                    </marker>
+                </defs>
+                
+                <rect width="1200" height="600" fill="url(#grid)" />
+                
+                <!-- Input -->
+                <rect x="40" y="260" width="120" height="60" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="40" y="260" width="120" height="60" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="100" y="285" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">SMILES</text>
+                <text x="100" y="300" text-anchor="middle" fill="#94a3b8" font-size="9">Input String</text>
+                
+                <!-- RDKit Parser -->
+                <rect x="200" y="260" width="120" height="60" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="200" y="260" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="260" y="285" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">RDKit</text>
+                <text x="260" y="300" text-anchor="middle" fill="#94a3b8" font-size="9">Parsing & Graph</text>
+                
+                <!-- Arrow to Graph -->
+                <path d="M 320 290 L 420 290" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Graph Processing -->
+                <rect x="440" y="260" width="160" height="60" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                <rect x="440" y="260" width="160" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)"/>
+                <text x="520" y="285" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Molecular Graph</text>
+                <text x="520" y="300" text-anchor="middle" fill="#94a3b8" font-size="9">(V, E) Nodes & Edges</text>
+                
+                <!-- Embedding Layer -->
+                <rect x="640" y="260" width="120" height="60" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                <rect x="640" y="260" width="120" height="60" rx="6" fill="rgba(120, 53, 15, 0.3)"/>
+                <text x="700" y="285" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Embedding</text>
+                <text x="700" y="300" text-anchor="middle" fill="#94a3b8" font-size="9">119→300 dim</text>
+                
+                <!-- Arrow -->
+                <path d="M 760 290 L 840 290" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- GINEConv Layers -->
+                <rect x="860" y="200" width="140" height="180" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+                <rect x="860" y="200" width="140" height="180" rx="6" fill="rgba(251, 146, 60, 0.3)"/>
+                <text x="930" y="225" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">5x GINEConv</text>
+                <text x="930" y="245" text-anchor="middle" fill="#94a3b8" font-size="9">+ BatchNorm</text>
+                <text x="930" y="270" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 1</text>
+                <text x="930" y="295" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 2</text>
+                <text x="930" y="320" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 3</text>
+                <text x="930" y="345" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 4</text>
+                <text x="930" y="370" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 5</text>
+                
+                <!-- Arrow -->
+                <path d="M 1000 290 L 1080 290" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Attention Pooling -->
+                <rect x="1100" y="260" width="160" height="60" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                <rect x="1100" y="260" width="160" height="60" rx="6" fill="rgba(136, 19, 55, 0.4)"/>
+                <text x="1180" y="285" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Global Attention</text>
+                <text x="1180" y="300" text-anchor="middle" fill="#94a3b8" font-size="9">Pooling Layer</text>
+                
+                <!-- Arrow to Prediction -->
+                <path d="M 1260 290 L 1340 150" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 1260 290 L 1340 430" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Prediction Head -->
+                <rect x="1360" y="120" width="140" height="140" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="1360" y="120" width="140" height="140" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="1430" y="145" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">MLP Predictor</text>
+                <text x="1430" y="165" text-anchor="middle" fill="#94a3b8" font-size="9">Softplus Act</text>
+                <text x="1430" y="190" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 1</text>
+                <text x="1430" y="220" text-anchor="middle" fill="#94a3b8" font-size="10">(512→256)</text>
+                <text x="1430" y="250" text-anchor="middle" fill="#94a3b8" font-size="10">Layer 2</text>
+                <text x="1430" y="280" text-anchor="middle" fill="#94a3b8" font-size="10">(256→12)</text>
+                
+                <!-- Attention Weights Output -->
+                <rect x="1360" y="400" width="140" height="60" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="1360" y="400" width="140" height="60" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="1430" y="425" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Attention Weights</text>
+                <text x="1430" y="445" text-anchor="middle" fill="#94a3b8" font-size="9">Per-atom α scores</text>
+                
+                <!-- Final Outputs -->
+                <rect x="1520" y="120" width="120" height="50" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="1520" y="120" width="120" height="50" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="1580" y="145" text-anchor="middle" fill="#e2e8f0" font-size="11">Predictions</text>
+                <text x="1580" y="160" text-anchor="middle" fill="#94a3b8" font-size="9">(12 tasks)</text>
+                
+                <rect x="1520" y="400" width="120" height="50" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="1520" y="400" width="120" height="50" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="1580" y="425" text-anchor="middle" fill="#e2e8f0" font-size="11">Explanation</text>
+                <text x="1580" y="440" text-anchor="middle" fill="#94a3b8" font-size="9">(GNN + LLM)</text>
+                
+                <!-- Legend -->
+                <g class="legend">
+                    <text x="80" y="16" fill="#e2e8f0" font-size="11" font-weight="500">Legend</text>
+                    <g transform="translate(0, 25)">
+                        <rect x="0" y="0" width="180" height="120" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+                        <g transform="translate(8, 20)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(8, 51, 68, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Input Processing (SMILES, RDKit)</text>
+                        </g>
+                        <g transform="translate(8, 40)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(6, 78, 59, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Backend/GNN Processing</text>
+                        </g>
+                        <g transform="translate(8, 60)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(76, 29, 149, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Graph Layers (GINEConv)</text>
+                        </g>
+                        <g transform="translate(8, 80)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(136, 19, 55, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Attention/Explainability</text>
+                        </g>
+                        <g transform="translate(8, 100)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(120, 53, 15, 0.3)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Feature Processing</text>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--cyan);"></div>
+                    <h3>Model Details</h3>
+                </div>
+                <ul>
+                    <li>• 5-layer GINEConv with 300-d embeddings</li>
+                    <li>• GlobalAttention pool for atom importance</li>
+                    <li>• 2-layer MLP predictor with Softplus</li>
+                    <li>• 12 Tox21 endpoint predictions</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--rose);"></div>
+                    <h3>Faithful XAI</h3>
+                </div>
+                <ul>
+                    <li>• Per-atom attention weights (α scores)</li>
+                    <li>• Causal consistency validation</li>
+                    <li>• Counterfactual sensitivity test</li>
+                    <li>• Grounding verification</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--emerald);"></div>
+                    <h3>Performance</h3>
+                </div>
+                <ul>
+                    <li>• TOX21 AUROC: 0.802 (Test) / 0.837 (Val)</li>
+                    <li>• BBBP AUROC: 0.897 (Test) / 0.940 (Val)</li>
+                    <li>• ClinTox AUROC: 0.623 (Test) / 0.759 (Val)</li>
+                    <li>• Faithfulness F: 1.000 (constrained)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "dataset": "clintox",
+  "best_val_auroc": 0.5,
+  "test_auroc": 0.5,
+  "final_epoch": 1,
+  "mode": "train"
+}

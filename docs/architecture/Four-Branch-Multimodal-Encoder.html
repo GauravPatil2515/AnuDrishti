@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeNovo v2 Architecture: 4-Branch Multimodal Encoder</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --bg-card: #0f172a;
+            --cyan: #22d3ee;
+            --emerald: #34d399;
+            --violet: #a78bfa;
+            --rose: #fb7185;
+            --amber: #fbbf24;
+            --orange: #fb923c;
+            --slate: #94a3b8;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--violet);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        svg { width: 100%; height: auto; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .card h3 { font-size: 14px; font-weight: 500; }
+        .card ul { list-style: none; font-size: 12px; color: var(--text-secondary); }
+        .card li { margin-bottom: 6px; }
+        .legend {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="dot"></span> DeNovo v2 Architecture: 4-Branch Multimodal Encoder</h1>
+        <p class="subtitle">Multimodal fusion with Graph Transformer, SMILES, 3D Conformer, and Descriptors</p>
+        
+        <div class="diagram-container" style="position: relative;">
+            <svg viewBox="0 0 1400 700" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+                    </pattern>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" fill="#94a3b8">
+                        <path d="M 0 0 L 10 5 L 0 10 z" />
+                    </marker>
+                </defs>
+                
+                <rect width="1400" height="700" fill="url(#grid)" />
+                
+                <!-- Input -->
+                <rect x="60" y="320" width="120" height="60" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="60" y="320" width="120" height="60" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="120" y="345" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">SMILES Input</text>
+                <text x="120" y="360" text-anchor="middle" fill="#94a3b8" font-size="9">Molecule String</text>
+                
+                <!-- Arrow to branches -->
+                <path d="M 180 350 L 260 350" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Branch 1: Graph Transformer -->
+                <rect x="280" y="40" width="160" height="180" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="280" y="40" width="160" height="180" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="360" y="65" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Graph Branch</text>
+                <text x="360" y="85" text-anchor="middle" fill="#94a3b8" font-size="9">(Graph Transformer)</text>
+                <text x="360" y="110" text-anchor="middle" fill="#94a3b8" font-size="10">Graphormer Self-Attention</text>
+                <text x="360" y="130" text-anchor="middle" fill="#94a3b8" font-size="10">6 layers</text>
+                <text x="360" y="150" text-anchor="middle" fill="#94a3b8" font-size="10">Positional Encoding</text>
+                <text x="360" y="170" text-anchor="middle" fill="#94a3b8" font-size="10">256-dim output</text>
+                
+                <!-- Branch 2: SMILES -->
+                <rect x="280" y="240" width="160" height="160" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                <rect x="280" y="240" width="160" height="160" rx="6" fill="rgba(76, 29, 149, 0.4)"/>
+                <text x="360" y="265" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">SMILES Branch</text>
+                <text x="360" y="285" text-anchor="middle" fill="#94a3b8" font-size="9">(ChemBERTa-2)</text>
+                <text x="360" y="305" text-anchor="middle" fill="#94a3b8" font-size="10">RoBERTa Backbone</text>
+                <text x="360" y="325" text-anchor="middle" fill="#94a3b8" font-size="10">77M params (frozen)</text>
+                <text x="360" y="345" text-anchor="middle" fill="#94a3b8" font-size="10">768-dim output</text>
+                
+                <!-- Branch 3: Conformer -->
+                <rect x="280" y="430" width="160" height="160" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                <rect x="280" y="430" width="160" height="160" rx="6" fill="rgba(120, 53, 15, 0.3)"/>
+                <text x="360" y="455" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">3D Conformer Branch</text>
+                <text x="360" y="475" text-anchor="middle" fill="#94a3b8" font-size="9">(SchNet)</text>
+                <text x="360" y="495" text-anchor="middle" fill="#94a3b8" font-size="10">Distance Matrix</text>
+                <text x="360" y="515" text-anchor="middle" fill="#94a3b8" font-size="10">Continuous Filter Conv</text>
+                <text x="360" y="535" text-anchor="middle" fill="#94a3b8" font-size="10">128-dim output</text>
+                
+                <!-- Branch 4: Descriptors -->
+                <rect x="280" y="620" width="160" height="120" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+                <rect x="280" y="620" width="160" height="120" rx="6" fill="rgba(251, 146, 60, 0.3)"/>
+                <text x="360" y="645" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Descriptor Branch</text>
+                <text x="360" y="665" text-anchor="middle" fill="#94a3b8" font-size="9">(RDKit 200)</text>
+                <text x="360" y="685" text-anchor="middle" fill="#94a3b8" font-size="10">Physicochemical</text>
+                <text x="360" y="705" text-anchor="middle" fill="#94a3b8" font-size="10">64-dim output</text>
+                
+                <!-- Arrows from branches to fusion -->
+                <path d="M 440 110 L 520 110" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 440 300 L 520 300" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 440 490 L 520 490" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 440 660 L 520 660" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Cross-Attention Fusion -->
+                <rect x="540" y="140" width="180" height="520" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                <rect x="540" y="140" width="180" height="520" rx="6" fill="rgba(136, 19, 55, 0.4)"/>
+                <text x="630" y="165" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Cross-Attention Fusion</text>
+                <text x="630" y="185" text-anchor="middle" fill="#94a3b8" font-size="9">(MultiheadAttention)</text>
+                
+                <text x="630" y="220" text-anchor="middle" fill="#94a3b8" font-size="10">Query: SMILES [CLS]</text>
+                <text x="630" y="240" text-anchor="middle" fill="#94a3b8" font-size="10">Keys: All branches</text>
+                <text x="630" y="260" text-anchor="middle" fill="#94a3b8" font-size="10">Values: All branches</text>
+                <text x="630" y="280" text-anchor="middle" fill="#94a3b8" font-size="10">768-dim fused</text>
+                <text x="630" y="320" text-anchor="middle" fill="#e2e8f0" font-size="10">↓</text>
+                <text x="630" y="360" text-anchor="middle" fill="#e2e8f0" font-size="10">Mixture of Experts</text>
+                <text x="630" y="380" text-anchor="middle" fill="#94a3b8" font-size="9">4 experts, sparse gating</text>
+                <text x="630" y="420" text-anchor="middle" fill="#e2e8f0" font-size="10">↓</text>
+                
+                <!-- Multi-task Heads -->
+                <rect x="760" y="140" width="160" height="520" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="760" y="140" width="160" height="520" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="840" y="165" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Multi-task Heads</text>
+                <text x="840" y="185" text-anchor="middle" fill="#94a3b8" font-size="9">12 tasks</text>
+                
+                <text x="840" y="230" text-anchor="middle" fill="#94a3b8" font-size="10">TOX21 (12)</text>
+                <text x="840" y="260" text-anchor="middle" fill="#94a3b8" font-size="10">BBBP (1)</text>
+                <text x="840" y="290" text-anchor="middle" fill="#94a3b8" font-size="10">ClinTox (2)</text>
+                <text x="840" y="320" text-anchor="middle" fill="#94a3b8" font-size="10">SIDER (27)</text>
+                <text x="840" y="350" text-anchor="middle" fill="#94a3b8" font-size="10">BACE (1)</text>
+                
+                <!-- Faithful Verification Layer -->
+                <rect x="960" y="140" width="180" height="200" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                <rect x="960" y="140" width="180" height="200" rx="6" fill="rgba(136, 19, 55, 0.4)"/>
+                <text x="1050" y="165" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Faithful Verification</text>
+                <text x="1050" y="185" text-anchor="middle" fill="#94a3b8" font-size="9">(v1 Contribution)</text>
+                <text x="1050" y="210" text-anchor="middle" fill="#94a3b8" font-size="10">• Causal Consistency</text>
+                <text x="1050" y="230" text-anchor="middle" fill="#94a3b8" font-size="10">• Counterfactual Sensitivity</text>
+                <text x="1050" y="250" text-anchor="middle" fill="#94a3b8" font-size="10">• Grounding Validation</text>
+                <text x="1050" y="280" text-anchor="middle" fill="#e2e8f0" font-size="10">ACCEPT / REJECT</text>
+                <text x="1050" y="300" text-anchor="middle" fill="#94a3b8" font-size="10">Faithfulness Score: F</text>
+                
+                <!-- GraphMAE Pretraining -->
+                <rect x="960" y="420" width="180" height="120" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                <rect x="960" y="420" width="180" height="120" rx="6" fill="rgba(120, 53, 15, 0.3)"/>
+                <text x="1050" y="445" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">GraphMAE Pretraining</text>
+                <text x="1050" y="465" text-anchor="middle" fill="#94a3b8" font-size="9">ZINC-15 (250K mol)</text>
+                <text x="1050" y="485" text-anchor="middle" fill="#94a3b8" font-size="10">Masked Atom</text>
+                <text x="1050" y="505" text-anchor="middle" fill="#94a3b8" font-size="10">Reconstruction</text>
+                
+                <!-- Legend -->
+                <g class="legend">
+                    <text x="100" y="16" fill="#e2e8f0" font-size="11" font-weight="500">Legend</text>
+                    <g transform="translate(0, 25)">
+                        <rect x="0" y="0" width="220" height="200" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+                        <g transform="translate(8, 20)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(6, 78, 59, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Graph Transformer Branch</text>
+                        </g>
+                        <g transform="translate(8, 40)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(76, 29, 149, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">SMILES Language Branch</text>
+                        </g>
+                        <g transform="translate(8, 60)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(120, 53, 15, 0.3)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">3D Conformer Branch</text>
+                        </g>
+                        <g transform="translate(8, 80)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(251, 146, 60, 0.3)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Descriptor Branch</text>
+                        </g>
+                        <g transform="translate(8, 100)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(136, 19, 55, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Attention/Faithfulness</text>
+                        </g>
+                        <g transform="translate(8, 120)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                            <rect x="0" y="0" width="12" height="12" fill="rgba(8, 51, 68, 0.4)"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Prediction/Output</text>
+                        </g>
+                        <g transform="translate(8, 140)">
+                            <rect x="0" y="0" width="12" height="12" fill="#0f172a" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,4"/>
+                            <text x="20" y="10" fill="#94a3b8" font-size="10">Pretraining/Support</text>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--violet);"></div>
+                    <h3>4-Branch Architecture</h3>
+                </div>
+                <ul>
+                    <li>• Graph Transformer (Graphormer, 256-dim)</li>
+                    <li>• SMILES Branch (ChemBERTa-2, 768-dim)</li>
+                    <li>• 3D Conformer Branch (SchNet, 128-dim)</li>
+                    <li>• Descriptor Branch (RDKit 200, 64-dim)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--rose);"></div>
+                    <h3>Fusion & MoE</h3>
+                </div>
+                <ul>
+                    <li>• Cross-attention fusion (8 heads)</li>
+                    <li>• Mixture of 4 Experts with sparse gating</li>
+                    <li>• Multi-task heads (12+ endpoints)</li>
+                    <li>• Residual connections preserved</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--amber);"></div>
+                    <h3>Pretraining & Loss</h3>
+                </div>
+                <ul>
+                    <li>• GraphMAE on ZINC-15 (250K molecules)</li>
+                    <li>• Asymmetric Loss (gamma_neg=4)</li>
+                    <li>• Optuna 300-trial search</li>
+                    <li>• Target AUROC: 0.918/0.924/0.931</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--emerald);"></div>
+                    <h3>Performance Targets</h3>
+                </div>
+                <ul>
+                    <li>• TOX21: 0.918 (SOTA match)</li>
+                    <li>• BBBP: 0.924 (SOTA match)</li>
+                    <li>• ClinTox: 0.931 (SOTA match)</li>
+                    <li>• Faithfulness: 1.000 (constrained)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

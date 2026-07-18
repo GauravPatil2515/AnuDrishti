@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeNovo Faithful XAI Engine: Explanation Validation Flow</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --bg-card: #0f172a;
+            --cyan: #22d3ee;
+            --emerald: #34d399;
+            --violet: #a78bfa;
+            --rose: #fb7185;
+            --amber: #fbbf24;
+            --slate: #94a3b8;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --success: #34d399;
+            --error: #fb7185;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--rose);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        svg { width: 100%; height: auto; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .card h3 { font-size: 14px; font-weight: 500; }
+        .card ul { list-style: none; font-size: 12px; color: var(--text-secondary); }
+        .card li { margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="dot"></span> DeNovo Faithful XAI Engine</h1>
+        <p class="subtitle">Three-stage validation ensuring LLM explanations match model decision process</p>
+        
+        <div class="diagram-container">
+            <svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+                    </pattern>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" fill="#94a3b8">
+                        <path d="M 0 0 L 10 5 L 0 10 z" />
+                    </marker>
+                </defs>
+                
+                <rect width="1200" height="650" fill="url(#grid)" />
+                
+                <!-- Input Molecule -->
+                <rect x="60" y="280" width="120" height="60" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="60" y="280" width="120" height="60" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="120" y="305" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Molecule</text>
+                <text x="120" y="320" text-anchor="middle" fill="#94a3b8" font-size="9">(SMILES + Graph)</text>
+                
+                <!-- Arrow -->
+                <path d="M 180 310 L 240 310" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- GNN Model -->
+                <rect x="260" y="280" width="120" height="60" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                <rect x="260" y="280" width="120" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)"/>
+                <text x="320" y="305" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Attention-GIN</text>
+                <text x="320" y="320" text-anchor="middle" fill="#94a3b8" font-size="9">(Prediction</text>
+                <text x="320" y="332" text-anchor="middle" fill="#94a3b8" font-size="9">+ Attention)</text>
+                
+                <!-- Arrows split -->
+                <path d="M 380 290 L 440 150" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 380 330 L 440 480" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Prediction -->
+                <rect x="460" y="120" width="120" height="60" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="460" y="120" width="120" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="520" y="145" text-anchor="middle" fill="#e2e8f0" font-size="11">Toxicity</text>
+                <text x="520" y="160" text-anchor="middle" fill="#94a3b8" font-size="9">Prediction</text>
+                
+                <!-- Attention Weights -->
+                <rect x="460" y="460" width="120" height="60" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                <rect x="460" y="460" width="120" height="60" rx="6" fill="rgba(120, 53, 15, 0.3)"/>
+                <text x="520" y="485" text-anchor="middle" fill="#e2e8f0" font-size="11">Attention</text>
+                <text x="520" y="500" text-anchor="middle" fill="#94a3b8" font-size="9">Weights (α)</text>
+                
+                <!-- Arrows to explainer -->
+                <path d="M 580 150 L 700 150" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 580 490 L 700 490" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Constrained LLM -->
+                <rect x="720" y="100" width="180" height="140" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                <rect x="720" y="100" width="180" height="140" rx="6" fill="rgba(136, 19, 55, 0.4)"/>
+                <text x="810" y="125" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Constrained LLM</text>
+                <text x="810" y="145" text-anchor="middle" fill="#94a3b8" font-size="9">Prompt Generation</text>
+                <text x="810" y="165" text-anchor="middle" fill="#94a3b8" font-size="10">Low temperature (0.2)</text>
+                <text x="810" y="185" text-anchor="middle" fill="#94a3b8" font-size="10">JSON format</text>
+                <text x="810" y="205" text-anchor="middle" fill="#94a3b8" font-size="10">• Attention-constrained</text>
+                <text x="810" y="225" text-anchor="middle" fill="#94a3b8" font-size="10">• No speculation</text>
+                
+                <!-- Substructure Mapper -->
+                <rect x="720" y="440" width="180" height="80" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+                <rect x="720" y="440" width="180" height="80" rx="6" fill="rgba(120, 53, 15, 0.3)"/>
+                <text x="810" y="465" text-anchor="middle" fill="#e2e8f0" font-size="11">Substructure Mapper</text>
+                <text x="810" y="485" text-anchor="middle" fill="#94a3b8" font-size="9">Maps attention to</text>
+                <text x="810" y="505" text-anchor="middle" fill="#94a3b8" font-size="9">toxicophores</text>
+                
+                <!-- Arrow to LLM -->
+                <path d="M 900 290 L 980 290" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- LLM Output -->
+                <rect x="1000" y="240" width="160" height="120" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+                <rect x="1000" y="240" width="160" height="120" rx="6" fill="rgba(76, 29, 149, 0.4)"/>
+                <text x="1080" y="265" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">LLM Explanation</text>
+                <text x="1080" y="285" text-anchor="middle" fill="#94a3b8" font-size="10">• executive_summary</text>
+                <text x="1080" y="305" text-anchor="middle" fill="#94a3b8" font-size="10">• identified_toxicophores</text>
+                <text x="1080" y="325" text-anchor="middle" fill="#94a3b8" font-size="10">• confidence score</text>
+                
+                <!-- Arrow to validator -->
+                <path d="M 1160 300 L 1220 300" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- Validator -->
+                <rect x="1240" y="240" width="140" height="120" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+                <rect x="1240" y="240" width="140" height="120" rx="6" fill="rgba(8, 51, 68, 0.4)"/>
+                <text x="1310" y="265" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">Validator</text>
+                <text x="1310" y="285" text-anchor="middle" fill="#94a3b8" font-size="10">Test 1: Causal</text>
+                <text x="1310" y="305" text-anchor="middle" fill="#94a3b8" font-size="10">Test 2: Counterfactual</text>
+                <text x="1310" y="325" text-anchor="middle" fill="#94a3b8" font-size="10">Test 3: Grounding</text>
+                
+                <!-- Split arrow -->
+                <path d="M 1380 270 L 1440 150" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                <path d="M 1380 330 L 1440 450" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrow)"/>
+                
+                <!-- ACCEPT -->
+                <rect x="1460" y="120" width="80" height="50" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+                <rect x="1460" y="120" width="80" height="50" rx="6" fill="rgba(6, 78, 59, 0.4)"/>
+                <text x="1500" y="145" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">ACCEPT</text>
+                <text x="1500" y="162" text-anchor="middle" fill="#94a3b8" font-size="9">Faithful</text>
+                
+                <!-- REJECT -->
+                <rect x="1460" y="440" width="80" height="50" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+                <rect x="1460" y="440" width="80" height="50" rx="6" fill="rgba(136, 19, 55, 0.4)"/>
+                <text x="1500" y="465" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="500">REJECT</text>
+                <text x="1500" y="482" text-anchor="middle" fill="#94a3b8" font-size="9">Hallucination</text>
+                
+                <!-- Feedback loop -->
+                <path d="M 1500 440 L 1500 290" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                <text x="1510" y="370" fill="#fb7185" font-size="9">Retry</text>
+                
+                <!-- Faithfulness Score -->
+                <text x="1310" y="220" text-anchor="middle" fill="#e2e8f0" font-size="10">F = √(S_causal × S_grounding)</text>
+            </svg>
+        </div>
+        
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--violet);"></div>
+                    <h3>Causal Consistency Test</h3>
+                </div>
+                <ul>
+                    <li>• Remove claimed toxicophores</li>
+                    <li>• Verify prediction drops ≥0.1</li>
+                    <li>• Tests actual causal impact</li>
+                    <li>• Uses CounterfactualGenerator</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--amber);"></div>
+                    <h3>Counterfactual Test</h3>
+                </div>
+                <ul>
+                    <li>• Generate 3 modified molecules</li>
+                    <li>• Check prediction stability</li>
+                    <li>• Verify explanation consistency</li>
+                    <li>• Expensive - run once per sample</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--rose);"></div>
+                    <h3>Grounding Test</h3>
+                </div>
+                <ul>
+                    <li>• Compare claims to attention</li>
+                    <li>• Adaptive threshold κ/N (κ=2.0)</li>
+                    <li>• Validates atom indices match</li>
+                    <li>• Prevents ungrounded claims</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-dot" style="background: var(--emerald);"></div>
+                    <h3>Performance</h3>
+                </div>
+                <ul>
+                    <li>• Constrained F: 1.000 (acceptance)</li>
+                    <li>• Unconstrained F: 0.054 (baseline)</li>
+                    <li>• Rejection rate: 13.5% (effective)</li>
+                    <li>• Previously 36.5% (unconstrained)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

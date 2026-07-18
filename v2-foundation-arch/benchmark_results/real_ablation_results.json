@@ -7,10 +7,10 @@
       "conformer": false,
       "descriptors": false
     },
-    "TOX21": 0.845,
-    "BBBP": 0.903,
-    "ClinTox": 0.89,
-    "avg": 0.8793333333333333
+    "TOX21": 0.82,
+    "BBBP": 0.5,
+    "ClinTox": 0.5,
+    "avg": 0.6066666666666666
   },
   {
     "name": "graph_smiles",
@@ -20,23 +20,23 @@
       "conformer": false,
       "descriptors": false
     },
-    "TOX21": 0.875,
-    "BBBP": 0.912,
-    "ClinTox": 0.905,
-    "avg": 0.8973333333333334
+    "TOX21": 0.85,
+    "BBBP": 0.5,
+    "ClinTox": 0.5,
+    "avg": 0.6166666666666667
   },
   {
-    "name": "graph_3d",
+    "name": "graph_descriptors",
     "config": {
       "graph": true,
       "smiles": false,
-      "conformer": true,
-      "descriptors": false
+      "conformer": false,
+      "descriptors": true
     },
-    "TOX21": 0.865,
-    "BBBP": 0.908,
-    "ClinTox": 0.895,
-    "avg": 0.8893333333333334
+    "TOX21": 0.89,
+    "BBBP": 0.5,
+    "ClinTox": 0.5,
+    "avg": 0.63
   },
   {
     "name": "full",
@@ -46,9 +46,9 @@
       "conformer": true,
       "descriptors": true
     },
-    "TOX21": 0.918,
-    "BBBP": 0.924,
-    "ClinTox": 0.931,
-    "avg": 0.9243333333333333
+    "TOX21": 0.89,
+    "BBBP": 0.5,
+    "ClinTox": 0.5,
+    "avg": 0.63
   }
 ]
