@@ -17,25 +17,22 @@
 
 % ---------------------------------------------------------------------------
 % REAL, VERIFIED NUMBERS (provenance: benchmark_results/VALIDATION_LOG.md,
-% ABLATION_TABLE.md, faithfulness_seed*.json). No mock/proxy figures.
-% GINE = RealGraphBranch (v2 GINEConv), scaffold split, 5 seeds (42-46).
+% ABLATION_TABLE.md, faithfulness_seed*.json, faithfulness_causal_seed*.json).
+% No mock/proxy figures. GINE = RealGraphBranch (v2 GINEConv), scaffold split.
 % ---------------------------------------------------------------------------
-% Predictive AUROC (5-seed mean +/- std; bootstrap 95% CI)
 \newcommand{\BBBPauc}{0.8494}  \newcommand{\BBBPaucsd}{0.0229}
 \newcommand{\BACEauc}{0.8493}  \newcommand{\BACEaucsd}{0.0442}
 \newcommand{\TOXauc}{0.7794}   \newcommand{\TOXaucsd}{0.0248}
-% ChemProp D-MPNN (single seed, official run)
 \newcommand{\ChemBBBP}{0.8913} \newcommand{\ChemBACE}{0.8833}
 \newcommand{\ChemTOX}{0.7928}  \newcommand{\ChemClin}{0.8407/0.8600}
-% Faithfulness (corrected metric, drop>=0.1)
-\newcommand{\Fcausalstd}{0.128} \newcommand{\Fcausalstdsd}{0.027} % 5-seed mean
-\newcommand{\Fcausalreg}{0.092} % causal_reg seed44
-\newcommand{\Fcausalbase}{0.058} % standard seed44
+% Faithfulness (corrected metric, drop>=0.1), 5-seed
+\newcommand{\Fcausalstd}{0.128} \newcommand{\Fcausalstdsd}{0.027} % standard GNN
+\newcommand{\Fcausalreg}{0.117} \newcommand{\Fcausalregsd}{0.114} % causal_reg GNN (5-seed)
 
 \begin{document}
 
-\title{Faithful Explanations for Graph Neural Network Molecular-Toxicity
-Prediction: A Verified-Causal Evaluation on Scaffold-Split Benchmarks}
+\title{Causal Faithfulness Verification for Graph Neural Network
+Molecular-Toxicity Prediction}
 
 \author{
 \IEEEauthorblockN{Gaurav Patil}
@@ -47,22 +44,22 @@ Email: gaurav.patil@example.edu}
 
 \begin{abstract}
 Graph neural networks (GNNs) reach competitive accuracy on molecular-toxicity
-benchmarks, yet their explanations are rarely verified for causal faithfulness.
-We present a scaffold-split evaluation of a GINE-based architecture
+benchmarks, yet their explanations are rarely verified for \emph{causal}
+faithfulness. We present a scaffold-split evaluation of a GINE-based architecture
 (RealGraphBranch) on BBBP, BACE, and TOX21, and a verification methodology that
-measures whether removing a molecule's toxicophore actually drops the model's
-predicted toxicity (causal consistency). On predictive accuracy, the GNN is
-competitive with a ChemProp D-MPNN baseline (BBBP \BBBPauc$\pm$\BBBPaucsd,
-BACE \BACEauc$\pm$\BACEaucsd, TOX21 \TOXauc$\pm$\TOXaucsd vs.\ ChemProp
-\ChemBBBP/\ChemBACE/\ChemTOX single-seed), but does not robustly exceed it. On
-explanation faithfulness, we find the genuine negative result that standard GNN
-training does \emph{not} induce toxicophore$\to$toxicity causality: across five
-seeds the true causal-faithfulness score is only \Fcausalstd$\pm$\Fcausalstdsd,
-i.e.\ removing a toxicophore usually does \emph{not} drop (often raises) the
-prediction. A causal regularizer improves alignment (\Fcausalbase$\to$\Fcausalreg)
-but is insufficient for full faithfulness. We report these results honestly,
-including the limitations of automatic counterfactual generation, and provide
-reproducible code and metrics.
+tests whether removing a molecule's toxicophore actually drops the predicted
+toxicity (causal consistency). On predictive accuracy, the GNN is competitive
+with a ChemProp D-MPNN baseline (BBBP \BBBPauc$\pm$\BBBPaucsd, BACE
+\BACEauc$\pm$\BACEaucsd, TOX21 \TOXauc$\pm$\TOXaucsd vs.\ ChemProp
+\ChemBBBP/\ChemBACE/\ChemTOX single-seed) but does not robustly exceed it. On
+explanation faithfulness, we report a genuine, replicated \emph{negative}
+result: standard GNN training does \emph{not} induce toxicophore$\to$toxicity
+causality (5-seed causal-faithfulness $0.128\pm0.027$; removing a toxicophore
+usually leaves or raises the prediction). We further show that a naive
+toxicophore-masking causal regularizer does \emph{not} reliably help
+($0.117\pm0.114$, indistinguishable from baseline and less stable), motivating
+better causal objectives. We document our metric's chemical-validity limits
+rather than over-claiming, and provide reproducible code and metrics.
 \end{abstract}
 
 \section{Introduction}
@@ -78,23 +75,28 @@ We make three contributions. (1) A leak-free, scaffold-split evaluation of a
 GINE architecture across five seeds on BBBP, BACE, and TOX21, reported with
 mean$\pm$std and bootstrap confidence intervals. (2) A causal-consistency metric
 that uses automatic counterfactual generation to test whether toxicophore removal
-drops the prediction, and a sanity-checked implementation that we verify against
-the model's actual behaviour. (3) An honest finding: standard GNN training does
-not learn toxicophore causality (true causal faithfulness $\approx 0.13$), and a
-causal regularizer is only a first step. We explicitly document where the
-faithfulness tooling is limited, rather than over-claiming.
+drops the prediction, with a sanity-checked implementation verified against the
+model's actual behaviour. (3) An honest finding: standard GNN training does not
+learn toxicophore causality (true causal faithfulness $\approx 0.13$), and a
+causal regularizer is \emph{not} a reliable fix. We explicitly document where the
+faithfulness tooling is limited, rather than over-claiming. We scope this work to
+GNN-level causal verification; language-model narrative generation is discussed
+as a downstream, secondary direction.
 
 \section{Related Work}
-Explainability for GNNs spans gradient/attention attribution
-\cite{gradcam,gnnexplainer}, subgraph-exploration methods, and recent LLM-based
-rationale generation. Faithfulness metrics for attributions typically use
-deletion/insertion perturbation \cite{devinnexai} or counterfactual sufficiency.
-For molecules, substructure-based counterfactuals are natural but chemically
-constrained: removing a heteroatom-attached group can produce an invalid molecule
-with a dangling bond. We build on this line of work by measuring causal
-consistency directly on the model's predictions over valid counterfactuals, and
-by reporting the metric's chemical-validity limits rather than assuming every
-removal is feasible.
+Explainability for GNNs spans gradient/attention attribution \cite{gnnexplainer},
+subgraph-exploration methods, and recent LLM-based rationale generation.
+Faithfulness metrics for attributions typically use deletion/insertion
+perturbation \cite{devinnexai} or counterfactual sufficiency. For molecules,
+substructure-based counterfactuals are natural but chemically constrained:
+removing a heteroatom-attached group can produce an invalid molecule with a
+dangling bond. We build on this line of work by measuring causal consistency
+directly on the model's predictions over valid counterfactuals, and by reporting
+the metric's chemical-validity limits rather than assuming every removal is
+feasible. Counterfactual faithfulness for GNN explanations is an active,
+unresolved area; recent work frames the gap between plausible and causally
+faithful explanations as an open problem, which our negative result directly
+informs.
 
 \section{Methods}
 \subsection{Model and data}
@@ -119,11 +121,12 @@ removal. Overall faithfulness $F = \sqrt{S_{\text{causal}} \cdot
 S_{\text{grounding}}}$, where grounding is the model's own saliency (1.0 by
 construction here), so $F = \sqrt{S_{\text{causal}}}$.
 
-\subsection{Causal regularizer}
+\subsection{Causal regularizer (tested, not adopted)}
 To test whether causality can be encouraged, we add a margin-based causal
 regularizer \cite{causalreg} that penalizes predictions that do not align with
 the toxicophore mask (penalty when a label-1 sample's toxicophore is removed yet
-the prediction stays high). We train one BBBP seed with this regularizer.
+the prediction stays high). We train five BBBP seeds with this regularizer and
+evaluate them with the same metric.
 
 \section{Results}
 \subsection{Predictive accuracy is competitive, not superior}
@@ -148,24 +151,41 @@ TOX21 (mean) & \ChemTOX & \TOXauc$\pm$\TOXaucsd & [0.761, 0.799] \\
 \end{tabular}
 \end{table}
 
-\subsection{GNN explanations are not causally faithful}
+\subsection{GNN explanations are not causally faithful (replicated negative result)}
 Across five seeds the true causal-faithfulness score is
 \Fcausalstd$\pm$\Fcausalstdsd (per-seed range 0.083--0.150). This means that, in
 the large majority of cases, removing a claimed toxicophore does \emph{not} drop
 the prediction (it often raises it). This is a genuine, replicated negative
 result: standard scaffold-split GNN training does not induce the
-toxicophore$\to$toxicity causal alignment that a faithful explanation would
-require. The causal regularizer improves alignment (\Fcausalbase$\to$\Fcausalreg,
-about +58\%) but remains far from full faithfulness---a research direction, not a
-solved component.
+toxicophore$\to$toxicity causal alignment a faithful explanation requires.
+
+\subsection{A naive causal regularizer does \emph{not} reliably help}
+The causal regularizer does not close the gap. Across five seeds it yields
+\Fcausalreg$\pm$\Fcausalregsd — statistically indistinguishable from the
+baseline (0.128$\pm$0.027) and far more unstable (per-seed 0.033--0.317). It
+also degrades predictive stability (two seeds drop to AUROC $\approx 0.72 vs\ $
+$\approx 0.83$--0.87 baseline). A naive toxicophore-masking objective is
+therefore insufficient; designing faithful causal objectives is open future
+work. We report this honestly rather than citing the single-seed ``+58\%''
+(apparent) gain, which does not generalize.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\columnwidth]{figures/causal_faithfulness_5seed.png}
+\caption{Five-seed causal faithfulness (fraction of toxicophore removals that
+drop the prediction by $\geq 0.1$). Standard GNN and causal-regularized GNN are
+statistically indistinguishable (0.128$\pm$0.027 vs 0.117$\pm$0.114); the
+regularizer adds instability, not faithfulness. Error bars = sample std.}
+\label{fig:faith}
+\end{figure}
 
 \section{Discussion}
 The practical implication is that GNN toxicity predictions should not be trusted
 on the basis of their highlighted substructures alone: the model can predict
 correctly while attending to unrelated atoms. Faithfulness tooling must therefore
 be verified, not assumed. Our metric is a first step; it is limited to chemically
-valid removals (halogens, terminal groups) because deleting heteroatom-attached
-groups yields invalid molecules. We report the metric's behaviour transparently.
+valid removals because deleting heteroatom-attached groups yields invalid
+molecules. We report the metric's behaviour transparently.
 
 \section{Limitations}
 \textbf{Single-model family.} We evaluate one GINE architecture; other GNNs may
@@ -173,28 +193,33 @@ differ. \textbf{Chemical-validity of counterfactuals.} Automatic removal cannot
 produce valid molecules for many functional groups, so faithfulness is measured
 only over valid removals. \textbf{Single-seed ChemProp.} Our comparison baseline
 is one ChemProp seed; a multi-seed baseline is needed for a true significance
-test. \textbf{Live-LLM rationale generation not evaluated.} The original
-protocol required a live LLM the present environment cannot run; we scope this
-work to GNN-level causal verification, which is reproducible here.
+test. \textbf{ClinTox not included.} We trained BBBP, BACE, and TOX21 only;
+ClinTox (ChemProp \ChemClin) is left for future work as it requires separate
+multi-task calibration and does not affect the faithfulness conclusions.
+\textbf{LLM narrative generation not evaluated.} The original protocol's
+LLM-based rationale step requires an external API the present environment cannot
+run; we scope this paper to GNN-level causal verification, which is fully
+reproducible here, and treat language-model explanation as a downstream
+direction.
 
 \section{Reproducibility}
 All numbers derive from committed result files under
 \texttt{benchmark\_results/} (per-seed AUROC JSONs, faithfulness seed JSONs,
 \texttt{VALIDATION\_LOG.md}, \texttt{ABLATION\_TABLE.md}). The faithfulness
 harness (\texttt{run\_real\_faithfulness.py}) accepts \texttt{--ckpt}/\,\texttt{--out}
-and reproduces every reported faithfulness figure.
+and reproduces every reported figure; training uses
+\texttt{train\_real\_graph.py} with \texttt{--causal\_reg}.
 
 \section{Conclusion}
 We showed that a competitive GINE toxicity model is \emph{not} causally faithful
-by default, and that a simple causal regularizer only partially closes the gap.
-Reporting this honestly---with verified metrics, confidence intervals, and
+by default, that a simple causal regularizer only adds instability, and that
+reporting this honestly---with verified metrics, confidence intervals, and
 documented tooling limits---is more useful than an unverified faithfulness
 headline.
 
 \begin{thebibliography}{99}
 \bibitem{gine} K. Xu et al., ``How Powerful are Graph Neural Networks?'', ICLR 2019.
 \bibitem{gnnexplainer} Z. Ying et al., ``GNNExplainer'', NeurIPS 2019.
-\bibitem{gradcam} R. Selvaraju et al., ``Grad-CAM'', ICCV 2017.
 \bibitem{devinnexai} R. Debnath et al., ``Evaluating Explainability'', 2024.
 \bibitem{causalreg} Anonymous, ``Causal regularizers for GNNs'', 2024.
 \end{thebibliography}

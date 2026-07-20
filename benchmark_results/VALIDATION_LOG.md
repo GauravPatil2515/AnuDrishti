@@ -145,16 +145,23 @@ model.predict_smiles, and count a claim as faithful only if prediction drops by
 >= 0.1. Grounding = model's own saliency = 1.0 by construction, so
 F = sqrt(S_causal * 1.0). Verified output:
 
-    STANDARD GNN (real_graph_bbbp_reg_s44.pt):
+    STANDARD GNN (real_graph_bbbp_reg_s44.pt, seed 44):
         causal F = 0.0583   overall F = 0.2415   (60/60 molecules with claim)
-    CAUSAL_REG  (real_graph_bbbpcausal_s44.pt, --causal_reg 0.5):
+    CAUSAL_REG  (real_graph_bbbpcausal_s44.pt, --causal_reg 0.5, seed 44):
         causal F = 0.0917   overall F = 0.3028   (60/60 molecules with claim)
+
+5-SEED SWEEP (see Task 2b below): the seed-44 "+58%" gap does NOT generalize.
 
 INTERPRETATION: standard GNN training does NOT induce toxicophore->toxicity
 causal alignment (removing a toxicophore usually leaves or RAISES the
-prediction; only ~5.8% of removals drop >=0.1). The causal regularizer improved
-causal alignment by ~58% (0.058 -> 0.092) but is insufficient for full
-faithfulness — a research direction, honestly reported.
+prediction). A naive toxicophore-masking causal regularizer (--causal_reg 0.5)
+does NOT reliably fix this: across 5 seeds it gives mean causal F = 0.117 ± 0.114
+(n=5: 0.092/0.058/0.083/0.317/0.033), which is statistically indistinguishable from
+the standard baseline (0.128 ± 0.027) and far more unstable. The regularizer also
+degrades predictive AUROC stability (causal seeds s43/s45 drop to 0.733/0.709 vs
+baseline 0.825/0.867). CONCLUSION: naive regularization is insufficient and
+unstable — a genuine negative result that motivates better causal objectives as
+future work.
 
 CONCLUSION: the GNN is NOT causally faithful (true causal F ~0.06, not the
 buggy 0.0 and not the mock-backed 1.0). The metric is now sanity-checked and
@@ -179,6 +186,27 @@ is ~0.13 — consistently LOW (not the buggy 0.0, not the mock 1.0). This is a
 replicated, genuine negative result: standard scaffold-split GINE training does
 not induce toxicophore->toxicity causal alignment. Per-seed results in
 benchmark_results/faithfulness_seed{42,43,44,45,46}.json.
+
+## 6b-2. 5-seed CAUSAL_REG sweep — VERIFIED (corrects the n=1 "+58%" claim)
+
+The seed-44 "+58%" improvement (0.058->0.092) does not generalize. Trained 5
+BBBP seeds with --causal_reg 0.5 (real_graph_bbbpcausal_s4{2..6}.pt, 200 ep)
+and measured faithfulness:
+
+    seed 42: causal F = 0.0917  AUROC = 0.8539
+    seed 43: causal F = 0.0583  AUROC = 0.7333
+    seed 44: causal F = 0.0833  AUROC = 0.8274
+    seed 45: causal F = 0.3167  AUROC = 0.7088
+    seed 46: causal F = 0.0333  AUROC = 0.7878
+    5-seed causal F = 0.1167 +/- 0.1141  (vs baseline 0.1283 +/- 0.0268)
+
+FINDING: the causal regularizer is statistically indistinguishable from the
+baseline on faithfulness and far less stable (one seed 0.317, another 0.033). It
+also degrades AUROC stability (s43/s45 drop to ~0.72 vs baseline ~0.83-0.87).
+CONCLUSION: a naive toxicophore-masking regularizer does NOT reliably induce
+causal faithfulness — a genuine negative result. Better causal objectives
+(constraint propagation, concept bottlenecks) are future work. The earlier
+"+58%" sentence in the paper/README must NOT be cited; this sweep supersedes it.
 
 ## 6c. 5-seed AUROC mean±std + bootstrap CI + ChemProp caveat (plan Task 3)
 

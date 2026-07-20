@@ -55,10 +55,13 @@ the reframed manuscript is in [`paper-2/`](paper-2/main.tex).
 across 5 seeds = 0.128 ± 0.027 (range 0.083–0.150): removing a toxicophore
 usually does *not* drop (often raises) the prediction. This is a genuine,
 replicated negative result — standard GNN training does not induce
-toxicophore→toxicity causality. A causal regularizer improves alignment
-(0.058→0.092) but is insufficient. See `benchmark_results/faithfulness_seed*.json`.
-The earlier `faithfulness_v2_validation.json` (F=1.0) used a mock model and is
-superseded.
+toxicophore→toxicity causality. We tested a naive toxicophore-masking causal
+regularizer (5 seeds): it does **not** reliably help (0.117 ± 0.114,
+statistically indistinguishable from baseline, and less stable; it also
+degrades AUROC). The earlier single-seed "0.058→0.092 (+58%)" gain does not
+generalize. See `benchmark_results/faithfulness_seed*.json` and
+`faithfulness_causal_seed*.json`. The earlier `faithfulness_v2_validation.json`
+(F=1.0) used a mock model and is superseded.
 
 **Honest verdict:** the GINE branch is competitive with ChemProp D-MPNN and
 beats it at the best seed on BACE and TOX21, but does **not** robustly surpass

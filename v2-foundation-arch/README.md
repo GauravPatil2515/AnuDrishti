@@ -54,7 +54,9 @@ Competitive with, but not robustly superior to, ChemProp (single seed).
 - True causal-faithfulness score (5 seeds): 0.128 ± 0.027 (range 0.083–0.150)
 - Standard GNN training does NOT induce toxicophore→toxicity causality
   (removing a toxicophore usually does not drop the prediction).
-- Causal regularizer improves alignment (0.058 → 0.092) but is insufficient.
+- Causal regularizer (5-seed sweep): 0.117 ± 0.114 — NOT a reliable fix
+  (indistinguishable from baseline 0.128 ± 0.027, less stable). The earlier
+  single-seed "0.058 → 0.092" gain does not generalize (see VALIDATION_LOG 6b-2).
 - NOTE: the earlier "Constrained F: 1.000 / Unconstrained F: 0.054" figures came
   from a mock model (`faithfulness_v2_validation.json`) and are superseded.
 - Reframed manuscript: `paper-2/main.tex`; audit trail: `benchmark_results/VALIDATION_LOG.md`,

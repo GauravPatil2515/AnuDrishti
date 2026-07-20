@@ -24,20 +24,25 @@ so variance is unknown; a mean-vs-mean gap is not a significance test.
 |--------|-------|------------|------|
 | GINE base (5 seeds) | lr 5e-4, hd 300, 5L, MLP head | 0.8494 ± 0.0229 | canonical config |
 | GINE lr=3e-4 (seed 42) | lr 3e-4 | 0.8271 | lower LR hurts |
-| GINE + causal_reg (seed 44) | causal_reg 0.5 | 0.8163 | −3.3 pts vs base; causal F up |
+| GINE + causal_reg (5 seeds) | causal_reg 0.5 | 0.7822 ± 0.0600 | AUROC LESS stable than base; F NOT improved |
 
 ## Table 3. Faithfulness / explanation (BBBP, real checkpoint)
 
 | Model | causal F (S_causal) | overall F | measured by |
 |-------|---------------------|-----------|-------------|
 | GINE standard (5 seeds mean) | 0.128 ± 0.027 | 0.36 ± 0.03 | corrected harness, drop≥0.1 |
-| GINE + causal_reg (seed 44) | 0.092 | 0.303 | corrected harness |
-| GINE standard (seed 44) | 0.058 | 0.242 | earlier single-run |
+| GINE + causal_reg (5 seeds mean) | 0.117 ± 0.114 | — | corrected harness, drop≥0.1 |
+| GINE + causal_reg (seed 44) | 0.092 | 0.303 | single seed (DO NOT cite as improvement) |
+| GINE standard (seed 44) | 0.058 | 0.242 | single seed (earlier) |
 
 Note: causal F is the fraction of toxicophore removals that drop the prediction
 by ≥0.1. It is LOW for GNNs (removing a toxicophore usually does not drop, often
 raises, the prediction) — a genuine, replicated negative result, NOT the buggy
-F=0 and NOT the mock-backed F=1.0.
+F=0 and NOT the mock-backed F=1.0. The 5-seed causal_reg sweep shows the
+seed-44 "+58%" gap does NOT generalize (0.117 ± 0.114 vs 0.128 ± 0.027 baseline,
+indistinguishable; regularizer also destabilizes AUROC). Naive causal
+regularization is insufficient — a negative result motivating better causal
+objectives as future work.
 
 ## Provenance
 - GINE 5-seed: benchmark_results/real_graph_branch_{bbbp,bace,tox21}_v5_s4{2..6}.json
