@@ -34,6 +34,11 @@ T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
   convolutional networks,'' in \emph{International Conference on Learning
   Representations}, 2017.
 
+\bibitem{velivckovic2018graph}
+P.~Veli{\v{c}}kovi{\'c}, G.~Cucurull, A.~Casanova, A.~Romero, P.~Lio, and
+  Y.~Bengio, ``Graph attention networks,'' in \emph{International Conference on
+  Learning Representations (ICLR)}, 2018.
+
 \bibitem{xu2019powerful}
 K.~Xu, W.~Hu, J.~Leskovec, and S.~Jegelka, ``How powerful are graph neural
   networks?'' in \emph{International Conference on Learning Representations},
