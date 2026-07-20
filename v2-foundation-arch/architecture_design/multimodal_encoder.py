@@ -21,6 +21,11 @@ import torch.nn as nn
 from torch import Tensor
 from typing import Optional, Dict
 
+try:
+    from torch_geometric.data import Batch
+except Exception:  # pragma: no cover - torch-geometric always present here
+    Batch = object  # type: ignore
+
 
 class MultimodalMoleculeEncoder(nn.Module):
     """4-branch multimodal molecular encoder for toxicity prediction."""
@@ -44,8 +49,21 @@ class MultimodalMoleculeEncoder(nn.Module):
         self.descriptor_dim = descriptor_dim
         self.fusion_dim = fusion_dim
         
-        # Branch encoders (stubs - replace with actual implementations)
+        # Branch encoders.
+        # graph_encoder: legacy fallback for the [B,N,119] one-hot tensor path.
+        # Real graph branch (RealGraphBranch, atom+bond GNN) is used when a PyG
+        # graph batch is supplied via `graph_data`; it replaces the placeholder.
         self.graph_encoder = nn.Linear(119, graph_dim)
+        self.use_real_graph = True  # enabled when RealGraphBranch importable
+        try:
+            try:
+                from architecture_design.real_graph_branch import RealGraphBranch
+            except ImportError:
+                from real_graph_branch import RealGraphBranch
+            self.real_graph = RealGraphBranch(out_dim=graph_dim)
+        except Exception:
+            self.use_real_graph = False
+            self.real_graph = None
         self.smiles_encoder = nn.Linear(128, smiles_dim)  # Expects embedded tokens
         self.conformer_encoder = nn.Linear(10, conformer_dim)
         self.descriptor_encoder = nn.Linear(200, descriptor_dim)
@@ -85,24 +103,35 @@ class MultimodalMoleculeEncoder(nn.Module):
         smiles_embed: Tensor,
         conformer_feats: Optional[Tensor] = None,
         descriptor_feats: Optional[Tensor] = None,
+        graph_data: "Optional[Batch]" = None,
     ) -> Dict[str, Tensor]:
         """
         Forward pass through multimodal encoder.
-        
+
         Args:
-            graph_x: [B, N, 119] node features
+            graph_x: [B, N, 119] node features (legacy one-hot path; ignored when
+                graph_data is supplied).
             smiles_embed: [B, L, 128] embedded SMILES tokens (from ChemBERTa tokenizer)
             conformer_feats: [B, M] 3D features (optional)
             descriptor_feats: [B, 200] RDKit descriptors (optional)
-            
+            graph_data: optional torch_geometric Batch (real molecular graphs with
+                atom + bond features). When provided, the REAL GNN branch
+                (RealGraphBranch) is used instead of the one-hot linear stub.
+
         Returns:
             Dict with 'logits' [B, n_tasks], 'fusion_embedding' [B, fusion_dim]
         """
         device = graph_x.device
         B = graph_x.shape[0]
-        
-        # Branch encodings (mean pool over sequence/atom dimensions)
-        graph_emb = self.graph_encoder(graph_x.mean(dim=1))  # [B, graph_dim]
+
+        # --- Graph branch ---
+        if graph_data is not None and self.use_real_graph:
+            # Real edge-aware GNN on genuine atom+bond graphs.
+            graph_data = graph_data.to(device)
+            graph_emb = self.real_graph(graph_data)  # [B, graph_dim]
+        else:
+            # Legacy fallback: mean-pool one-hot atomic numbers (no structure).
+            graph_emb = self.graph_encoder(graph_x.mean(dim=1))  # [B, graph_dim]
         smiles_emb = self.smiles_encoder(smiles_embed.mean(dim=1))  # [B, smiles_dim]
         
         if conformer_feats is not None:
@@ -154,16 +183,32 @@ class MultimodalMoleculeEncoder(nn.Module):
 
 if __name__ == "__main__":
     model = MultimodalMoleculeEncoder(n_tasks=12)
-    
-    # Fake inputs
+
+    # Fake inputs (legacy one-hot path)
     graph_x = torch.randn(4, 20, 119)  # 4 molecules, 20 atoms
     smiles_embed = torch.randn(4, 64, 128)  # 4 molecules, 64 tokens, 128-dim embeddings
     descriptor_feats = torch.randn(4, 200)
-    
+
     out = model(graph_x, smiles_embed, descriptor_feats=descriptor_feats)
-    
+
     print(f"Input shapes: graph={graph_x.shape}, smiles={smiles_embed.shape}")
     print(f"Output logits: {out['logits'].shape}")
     print(f"Fusion embedding: {out['fusion_embedding'].shape}")
     print(f"Gate weights: {out['gate_weights'].shape}")
-    print("✅ MultimodalMoleculeEncoder smoke test passed")
+    print("MultimodalMoleculeEncoder (legacy path) smoke test passed")
+
+    # --- Real graph branch path: feed actual PyG graphs with bonds ---
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    from real_graph_branch import featurize_mol
+    from torch_geometric.data import Batch
+    smiles_list = ["CCO", "c1ccccc1", "CC(=O)Oc1ccccc1C(=O)O", "CCN1C(=O)NC(c2ccccc2)C1=O"]
+    graphs = [g for g in (featurize_mol(s) for s in smiles_list) if g is not None]
+    real_batch = Batch.from_data_list(graphs)
+    out2 = model(graph_x[:len(graphs)], smiles_embed[:len(graphs)],
+                 descriptor_feats=descriptor_feats[:len(graphs)], graph_data=real_batch)
+    print(f"Real-graph path: logits {out2['logits'].shape} | "
+          f"used_real_graph={model.use_real_graph} | edge_feat_dim={graphs[1].edge_attr.shape[1]}")
+    assert out2['logits'].shape == (len(graphs), 12)
+    print("MultimodalMoleculeEncoder (real graph branch) smoke test passed")
