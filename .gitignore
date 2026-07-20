@@ -104,3 +104,5 @@ model-training/data/raw/*.csv
 
 # Hermes plan scratch
 .hermes/
+!.hermes/plans/
+!.hermes/plans/**
