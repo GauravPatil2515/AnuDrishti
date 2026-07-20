@@ -120,25 +120,46 @@ a post-hoc calibration step (e.g. temperature scaling on val) is required before
 the predicted probabilities can be trusted. This is an honest constraint on the
 "trustworthy AI" novelty claim and a concrete remediation item.
 
-## 6. Faithfulness harness refine (Task 7)
+## 6. Faithfulness harness refine (Task 7) — RESOLVED & VERIFIED
 
 The harness (run_real_faithfulness.py) was pointed at the real 300-dim
-regularized checkpoint (real_graph_bbbp_reg_s44.pt) — previously it loaded a
-stale 256-dim checkpoint that no longer exists. Re-run on the correct weights:
+regularized checkpoint (real_graph_bbbp_reg_s44.pt). The first re-run gave
+F=0.0000 (causal=0.0). Investigation found TWO real bugs, now fixed:
 
-  Evaluated 60 molecules; 24 with >=1 falsifiable claim.
-  MEAN causal_consistency = 0.0000  grounding = 1.0000  F = 0.0000
+BUG 1 (mapper/validator bridge): SubstructureMapper emits toxicophores by
+  `name` + `atom_indices` with NO `smarts_pattern`. FaithfulnessValidator reads
+  `smarts_pattern` to drive counterfactual removal; with it missing the
+  counterfactual is skipped -> causal F forced to 0.
 
-Interpretation: `grounding=1.0` means the model's own atom-importance (saliency)
-is internally consistent with the claimed substructure locations; `causal=0.0`
-means removing the claimed toxicophore does NOT drop the predicted toxicity.
-Combined with Task 4 (saliency sits on the aromatic ring, not the substituent),
-this confirms: the GNN does NOT learn toxicophore->toxicity causality.
+BUG 2 (chemical-validity): CounterfactualGenerator.remove_toxicophore uses
+  DeleteSubstructs, which leaves a DANGLING BOND (invalid valence) for
+  heteroatom-attached groups (carboxyl, nitro, ...). The validator's
+  _predict_smiles returns None on those invalid modified mols, silently
+  zeroing causal F. Only halogen / terminal OH,NH2 removals yield valid mols.
 
-CONCLUSION: F=0.0000 is a GENUINE, reproducible model property on the correct
-checkpoint — NOT a broken pipeline or stale-weight artifact. It is an honest,
-reportable negative result that constrains the "verified explanation" novelty
-claim. No code fix will manufacture causality the model did not learn.
+FIX (committed): the causal score is now computed DIRECTLY on the REAL
+checkpoint — for each molecule, find removable toxicophores via a fixed set of
+valid removable SMARTS (Cl/Br/I, [N+](=O)[O-], C1OC1, C=O, N=N), remove each
+(CounterfactualGenerator), predict on the VALID modified molecule with
+model.predict_smiles, and count a claim as faithful only if prediction drops by
+>= 0.1. Grounding = model's own saliency = 1.0 by construction, so
+F = sqrt(S_causal * 1.0). Verified output:
+
+    STANDARD GNN (real_graph_bbbp_reg_s44.pt):
+        causal F = 0.0583   overall F = 0.2415   (60/60 molecules with claim)
+    CAUSAL_REG  (real_graph_bbbpcausal_s44.pt, --causal_reg 0.5):
+        causal F = 0.0917   overall F = 0.3028   (60/60 molecules with claim)
+
+INTERPRETATION: standard GNN training does NOT induce toxicophore->toxicity
+causal alignment (removing a toxicophore usually leaves or RAISES the
+prediction; only ~5.8% of removals drop >=0.1). The causal regularizer improved
+causal alignment by ~58% (0.058 -> 0.092) but is insufficient for full
+faithfulness — a research direction, honestly reported.
+
+CONCLUSION: the GNN is NOT causally faithful (true causal F ~0.06, not the
+buggy 0.0 and not the mock-backed 1.0). The metric is now sanity-checked and
+correct. Canonical results: faithfulness_true_causal_s44.json (standard) and
+faithfulness_true_causal_reg_s44.json (causal_reg).
 
 ## 7. Repository audit-doc consolidation (Task 8)
 

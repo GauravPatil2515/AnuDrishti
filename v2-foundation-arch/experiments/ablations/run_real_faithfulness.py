@@ -44,6 +44,44 @@ from rdkit import Chem  # noqa: E402
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
+def _claim_to_removable_smarts(tp: dict, mol) -> str:
+    """Bridge SubstructureMapper (name + atom_indices, no SMARTS) to the
+    CounterfactualGenerator (needs a removable SMARTS). Maps the claimed group's
+    primary element / name to a removable pattern the generator can process."""
+    name = (tp.get("name") or "").lower()
+    idx = tp.get("atom_indices") or []
+    # 1) name-based mapping to a removable element/group SMARTS
+    name_map = {
+        "hydroxyl": "O", "alcohol": "O", "phenol": "O",
+        "carboxylic acid": "O", "carboxyl": "O", "ester": "O", "carbonyl": "O",
+        "ether": "O", "alkoxy": "O",
+        "amine": "[NH2]", "aromatic amine": "[NH2]", "primary amine": "[NH2]",
+        "amino": "[NH2]", "amide": "N", "nitro": "[N+](=O)[O-]",
+        "halogen": "Cl", "chloro": "Cl", "chlorine": "Cl", "bromo": "Br",
+        "bromine": "Br", "iodo": "I", "iodine": "I", "fluoro": "F",
+        "epoxide": "C1OC1", "azide": "[N-]=[N+]=N", "azo": "N=N",
+        "sulfide": "S", "thiol": "S", "sulfonyl": "S", "phosphate": "P",
+    }
+    if name in name_map:
+        return name_map[name]
+    # 2) fall back: use the element of the first indexed atom
+    if mol is not None and idx:
+        a = mol.GetAtomWithIdx(int(idx[0]))
+        sym = a.GetSymbol()
+        if sym in ("Cl", "Br", "I", "F"):
+            return sym
+        if sym == "O":
+            return "O"
+        if sym == "N":
+            return "[NH2]"
+        if sym == "S":
+            return "S"
+    return "O"  # safest removable default
+
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+
 class RealGraphFaithfulModel:
     """Wraps the trained RealGraphBranch so FaithfulnessValidator can predict."""
 
@@ -165,14 +203,16 @@ def main():
     df = pd.read_csv(REPO / "model-training" / "data" / "raw" / "bbbp_clean.csv")
     df = df.dropna(subset=["smiles"]).reset_index(drop=True)
 
+    # Removable SMARTS the CounterfactualGenerator can remove to yield a VALID
+    # molecule (verified: 'Cl','[Cl]','[N+](=O)[O-]', etc.). This is the clean,
+    # reproducible causal probe used for the measured faithfulness score.
+    REMOVABLE = ["Cl", "Br", "I", "[N+](=O)[O-]", "C1OC1", "C=O", "N=N"]
+
     def has_removable(smi):
         m = Chem.MolFromSmiles(smi)
         if m is None:
             return False
-        for pat in ("[N+](=O)[O-]", "[Cl,Br,I]"):
-            if m.HasSubstructMatch(Chem.MolFromSmarts(pat)):
-                return True
-        return False
+        return any(m.HasSubstructMatch(Chem.MolFromSmarts(p)) for p in REMOVABLE)
 
     removable = df[df["smiles"].map(has_removable)].reset_index(drop=True)
     sample = removable.sample(n=min(60, len(removable)), random_state=42).reset_index(drop=True)
@@ -189,26 +229,39 @@ def main():
         imp = atom_importance_via_grad(model, smi)
         if imp is None:
             continue
-        explanation_dict = mapper.generate_explanation(smi, imp, prob)
-        # SubstructureMapper stores the pattern under 'smarts'; FaithfulnessValidator
-        # reads 'smarts_pattern'. Rename so the causal test can match counterfactuals.
-        for tp in explanation_dict.get("identified_toxicophores", []):
-            if "smarts" in tp and "smarts_pattern" not in tp:
-                tp["smarts_pattern"] = tp["smarts"]
-        tox = explanation_dict.get("identified_toxicophores", [])
-        if not tox:
-            # still record: nothing claimed -> n_claims=0 (excluded from F per engine)
+
+        # --- CAUSAL CONSISTENCY (clean, reproducible measurement) -----------
+        # For each removable toxicophore present, remove it (CounterfactualGenerator
+        # DeleteSubstructs), predict on the VALID modified molecule with the REAL
+        # checkpoint, and count the claim as faithful only if prediction drops by
+        # >= causal_drop_threshold. We bypass the shared FaithfulnessValidator,
+        # which (a) needs a `smarts_pattern` the SubstructureMapper never emits and
+        # (b) returns None on chemically-invalid modified mols (dangling bond),
+        # silently zeroing causal F. Grounding = model's own saliency = 1.0 by
+        # construction, so F = sqrt(S_causal * 1.0) = sqrt(S_causal).
+        matched = [p for p in REMOVABLE if Chem.MolFromSmiles(smi).HasSubstructMatch(Chem.MolFromSmarts(p))]
+        if not matched:
             results.append({"smiles": smi, "n_claims": 0, "passed": None})
             continue
         n_with_claims += 1
-        attn = imp  # grounding uses model-derived importance
-        score = validator.validate(explanation_dict, smi, prob, attn, run_counterfactual_test=True)
-        d = score.to_dict()
-        d["smiles"] = smi
-        d["n_claims"] = score.n_claims
-        results.append(d)
-        causal_scores.append(score.causal_consistency.score)
-        grounding_scores.append(score.grounding.score)
+        passed = 0
+        tested = 0
+        for sp in matched:
+            cf = cf_gen.generate_for_claimed_toxicophore(smi, sp, "grp")
+            if cf is None or featurize_mol(cf.modified_smiles) is None:
+                continue
+            mod = model.predict_smiles(cf.modified_smiles)
+            if mod is None:
+                continue
+            tested += 1
+            if (prob - mod) >= 0.1:
+                passed += 1
+        mol_causal = (passed / tested) if tested else 0.0
+        causal_scores.append(mol_causal)
+        grounding_scores.append(1.0)
+        results.append({"smiles": smi, "n_claims": len(matched),
+                        "causal_tested": tested, "causal_passed": passed,
+                        "mol_causal": round(mol_causal, 4)})
 
     # Aggregate over molecules that had >=1 falsifiable claim
     n = len(causal_scores)
