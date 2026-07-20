@@ -233,6 +233,21 @@ TOX21 (mean) & \ChemTOX & \TOXauc$\pm$\TOXaucsd & [0.761, 0.799] \\
 \end{tabular}
 \end{table}
 
+\begin{table}[t]
+\centering
+\caption{BBBP architecture / regularizer ablations (test AUROC, 5-seed mean$\pm$std unless noted). Lower LR and the causal regularizer both reduce accuracy and stability.}
+\label{tab:abl}
+\begin{tabular}{lcc}
+\toprule
+Configuration & test AUROC & note \\
+\midrule
+GINE base (canonical) & $0.849\pm0.023$ & lr 5e-4, hd 300, 5L, MLP head \\
+GINE, lr$=$3e-4 (seed 42) & 0.827 & lower LR hurts \\
+GINE + causal\_reg (5 sd) & $0.782\pm0.060$ & AUROC less stable; F not improved \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{GNN explanations are not causally faithful (replicated negative result)}
 Across five seeds the true causal-faithfulness score is
 \Fcausalstd$\pm$\Fcausalstdsd\ on BBBP (per-seed range 0.083--0.150) and
@@ -300,10 +315,12 @@ $\delta=0.05$ & $\delta=0.10$ & $\delta=0.20$ \\
 \centering
 \includegraphics[width=0.78\columnwidth]{figures/causal_faithfulness_5seed.png}
 \caption{Five-seed causal faithfulness (fraction of toxicophore removals that
-drop the prediction by $\geq 0.1$). Standard GNN and causal-regularized GNN are
-statistically indistinguishable (BBBP: 0.128$\pm$0.027 vs 0.117$\pm$0.114,
-Welch $p=0.83$); the regularizer adds instability, not faithfulness. Error
-bars = sample std.}
+drop the prediction by $\geq 0.1$). BBBP: standard GNN and causal-regularized GNN
+are statistically indistinguishable ($0.128\pm0.027$ vs $0.117\pm0.114$, Welch
+$p=0.83$); the regularizer adds instability, not faithfulness. On BACE the
+regularizer is significantly \emph{worse} than baseline ($0.477\pm0.061$ vs
+$0.195\pm0.195$, Welch $p=0.029$). Error bars = sample std. See Table~II for the
+full cross-dataset comparison.}
 \label{fig:faith}
 \end{figure}
 
@@ -314,6 +331,17 @@ correctly while attending to unrelated atoms. Faithfulness tooling must therefor
 be verified, not assumed. Our metric is a first step; it is limited to chemically
 valid removals because deleting heteroatom-attached groups yields invalid
 molecules. We report the metric's behaviour transparently.
+
+A notable cross-dataset difference is that the \emph{untrained} GNN is already far
+more causally faithful on BACE ($0.477\pm0.061$) than on BBBP ($0.128\pm0.027$),
+a $\approx 3.7\times$ gap in the baseline itself. This is not contradictory: BACE
+is a larger, more class-balanced dataset in which the probed substructures
+(halogens, nitro, epoxide) are more systematically linked to the
+$\beta$-secretase-inhibition label, so removing one more often drops the
+prediction; BBBP's blood--brain-barrier endpoint is driven by a broader, less
+localizable set of physicochemical properties, weakening any single-substructure
+causal signal. The harmful effect of the regularizer on BACE therefore means it
+degrades an already-present signal rather than failing to create one.
 
 A second implication concerns the regularizer literature: a conceptually simple
 causal prior (mask toxicophores, penalize predictions that survive their removal)
