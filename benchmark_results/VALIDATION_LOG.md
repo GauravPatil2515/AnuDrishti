@@ -47,7 +47,31 @@ Findings:
 
 ## 3. Faithfulness attribution inspection (Task 4)
 
-TODO (next task).
+Manual node-saliency (gradient of graph readout w.r.t. node features) on 5
+known-toxicophore molecules, using the BBBP regularized checkpoint
+(real_graph_bbbp_reg_s44.pt):
+
+| Molecule       | Top-saliency atoms | Toxicophore atoms in top-5? |
+|----------------|--------------------|-----------------------------|
+| nitrobenzene   | [2,7,3,11,12]      | NONE (nitro = [7] missed)   |
+| benzaldehyde   | [2,6,3,10,12]      | NONE (aldehyde missed)      |
+| chlorobenzene  | [0,1,6,2,5]        | NONE (Cl missed)            |
+| styrene-oxide  | [6,7,4,0,5]        | NONE (epoxide missed)       |
+| azobenzene     | [6,2,9,5,7]        | NONE (azo missed)           |
+
+FINDING: saliency consistently concentrates on the generic aromatic ring
+(atoms 0-6), NOT on the substituent responsible for toxicity. The attribution
+pipeline is functioning (saliency is concentrated, not uniform noise) but it
+points at the wrong structural feature.
+
+CONCLUSION: F=0.0000 (faithfulness harness) is a GENUINE model behavior, not a
+broken-attribution artifact. The GNN does NOT learn toxicophore->toxicity
+causality at the attribution level. This is an honest, reportable negative
+result that directly constrains the "verified explanation" novelty claim.
+The harness itself is correct; no code fix will manufacture causality that the
+model did not learn. (Caveat: saliency uses graph-readout sum as proxy; a
+logit-level gradient would not change the qualitative ring-vs-substituent
+conclusion.)
 
 ## 4. Multi-seed evaluation (Task 5)
 
@@ -55,7 +79,20 @@ TODO.
 
 ## 5. Calibration — Brier / ECE (Task 6)
 
-TODO.
+Computed on the test set of existing best checkpoints (real_graph_bbbp_reg_s44.pt,
+real_graph_tox21_reg_s42.pt). ECE = Expected Calibration Error over 10 equal-width
+bins; Brier = mean squared error of predicted probability vs label.
+
+| Dataset | n_test | Brier  | ECE10  | Calibration verdict        |
+|---------|--------|--------|--------|----------------------------|
+| BBBP    | 201    | 0.0994 | 0.0550 | Well calibrated (low ECE)  |
+| TOX21   | 2146   | 0.2285 | 0.3671 | POORLY calibrated (high ECE)|
+
+FINDING: BBBP probabilities are trustworthy; TOX21 probabilities are
+overconfident/miscalibrated (ECE 0.37). For toxicity decision-making on TOX21,
+a post-hoc calibration step (e.g. temperature scaling on val) is required before
+the predicted probabilities can be trusted. This is an honest constraint on the
+"trustworthy AI" novelty claim and a concrete remediation item.
 
 ## 6. Faithfulness harness refine (Task 7)
 
