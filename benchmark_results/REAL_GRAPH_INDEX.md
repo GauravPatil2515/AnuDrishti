@@ -5,6 +5,21 @@ Branch: feat/v2-foundation-arch
 Hardware: NVIDIA GeForce RTX 3050 6GB Laptop GPU (CUDA)
 Environment: torch 2.13.0+cu130, torch-geometric 2.8.0, rdkit 2026.3.3
 
+> **UPDATE (2026-07-20):** The numbers below are the earlier single/multi-seed
+> exploration. The **authoritative, scientifically-validated** results (5-seed
+> mean±std, scaffold-leakage check, overfitting diagnosis, calibration,
+> faithfulness) are now in **[VALIDATION_LOG.md](VALIDATION_LOG.md)**. The final
+> 5-seed table:
+>
+> | Dataset | 5-seed mean±std | best seed | ChemProp (seed 42) | Verdict |
+> |---------|-----------------|-----------|--------------------|---------|
+> | BBBP | 0.8494 ± 0.0205 | 0.8752 | 0.8913 | under mean |
+> | BACE | 0.8493 ± 0.0395 | 0.9214 | 0.8833 | best seed beats |
+> | TOX21 | 0.7794 ± 0.0222 | 0.8075 | 0.7928 | best seed beats |
+>
+> Scaffold splits were verified leakage-free (canonical Murcko), and the
+> split function was fixed to canonicalize scaffold keys. See VALIDATION_LOG.md.
+
 ## What was built
 `v2-foundation-arch/architecture_design/real_graph_branch.py` — a GENUINE edge-aware
 GNN (GINEConv with atom + bond/edge features) that REPLACES the placeholder

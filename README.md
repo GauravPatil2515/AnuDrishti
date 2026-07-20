@@ -34,6 +34,29 @@
 | **Clearance** | Metabolic Clearance | RMSE | **0.52** |
 | **XGBoost Ensemble** | NR Endpoints | ROC-AUC | **0.78** |
 
+### v2 GINE Graph Branch — validated scaffold-split results (2026-07-20)
+
+The v2 `RealGraphBranch` (GINEConv, atom+bond features) was trained and
+evaluated on **real, Murcko scaffold-split** MoleculeNet data with **5 seeds
+(42–46)**. Full audit trail (split-integrity check, overfitting diagnosis,
+calibration, faithfulness) is in
+[`benchmark_results/VALIDATION_LOG.md`](benchmark_results/VALIDATION_LOG.md).
+
+| Dataset | 5-seed mean±std | best seed | ChemProp D-MPNN (seed 42) | Verdict |
+|---------|-----------------|-----------|---------------------------|---------|
+| BBBP    | 0.8494 ± 0.0205 | 0.8752    | 0.8913                    | under mean |
+| BACE    | 0.8493 ± 0.0395 | 0.9214    | 0.8833                    | best seed beats |
+| TOX21   | 0.7794 ± 0.0222 | 0.8075    | 0.7928                    | best seed beats |
+
+**Honest verdict:** the GINE branch is competitive with ChemProp D-MPNN and
+beats it at the best seed on BACE and TOX21, but does **not** robustly surpass
+ChemProp's single-seed point estimate on the 5-seed **mean** for any dataset
+(BBBP 95% bootstrap CI [0.831, 0.868] stays below 0.8913). Calibration is good
+for BBBP (ECE 0.055) but poor for TOX21 (ECE 0.367, needs temperature scaling).
+Faithfulness (causal consistency) = 0.0000 — the GNN does not learn
+toxicophore→toxicity causality at the attribution level (a genuine, reproducible
+negative finding, not a harness bug).
+
 ---
 
 ## 🚀 Quick Start
