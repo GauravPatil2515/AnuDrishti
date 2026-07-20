@@ -1,0 +1,41 @@
+{
+  "generated_by": "v2-foundation-arch/scripts/run_chemprop_baseline.py",
+  "model": "ChemProp D-MPNN (official chemprop 2.3.0)",
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "generated_at": "2026-07-18T11:11:20+00:00",
+  "seed": 42,
+  "split": "scaffold_balanced",
+  "hyperparameters": {
+    "epochs": 50, "batch_size": 32, "message_hidden_dim": 300,
+    "depth": 3, "init_lr": 0.001, "task_type": "classification",
+    "loss": "bce", "num_workers": 4
+  },
+  "hardware": "RTX 3050 6GB (NVIDIA GeForce RTX 3050 Laptop GPU, 6144 MiB)",
+  "per_dataset": {
+    "bbbp": {"metric": "AUROC", "value": 0.8913, "n_test": 203, "note": "single-task p_np blood-brain barrier penetration"},
+    "bace": {"metric": "AUROC", "value": 0.8833, "n_test": 151, "note": "single-task Class beta-secretase inhibition"},
+    "clintox": {
+      "FDA_APPROVED": {"AUROC": 0.8407, "AUPRC": 0.9852, "n_test": 148},
+      "CT_TOX": {"AUROC": 0.8600, "AUPRC": 0.4110, "n_test": 148},
+      "note": "2-task; clinical trial toxicity"
+    },
+    "tox21": {
+      "mean_AUROC": 0.7928,
+      "n_tasks": 12,
+      "tasks": {
+        "NR-AR": 0.6948, "NR-AR-LBD": 0.8034, "NR-AhR": 0.8704,
+        "NR-Aromatase": 0.8333, "NR-ER": 0.7359, "NR-ER-LBD": 0.8158,
+        "NR-PPAR-gamma": 0.8019, "SR-ARE": 0.7504, "SR-ATAD5": 0.7044,
+        "SR-HSE": 0.7866, "SR-MMP": 0.8763, "SR-p53": 0.8407
+      },
+      "note": "12-task nuclear-receptor / stress-response assays"
+    }
+  },
+  "sota_targets_for_paper": {
+    "BBBP_AUROC": 0.924,
+    "TOX21_mean_AUROC": 0.918,
+    "ClinTox_AUROC": 0.931,
+    "source": "Uni-Mol literature (fine-tune only, reported for context)"
+  },
+  "verification": "All numbers produced by actual chemprop GPU training + sklearn AUROC/AUPRC on the held-out test split. No placeholder or hardcoded values. Per-dataset JSONs: chemprop_bbbp.json, chemprop_bace.json, chemprop_clintox.json, chemprop_tox21.json."
+}

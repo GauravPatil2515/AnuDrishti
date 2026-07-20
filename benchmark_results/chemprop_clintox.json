@@ -1,0 +1,40 @@
+{
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "timestamp": "2026-07-18T11:15:15.695043+00:00",
+  "seed": 42,
+  "hardware": "RTX 3050 6GB (NVIDIA GeForce RTX 3050 Laptop GPU, 6144 MiB)",
+  "dataset": "clintox",
+  "model": "ChemProp D-MPNN (official chemprop pkg)",
+  "task_columns": [
+    "FDA_APPROVED",
+    "CT_TOX"
+  ],
+  "hyperparameters": {
+    "epochs": 50,
+    "batch_size": 32,
+    "hidden_size": 300,
+    "depth": 3,
+    "lr": 0.001,
+    "split": "scaffold_balanced",
+    "task_type": "classification",
+    "loss": "bce"
+  },
+  "results": {
+    "FDA_APPROVED": {
+      "AUROC": 0.8407,
+      "AUPRC": 0.9852,
+      "n_test": 148
+    },
+    "CT_TOX": {
+      "AUROC": 0.86,
+      "AUPRC": 0.411,
+      "n_test": 148
+    }
+  },
+  "data_cleaning": {
+    "total_rows": 1484,
+    "kept_rows": 1480,
+    "dropped_invalid_smiles": 4,
+    "cleaned_csv": "/home/gaurav/Desktop/gaurav code /Paper/denovo/Faithful-LLM-Augmented-Explainability-for-Graph-Neural-Network-Based-Molecular-Toxicity-Prediction/model-training/data/raw/clintox_clean.csv"
+  }
+}

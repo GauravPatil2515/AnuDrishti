@@ -1,0 +1,100 @@
+{
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "timestamp": "2026-07-18T11:19:32.736439+00:00",
+  "seed": 42,
+  "hardware": "RTX 3050 6GB (NVIDIA GeForce RTX 3050 Laptop GPU, 6144 MiB)",
+  "dataset": "tox21",
+  "model": "ChemProp D-MPNN (official chemprop pkg)",
+  "task_columns": [
+    "NR-AR",
+    "NR-AR-LBD",
+    "NR-AhR",
+    "NR-Aromatase",
+    "NR-ER",
+    "NR-ER-LBD",
+    "NR-PPAR-gamma",
+    "SR-ARE",
+    "SR-ATAD5",
+    "SR-HSE",
+    "SR-MMP",
+    "SR-p53"
+  ],
+  "hyperparameters": {
+    "epochs": 50,
+    "batch_size": 32,
+    "hidden_size": 300,
+    "depth": 3,
+    "lr": 0.001,
+    "split": "scaffold_balanced",
+    "task_type": "classification",
+    "loss": "bce"
+  },
+  "results": {
+    "NR-AR": {
+      "AUROC": 0.6948,
+      "AUPRC": 0.196,
+      "n_test": 708
+    },
+    "NR-AR-LBD": {
+      "AUROC": 0.8034,
+      "AUPRC": 0.2846,
+      "n_test": 652
+    },
+    "NR-AhR": {
+      "AUROC": 0.8704,
+      "AUPRC": 0.5885,
+      "n_test": 626
+    },
+    "NR-Aromatase": {
+      "AUROC": 0.8333,
+      "AUPRC": 0.2291,
+      "n_test": 565
+    },
+    "NR-ER": {
+      "AUROC": 0.7359,
+      "AUPRC": 0.3172,
+      "n_test": 575
+    },
+    "NR-ER-LBD": {
+      "AUROC": 0.8158,
+      "AUPRC": 0.2734,
+      "n_test": 691
+    },
+    "NR-PPAR-gamma": {
+      "AUROC": 0.8019,
+      "AUPRC": 0.1465,
+      "n_test": 599
+    },
+    "SR-ARE": {
+      "AUROC": 0.7504,
+      "AUPRC": 0.4561,
+      "n_test": 531
+    },
+    "SR-ATAD5": {
+      "AUROC": 0.7044,
+      "AUPRC": 0.0986,
+      "n_test": 688
+    },
+    "SR-HSE": {
+      "AUROC": 0.7866,
+      "AUPRC": 0.3691,
+      "n_test": 607
+    },
+    "SR-MMP": {
+      "AUROC": 0.8763,
+      "AUPRC": 0.6666,
+      "n_test": 529
+    },
+    "SR-p53": {
+      "AUROC": 0.8407,
+      "AUPRC": 0.3901,
+      "n_test": 644
+    }
+  },
+  "data_cleaning": {
+    "total_rows": 7831,
+    "kept_rows": 7823,
+    "dropped_invalid_smiles": 8,
+    "cleaned_csv": "/home/gaurav/Desktop/gaurav code /Paper/denovo/Faithful-LLM-Augmented-Explainability-for-Graph-Neural-Network-Based-Molecular-Toxicity-Prediction/model-training/data/raw/tox21_clean.csv"
+  }
+}
