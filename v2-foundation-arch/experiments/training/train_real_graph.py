@@ -58,7 +58,8 @@ def scaffold_split(smiles_list, seed=42, frac_train=0.8, frac_val=0.1):
             scaf = "none"
         else:
             try:
-                scaf = MurckoScaffold.MurckoScaffoldSmiles(mol=mol)
+                scaf_mol = MurckoScaffold.GetScaffoldForMol(mol)   # mol object
+                scaf = Chem.MolToSmiles(scaf_mol, canonical=True)  # canonical string
             except Exception:
                 scaf = "none"
         scaffolds.setdefault(scaf, []).append(i)
