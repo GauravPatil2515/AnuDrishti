@@ -112,6 +112,10 @@ A.~Madsen, S.~Chandar, and S.~Reddy, ``Are self-explanations from large
   language models faithful?'' in \emph{Findings of the Association for
   Computational Linguistics (ACL)}, 2024.
 
+\bibitem{pearl2009causality}
+J.~Pearl, \emph{Causality: Models, Reasoning, and Inference}, 2nd~ed.\hskip 1em
+  plus 0.5em minus 0.4em\relax Cambridge University Press, 2009.
+
 \bibitem{kazius2005derivation}
 J.~Kazius, R.~McGuire, and R.~Bursi, ``Derivation and validation of
   toxicophores for mutagenicity prediction,'' \emph{Journal of Medicinal

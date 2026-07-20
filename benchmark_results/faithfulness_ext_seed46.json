@@ -1,0 +1,938 @@
+{
+  "model": "RealGraphBranch (v2 GINEConv) -- Counterfactual Consistency Score",
+  "dataset": "bbbp",
+  "n_evaluated": 60,
+  "n_with_claims": 60,
+  "mean_counterfactual_consistency": 0.1417,
+  "random_control": {
+    "mean_drop": 0.0162,
+    "frac_drop_ge_0.1": 0.1496,
+    "n_drops": 127
+  },
+  "saliency_deletion": {
+    "mean_drop": -0.1564,
+    "frac_drop_ge_0.1": 0.05,
+    "n": 60
+  },
+  "threshold_sensitivity": {
+    "0.05": 0.2,
+    "0.10": 0.1417,
+    "0.20": 0.1167
+  },
+  "note": "Counterfactual Consistency = fraction of toxicophore removals that drop the prediction by >= delta. Random-control = same for random non-toxicophore atom removal (chance anchor). Saliency-deletion = gradient feature-deletion score (comparative metric). Grounding term fixed at 1.0 (no LLM narrative evaluated).",
+  "git_commit": "52285e0ec3fd20b1f99f03eff66ab68f0dc5660c",
+  "hardware": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "per_molecule": [
+    {
+      "smiles": "CC(C)N=C1C=C2N(c3ccc(Cl)cc3)c4ccccc4N=C2C=C1Nc5ccc(Cl)cc5",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0178
+      ],
+      "random_drops": [
+        -0.001
+      ],
+      "saliency_drop": -0.1432
+    },
+    {
+      "smiles": "C1=C(Cl)C=CC5=C1N(CCCN4CCC3(N2C(CCCC2)NC3=O)CC4)C6=C(CC5)C=CC=C6",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0004,
+        0.0068
+      ],
+      "random_drops": [
+        0.0069
+      ],
+      "saliency_drop": 0.0367
+    },
+    {
+      "smiles": "CN(C)[C@H]1[C@@H]2C[C@@H]3[C@H](O)c4cccc(O)c4C(=C3C(=O)[C@]2(O)C(=O)\\C(=C(N)/O)C1=O)O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0479
+      ],
+      "random_drops": [
+        -0.0046,
+        -0.0062,
+        -0.001
+      ],
+      "saliency_drop": -0.0207
+    },
+    {
+      "smiles": "Cc1ncsc1CCCl",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0101
+      ],
+      "random_drops": [
+        0.0035
+      ],
+      "saliency_drop": -0.1532
+    },
+    {
+      "smiles": "CCC(Oc1ccccc1)C(=O)NC2C3SC(C)(C)C(N3C2=O)C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.8518
+      ],
+      "random_drops": [
+        -0.1288,
+        -0.0051
+      ],
+      "saliency_drop": -0.7744
+    },
+    {
+      "smiles": "C1=CC(=CC3=C1\\C(C2=CC=CC=C2N3)=C/CN(CC)CC)Cl",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0051
+      ],
+      "random_drops": [
+        -0.0012
+      ],
+      "saliency_drop": 0.0696
+    },
+    {
+      "smiles": "C1=C([S](C)(=O)=O)C=CC3=C1N(C2=C(C=CC=C2)S3)CCCN4CCC(C(N)=O)CC4",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0024
+      ],
+      "random_drops": [
+        -0.0064,
+        0.0851
+      ],
+      "saliency_drop": 0.027
+    },
+    {
+      "smiles": "CC1(C(N(C(O1)=O)C)=O)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.2388
+      ],
+      "random_drops": [
+        0.0874,
+        0.0874,
+        0.0874
+      ],
+      "saliency_drop": -0.0446
+    },
+    {
+      "smiles": "[C@@H](O)([C@@H](O)C(=O)O)C(=O)O.[C@@H](N)(CC1=CC=C(N(C)C)C=C1C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0807
+      ],
+      "random_drops": [
+        0.3491,
+        0.3993,
+        0.0219
+      ],
+      "saliency_drop": 0.0753
+    },
+    {
+      "smiles": "COc1cc(cc(OC)c1O)[C@H]2[C@@H]3[C@H](COC3=O)[C@H](OC4OC5COC(OC5C(O)C4O)c6sccc6)c7cc8OCOc8cc27",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.2348
+      ],
+      "random_drops": [
+        0.2921,
+        -0.3244,
+        -0.3244
+      ],
+      "saliency_drop": -0.4974
+    },
+    {
+      "smiles": "CC1(C)S[C@@H]2[C@H](N=CN3CCCCCC3)C(=O)N2[C@H]1C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.8871
+      ],
+      "random_drops": [
+        -0.6381,
+        0.0011,
+        0.0423
+      ],
+      "saliency_drop": -0.2232
+    },
+    {
+      "smiles": "NC(=O)C1(CCN(CCCC(=O)c2ccc(F)cc2)CC1)N3CCCCC3",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0205
+      ],
+      "random_drops": [
+        0.0025,
+        0.013,
+        0.0003
+      ],
+      "saliency_drop": -0.0043
+    },
+    {
+      "smiles": "ClC(CCC)O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3187
+      ],
+      "random_drops": [
+        0.0317,
+        0.0317,
+        -0.0382
+      ],
+      "saliency_drop": -0.0142
+    },
+    {
+      "smiles": "CNC(C)C(=O)c1ccc(OC)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.2626
+      ],
+      "random_drops": [
+        -0.2067,
+        0.0043
+      ],
+      "saliency_drop": -0.2316
+    },
+    {
+      "smiles": "CC[N+](C)(C)Cc1ccccc1Br.Cc2ccc(cc2)[S]([O-])(=O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0753
+      ],
+      "random_drops": [
+        0.118,
+        -0.2108,
+        -0.0521
+      ],
+      "saliency_drop": -0.3324
+    },
+    {
+      "smiles": "[C@]34([C@H]([C@H]2[C@@H]([C@@]1(C(=CC(=O)C=C1)[C@H](C2)F)C)[C@H](C3)O)C[C@H]([C@@]4(C(COC(C)=O)=O)O)C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0013
+      ],
+      "random_drops": [
+        0.0036,
+        0.4445,
+        0.5459
+      ],
+      "saliency_drop": 0.1708
+    },
+    {
+      "smiles": "C3=C(C2(C1=CC=CC=C1)C(NCN2)=O)C=CC=C3",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3476
+      ],
+      "random_drops": [],
+      "saliency_drop": 0.0178
+    },
+    {
+      "smiles": "CC1(C)SC2C(NC(=O)C(N=C)c3ccccc3)C(=O)N2C1C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.936
+      ],
+      "random_drops": [
+        -0.0237,
+        -0.0017,
+        -0.0143
+      ],
+      "saliency_drop": -0.7742
+    },
+    {
+      "smiles": "Fc1ccc(cc1)C(=O)CCCN2CCN(CC2)c3ccccn3",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0336
+      ],
+      "random_drops": [
+        0.0063
+      ],
+      "saliency_drop": 0.0112
+    },
+    {
+      "smiles": "CN1C(=O)CC(=O)N(c2ccccc2)c3cc(Cl)ccc13",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 1,
+      "mol_causal": 0.5,
+      "raw_drops": [
+        -0.0006,
+        0.1788
+      ],
+      "random_drops": [
+        0.0345,
+        0.0013
+      ],
+      "saliency_drop": 0.0298
+    },
+    {
+      "smiles": "C1=C(C(=CC=C1[S](N)(=O)=O)OC)C(NCC3N(CC2=CC=C(F)C=C2)CCC3)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0448
+      ],
+      "random_drops": [],
+      "saliency_drop": -0.0504
+    },
+    {
+      "smiles": "C1=CC=CC(=C1CC2=CC=CS2)OCC3OCCNC3.O=C(O)\\C=C/C(=O)O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.3598
+      ],
+      "random_drops": [
+        -0.1416
+      ],
+      "saliency_drop": -0.3286
+    },
+    {
+      "smiles": "[C@@H]3(CN(CCC=C(C1=C(C=CS1)C)C2=C(C=CS2)C)CCC3)C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.5001
+      ],
+      "random_drops": [
+        -0.0885,
+        -0.0373,
+        -0.0382
+      ],
+      "saliency_drop": -0.5391
+    },
+    {
+      "smiles": "CC1(C)SC2C(N([C@H](C(=O)NC(=O)CN)c3ccccc3)C(=N)c4ccncc4)C(=O)N2C1C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.7455
+      ],
+      "random_drops": [
+        -0.0392,
+        0.015
+      ],
+      "saliency_drop": -0.7322
+    },
+    {
+      "smiles": "C(C1CCCCC1)CC(OCCN(C)C)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0147
+      ],
+      "random_drops": [
+        -0.0041,
+        0.0205,
+        -0.0023
+      ],
+      "saliency_drop": 0.0055
+    },
+    {
+      "smiles": "C(C1(C(CCC)CC)C(NC(=S)NC1=O)=O)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0841
+      ],
+      "random_drops": [
+        0.0585,
+        -0.136,
+        0.2822
+      ],
+      "saliency_drop": 0.5226
+    },
+    {
+      "smiles": "C1=C(Cl)C=CC3=C1N(C2=CC=CC=C2)C(=O)N3CCCN(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0195
+      ],
+      "random_drops": [
+        0.0275
+      ],
+      "saliency_drop": -0.2083
+    },
+    {
+      "smiles": "c1cc2c(C(N[C@@H](CC)c3ccccc3)=O)c(c(c3ccccc3)nc2cc1)OCCCC(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.1234
+      ],
+      "random_drops": [],
+      "saliency_drop": -0.36
+    },
+    {
+      "smiles": "[Na+].CO\\N=C(C(=O)N[C@@H]1[C@@H]2SCC(=C(N2C1=O)C([O-])=O)COC(C)=O)\\c3csc(N)n3",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.3609
+      ],
+      "random_drops": [
+        0.0019,
+        -0.0086
+      ],
+      "saliency_drop": -0.0953
+    },
+    {
+      "smiles": "CC(C)(C)OC(=O)c1ncn2c3cccc(Br)c3C(=O)N4CCC[C@H]4c12",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 1,
+      "mol_causal": 0.5,
+      "raw_drops": [
+        0.1271,
+        -0.0781
+      ],
+      "random_drops": [
+        0.1479,
+        0.1479
+      ],
+      "saliency_drop": -0.1407
+    },
+    {
+      "smiles": "O=C2\\C(=C1\\OC=NN1)C=CC=C2",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0014
+      ],
+      "random_drops": [
+        0.1305,
+        0.0014,
+        0.0835
+      ],
+      "saliency_drop": 0.0523
+    },
+    {
+      "smiles": "[C@]12(OC(O[C@@H]1C[C@@H]3C2(CC(O)[C@H]4C3CCC5=CC(=O)C=CC45C)C)(C)C)C(=O)CO",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0001
+      ],
+      "random_drops": [
+        0.0,
+        0.0034,
+        0.0505
+      ],
+      "saliency_drop": 0.0131
+    },
+    {
+      "smiles": "C4=C(N1C3(C(NC1)=O)CCN(CCCOC2=CC=C(C=C2)F)CC3)C=CC=C4",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0813
+      ],
+      "random_drops": [
+        0.0401,
+        0.1127
+      ],
+      "saliency_drop": 0.0133
+    },
+    {
+      "smiles": "CC1(C(NC(O1)=O)=O)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3188
+      ],
+      "random_drops": [
+        0.0309,
+        0.0309,
+        0.0183
+      ],
+      "saliency_drop": 0.1094
+    },
+    {
+      "smiles": "[Cl-].CN(C)[C@H]1[C@@H]2C[C@H]3C(=C(O)c4c(O)ccc(Cl)c4[C@@]3(C)O)C(=O)[C@]2(O)C(=O)\\C(=C(N)\\O)C1=O.[H+]",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0024,
+        -0.08
+      ],
+      "random_drops": [
+        -0.0634,
+        -0.0087,
+        -0.0014
+      ],
+      "saliency_drop": -0.3872
+    },
+    {
+      "smiles": "C(N1C(CCC1)=O)C(NNC(CN2C(CCC2)=O)=O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0432
+      ],
+      "random_drops": [
+        0.0086,
+        -0.0232,
+        -0.012
+      ],
+      "saliency_drop": -0.0131
+    },
+    {
+      "smiles": "CN(C)Cc1ccnc(c2cccc(NC3C([N+]([O-])=O)=CC=N3)c2)c1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0533
+      ],
+      "random_drops": [
+        -0.0414,
+        0.0925
+      ],
+      "saliency_drop": -0.1079
+    },
+    {
+      "smiles": "C[C@]12CCC(=O)C=C1CC[C@H]3[C@@H]4CC[C@H](C(=O)CO)[C@]4(C[C@H](O)[C@H]23)C=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.6676
+      ],
+      "random_drops": [
+        -0.1524,
+        -0.1822,
+        0.0048
+      ],
+      "saliency_drop": -0.6095
+    },
+    {
+      "smiles": "[C@@]45([C@@]3([C@H]([C@H]2[C@]([C@@]1(C(=CC(=O)C=C1)CC2)C)(F)[C@H](C3)O)C[C@H]4OC(O5)(C)C)C)C(COC(C(CNC(C6=CC=CC=C6)=O)C)=O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0023
+      ],
+      "random_drops": [
+        0.0059,
+        0.3233,
+        0.012
+      ],
+      "saliency_drop": 0.0965
+    },
+    {
+      "smiles": "CCC(=O)N(C1CCN(CC1)CCc2ccccc2)c3ccccc3",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0072
+      ],
+      "random_drops": [
+        -0.017,
+        -0.0012
+      ],
+      "saliency_drop": -0.013
+    },
+    {
+      "smiles": "CCN(CC)C(=O)C1CN2CCc3cc(OC)c(OC)cc3C2CC1OC(C)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0366
+      ],
+      "random_drops": [
+        0.2184,
+        -0.0014,
+        -0.0081
+      ],
+      "saliency_drop": 0.0672
+    },
+    {
+      "smiles": "C5=C4C3=C(C2N(CC1CC(OC)C(C(C1C2)C(OC)=O)OC)CC3)[NH]C4=CC(=C5)OC",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0852
+      ],
+      "random_drops": [
+        0.169
+      ],
+      "saliency_drop": -0.0541
+    },
+    {
+      "smiles": "CN1CC[C@]23[C@H]4Oc5c(OC(C)=O)ccc(C[C@@H]1[C@@H]2C=C[C@@H]4OC(C)=O)c35",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0
+      ],
+      "random_drops": [
+        -0.0,
+        0.0,
+        -0.0001
+      ],
+      "saliency_drop": 0.0572
+    },
+    {
+      "smiles": "c1(cc(c(cc1)Cl)Cl)CC(N1CCCC[C@H]1CN1CCCC1)=O",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0114,
+        -0.137
+      ],
+      "random_drops": [
+        -0.0076
+      ],
+      "saliency_drop": -0.1252
+    },
+    {
+      "smiles": "C(C)CCC(=O)OC3(CCC4C2CCC1=CC(=O)C=CC1(C)C2C(O)CC34C)C(=O)CO",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0004
+      ],
+      "random_drops": [
+        0.0017,
+        -0.0001,
+        -0.0002
+      ],
+      "saliency_drop": 0.0325
+    },
+    {
+      "smiles": "[C@H]5(CN(C(C3=C2C1=CC(=CC=C1CCN2C(=O)C(=C3)C4=CC=CC=C4)Cl)=O)CC5)OCC",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0156,
+        -0.1729
+      ],
+      "random_drops": [
+        -0.0953
+      ],
+      "saliency_drop": -0.1733
+    },
+    {
+      "smiles": "ClCC(F)(F)F",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0
+      ],
+      "random_drops": [
+        0.0,
+        0.0,
+        0.0003
+      ],
+      "saliency_drop": 0.0007
+    },
+    {
+      "smiles": "C[C@@H]1CC2=C(CCC(=O)C2)[C@H]3CC[C@@]4(C)[C@@H](CC[C@@]4(O)C#C)[C@H]13",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5626
+      ],
+      "random_drops": [
+        0.2779,
+        0.6793,
+        0.2442
+      ],
+      "saliency_drop": -0.1679
+    },
+    {
+      "smiles": "[C@@H]2(C1=CC=CC=C1[C@H](NC)C2)C3=CC=C(Cl)C(=C3)Cl.[H+].[Cl-]",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.1047
+      ],
+      "random_drops": [
+        0.0346,
+        -0.1111
+      ],
+      "saliency_drop": -0.1341
+    },
+    {
+      "smiles": "Brc1ccc2NC(=O)CN=C(c3ccccn3)c2c1",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 1,
+      "mol_causal": 0.5,
+      "raw_drops": [
+        -0.0009,
+        0.1457
+      ],
+      "random_drops": [],
+      "saliency_drop": 0.0365
+    },
+    {
+      "smiles": "C[C@]1(Cn2ccnn2)[C@@H](N3[C@@H](CC3=O)[S]1(=O)=O)C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.1785
+      ],
+      "random_drops": [
+        -0.0111,
+        -0.4033
+      ],
+      "saliency_drop": 0.007
+    },
+    {
+      "smiles": "CC1(C)S[C@@H]2[C@H](NC(=O)[C@H](NC(=O)N3CCN(C3=O)[S](C)(=O)=O)c4ccccc4)C(=O)N2[C@H]1C(O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.7618
+      ],
+      "random_drops": [
+        -0.3084,
+        0.0041
+      ],
+      "saliency_drop": -0.6653
+    },
+    {
+      "smiles": "C1=C(C(C(C)(C)O)(C)O)C=CC(=C1)Cl",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0246
+      ],
+      "random_drops": [],
+      "saliency_drop": -0.3901
+    },
+    {
+      "smiles": "CO[C@H]1[C@@H](CC(=O)O[C@H](C)C/C=C/C=C/[C@H](O)[C@H](C)C[C@H](CC=O)[C@@H]1O[C@@H]2O[C@H](C)[C@@H](O[C@H]3C[C@@](C)(O)[C@@H](OC(=O)CC(C)C)[C@H](C)O3)[C@@H]([C@H]2O)N(C)C)OC(C)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0617
+      ],
+      "random_drops": [
+        -0.0206,
+        -0.0158,
+        -0.0121
+      ],
+      "saliency_drop": -0.2871
+    },
+    {
+      "smiles": "CO[C@H]1C[C@@H](O[C@@H](C)[C@@H]1OC(C)=O)O[C@H]2[C@H](C)[C@@H](O[C@@H]3O[C@H](C)C[C@@H]([C@H]3OC(C)=O)N(C)C)[C@@H](C)C[C@@]4(CO4)C(=O)[C@H](C)[C@@H](OC(C)=O)[C@@H](C)[C@@H](C)OC(=O)[C@@H]2C",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0818,
+        0.0801
+      ],
+      "random_drops": [
+        0.0,
+        -0.0246,
+        -0.0112
+      ],
+      "saliency_drop": -0.4808
+    },
+    {
+      "smiles": "N[C@@H](CC1=C[NH]C2=CC=CC=C12)C(=O)O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.2497
+      ],
+      "random_drops": [
+        -0.0548,
+        -0.0449
+      ],
+      "saliency_drop": -0.2784
+    },
+    {
+      "smiles": "CN1C(=C(\\O)Nc2ccccn2)/C(=O)c3sccc3[S]1(=O)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.5925
+      ],
+      "random_drops": [
+        -0.299,
+        -0.0245
+      ],
+      "saliency_drop": -0.6823
+    },
+    {
+      "smiles": "C1=CC=CC2=C1N(C(CC(S2)C3=CC=CC=C3)=O)CCN(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.2748
+      ],
+      "random_drops": [
+        0.0016
+      ],
+      "saliency_drop": 0.0495
+    },
+    {
+      "smiles": "[C@@]23(Cl)C(C1C([C@](O)([C@@H](C1)C)C(=O)CO)(CC2Cl)C)CCC4=CC(=O)C=CC34C",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0015,
+        -0.0006
+      ],
+      "random_drops": [
+        0.0259,
+        0.0968,
+        0.2267
+      ],
+      "saliency_drop": 0.0839
+    },
+    {
+      "smiles": "NC1[C@H]2CN(C[C@@H]12)c3nc4N(C=C(C(O)=O)C(=O)c4cc3F)c5ccc(F)cc5F",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.8105
+      ],
+      "random_drops": [
+        0.1015,
+        0.0644
+      ],
+      "saliency_drop": -0.7312
+    }
+  ]
+}

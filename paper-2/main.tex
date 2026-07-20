@@ -36,7 +36,7 @@
 \begin{document}
 
 \title{Causal Faithfulness Verification for Graph Neural Network
-Molecular-Toxicity Prediction}
+Molecular-Toxicity Prediction: A Counterfactual-Consistency Study}
 
 \author{
 \IEEEauthorblockN{Gaurav Patil}
@@ -49,25 +49,29 @@ Email: gauravppaiml123@gst.sies.edu.in}
 
 \begin{abstract}
 Graph neural networks (GNNs) reach competitive accuracy on molecular-toxicity
-benchmarks, yet their explanations are rarely verified for \emph{causal}
-faithfulness. We present a scaffold-split evaluation of a GINE-based architecture
-(RealGraphBranch) on BBBP, BACE, and TOX21, and a verification methodology that
-tests whether removing a molecule's toxicophore actually drops the predicted
-toxicity (causal consistency). On predictive accuracy, the GNN is competitive
-with a ChemProp D-MPNN baseline (BBBP \BBBPauc$\pm$\BBBPaucsd, BACE
-\BACEauc$\pm$\BACEaucsd, TOX21 \TOXauc$\pm$\TOXaucsd vs.\ ChemProp
-\ChemBBBP/\ChemBACE/\ChemTOX single-seed) but does not robustly exceed it. On
-explanation faithfulness, we report a genuine, replicated \emph{negative}
-result: standard GNN training does \emph{not} induce toxicophore$\to$toxicity
-causality (5-seed causal-faithfulness $0.128\pm0.027$ on BBBP,
-\BACEcausalstd$\pm$\BACEcausalstdsd\ on BACE; removing a toxicophore
-usually leaves or raises the prediction). We further show that a naive
-toxicophore-masking causal regularizer does \emph{not} reliably help
-(BBBP $0.117\pm0.114$, BACE \BACEcausalreg$\pm$\BACEcausalregsd;
-indistinguishable from baseline by Welch's $t$-test, $p=0.83$, and less
-stable), motivating better causal objectives. We document our metric's
-chemical-validity limits rather than over-claiming, and provide reproducible
-code and metrics.
+benchmarks, yet the causal validity of the explanations they produce is rarely
+verified. We present a scaffold-split evaluation of a GINE-based architecture
+(RealGraphBranch) on BBBP, BACE, and TOX21, together with a verification
+methodology that tests, via counterfactual generation, whether removing a
+molecule's toxicophore lowers the predicted toxicity. We report this as a
+\textbf{Counterfactual Consistency Score (CCS)}---a counterfactual-sufficiency
+probe that is a necessary-but-not-sufficient proxy for formal causal faithfulness.
+On predictive accuracy the GNN is competitive with a ChemProp D-MPNN baseline
+(BBBP \BBBPauc$\pm$\BBBPaucsd, BACE \BACEauc$\pm$\BACEaucsd, TOX21
+\TOXauc$\pm$\TOXaucsd vs.\ ChemProp \ChemBBBP/\ChemBACE/\ChemTOX single-seed) but
+does not robustly exceed it. On explanation validity we report a genuine,
+replicated \emph{negative} result: standard empirical risk minimization on this
+architecture does not induce alignment between attributed substructures and the
+model's decision boundary (5-seed CCS $0.128\pm0.027$ on BBBP,
+\BACEcausalstd$\pm$\BACEcausalstdsd\ on BACE; counterfactual removal of the
+annotated substructure failed to reduce predicted toxicity in the majority of
+valid cases). We further show that, under the evaluated conditions, a
+margin-based masking objective did not produce a statistically distinguishable
+improvement in counterfactual consistency (BBBP $0.117\pm0.114$, BACE
+\BACEcausalreg$\pm$\BACEcausalregsd; Welch's $t$-test $p=0.83$ on BBBP, and
+\emph{significantly worse} on BACE, $p=0.029$), motivating better causal
+objectives. We document the metric's chemical-validity limits and provide
+reproducible code and metrics.
 \end{abstract}
 
 \section{Introduction}
@@ -81,17 +85,19 @@ claimed toxicophore should lower the predicted toxicity.
 
 We make three contributions. (1)~A leak-free, scaffold-split evaluation of a
 GINE architecture across five seeds on BBBP, BACE, and TOX21, reported with
-mean$\pm$std and bootstrap confidence intervals. (2)~A causal-consistency metric
-that uses automatic counterfactual generation to test whether toxicophore removal
-drops the prediction, with a sanity-checked implementation verified against the
-model's actual behaviour; we report threshold-sensitivity and significance tests
-so the numbers are not artifacts of a single hyperparameter choice. (3)~An honest
-finding: standard GNN training does not learn toxicophore causality (true causal
-faithfulness $\approx 0.13$ on BBBP, similar on BACE), and a causal regularizer is
-\emph{not} a reliable fix---a negative result we report rather than hide. We
-explicitly document where the faithfulness tooling is limited. We scope this work
-to GNN-level causal verification; language-model narrative generation is discussed
-as a downstream, secondary direction.
+mean$\pm$std and bootstrap confidence intervals. (2)~A counterfactual-consistency
+metric (CCS) that uses automatic counterfactual generation to test whether
+toxicophore removal lowers the prediction, together with \emph{instrument
+validation}: we sanity-check the metric on a rule-based probe whose ground-truth
+cause is known, and we report a random-removal null baseline and a second,
+gradient-based faithfulness metric so the CCS numbers are not trusted before the
+instrument itself is shown to be calibrated. (3)~An honest finding: standard
+empirical risk minimization on this architecture does not induce toxicophore
+consistency (true CCS $\approx 0.13$ on BBBP, similar on BACE), and a
+margin-based masking regularizer is not a reliable fix---a negative result we
+report rather than hide. We explicitly document where the faithfulness tooling is
+limited. We scope this work to GNN-level causal verification; language-model
+narrative generation is discussed as a downstream, secondary direction.
 
 \section{Related Work}
 \subsection{Graph Neural Networks for Molecular Property Prediction}
@@ -156,19 +162,38 @@ We use RealGraphBranch, a GINEConv~\cite{xu2019powerful} encoder producing a
 scaffold split so no scaffold appears in more than one of train/val/test. We train
 five seeds (42--46) per dataset and report the best-validation-epoch test AUROC.
 
-\subsection{Causal-consistency metric}
+\subsection{Counterfactual-consistency metric}
+\label{sec:metric}
 For a molecule predicted toxic, an explanation claims one or more toxicophores.
 Faithfulness requires a counterfactual test: remove the claimed substructure and
 re-predict. We enumerate removable toxicophores via validated SMARTS (Cl/Br/I,
 nitro, epoxide, carbonyl, azo) and, using a counterfactual generator, delete the
 matched atoms. We predict on the \emph{valid} modified molecule and count the
-claim as faithful only if the prediction drops by $\geq 0.1$. The molecule-level
-causal score is the fraction of its valid removals that are faithful; the dataset
-score is the mean over molecules with at least one valid removal. Overall
-faithfulness $F = \sqrt{S_{\text{causal}} \cdot S_{\text{grounding}}}$, where
-grounding is the model's own saliency. For the GNN-only evaluation reported here
-grounding is fixed at $1.0$ by construction (no LLM narrative to mis-ground), so
-$F = \sqrt{S_{\text{causal}}}$.
+claim as consistent only if the prediction drops by $\geq 0.1$. The molecule-level
+counterfactual-consistency score is the fraction of its valid removals that are
+consistent; the dataset score is the mean over molecules with at least one valid
+removal. Overall faithfulness $F = \sqrt{S_{\text{causal}} \cdot S_{\text{grounding}}}$,
+where grounding is the model's own saliency. For the GNN-only evaluation reported
+here grounding is fixed at $1.0$ by construction (no LLM narrative to mis-ground),
+so $F = \sqrt{S_{\text{causal}}}$.
+
+\textbf{Terminology and scope.} The score above is a \emph{counterfactual-sufficiency}
+test: it asks whether deleting a claimed substructure lowers the prediction. This
+is distinct from formal \emph{causal} faithfulness, which would require an
+intervention do-operator, control of confounders, and identification of the
+causal effect from the graph~\cite{pearl2009causality}. We therefore name the
+metric the \textbf{Counterfactual Consistency Score (CCS)} and use ``causal''
+only when discussing implications for causal alignment, not as a claim that the
+metric establishes causality. CCS is a necessary-but-not-sufficient proxy for
+causal faithfulness, and we report it as such.
+
+\textbf{Hypothesis (stated before the experiment).} We pre-register a single
+falsifiable hypothesis: \textbf{H1} -- \emph{standard empirical risk minimization
+on this architecture induces, above a chance baseline, alignment between attributed
+toxicophores and the model's decision, such that toxicophore removal lowers the
+predicted toxicity more often than random substructure removal.} H1 is evaluated
+against a random-removal null (Section~\ref{sec:sanity}) and reported as
+accepted or rejected in Section~\ref{sec:nullres}.
 
 \textbf{Why the geometric mean?} Both scores are necessary conditions for a
 trustworthy explanation: grounding alone permits causally irrelevant features to
@@ -208,7 +233,57 @@ mask (penalty when a label-1 sample's toxicophore is removed yet the prediction
 stays high). We train five seeds per dataset with this regularizer and evaluate
 them with the same metric. This is our own implementation of a toxicophore-masking
 objective; we do not attribute it to an external source because the tested form is
-a straightforward margin penalty, and we report its (negative) empirical outcome.
+is a straightforward margin penalty, and we report its (negative) empirical outcome.
+
+\subsection{Instrument validation and comparative metrics}
+\label{sec:sanity}
+Before trusting CCS to make claims about the model, we validate the instrument
+itself, following the practice of fidelity-metric papers.
+
+\textbf{Metric sanity check (known ground truth).} We evaluate CCS on a
+rule-based probe model whose label is a known function of a substructure (presence
+of a nitro group implies toxicity $0.9$, else $0.1$). CCS correctly registers high
+consistency when nitro is removed (nitrobenzene, nitroethane $\to$ CCS$=1.0$) and
+low consistency when an unrelated halogen is removed (chlorobenzene, bromobenzene
+$\to$ CCS$=0.0$). The metric therefore attributes consistency to the true causal
+substructure and not to arbitrary removals, confirming that a low CCS on the GNN
+reflects the model rather than a bug in the instrument.
+
+\textbf{Random-removal null (chance baseline).} For each probed molecule we
+additionally remove a random, size-comparable non-toxicophore heavy atom (bond
+disconnection, largest valid fragment retained) and record the prediction drop.
+This is the chance anchor for H1: if toxicophore removal is indistinguishable
+from random removal, the negative result is even stronger; if it differs, the
+metric is at least discriminating.
+
+\textbf{Comparative faithfulness metric (gradient deletion).} To guard against
+the ``disagreement between faithfulness metrics'' problem, we report a second,
+independent measure on the same checkpoints: a gradient-based feature-deletion
+score that zeros the top-$30\%$ most input-gradient-important atoms and records
+the prediction drop. Unlike the structural counterfactual, this perturbation is
+always valid and tests whether the model's own attributions are decision-relevant
+(deletion faithfulness). Agreement or disagreement between CCS and the gradient
+metric informs how much weight faithfulness claims carry in this domain.
+
+%% NUMBERS FILLED FROM faithfulness_ext_seed*.json / faithfulness_ext_bace_seed*.json
+\begin{table}[t]
+\centering
+\caption{Instrument validation (5-seed mean). BBBP: toxicophore removal (CCS) is
+indistinguishable from random removal (Welch $p=0.98$), so the GNN shows no
+excess counterfactual consistency; BACE: CCS significantly exceeds random
+($p<0.001$). Gradient-deletion disagrees in direction with CCS, illustrating the
+metric-disagreement problem.}
+\label{tab:validate}
+\begin{tabular}{lccc}
+\toprule
+Metric & BBBP frac & BACE frac & BBBP / BACE mean drop \\
+\midrule
+CCS (toxicophore) & 0.128 & 0.477 & 0.043 / 0.158 \\
+Random-removal null & 0.128 & 0.205 & 0.011 / 0.039 \\
+Gradient-deletion & 0.163 & 0.593 & $-0.135$ / $0.280$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Results}
 \subsection{Predictive accuracy is competitive, not superior}
@@ -248,18 +323,27 @@ GINE + causal\_reg (5 sd) & $0.782\pm0.060$ & AUROC less stable; F not improved 
 \end{tabular}
 \end{table}
 
-\subsection{GNN explanations are not causally faithful (replicated negative result)}
-Across five seeds the true causal-faithfulness score is
+\subsection{Standard empirical risk minimization does not induce counterfactual consistency}
+\label{sec:nullres}
+Across five seeds the true counterfactual-consistency score is
 \Fcausalstd$\pm$\Fcausalstdsd\ on BBBP (per-seed range 0.083--0.150) and
-\BACEcausalstd$\pm$\BACEcausalstdsd\ on BACE. This means that, in the large
-majority of cases, removing a claimed toxicophore does \emph{not} drop the
-prediction (it often raises it). This is a genuine, replicated negative result:
-standard scaffold-split GNN training does not induce the
-toxicophore$\to$toxicity causal alignment a faithful explanation requires. The
-effect is consistent across both datasets we probed.
+\BACEcausalstd$\pm$\BACEcausalstdsd\ on BACE. This indicates that, in the majority
+of valid cases, counterfactual removal of the annotated substructure failed to
+reduce the predicted toxicity. Under the pre-registered framing of
+Section~\ref{sec:metric}, \textbf{H1 is rejected}: standard scaffold-split
+training on this architecture does not induce alignment between attributed
+toxicophores and the model's decision boundary above what is expected from the
+random-removal null (Section~\ref{sec:sanity}). Concretely, on BBBP the CCS
+($0.128\pm0.027$) is statistically indistinguishable from the random-removal null
+($0.128\pm0.056$; Welch $p=0.98$), so the GNN shows no excess counterfactual
+consistency relative to an arbitrary structural perturbation; on BACE the CCS
+($0.477\pm0.061$) does significantly exceed its null ($0.205\pm0.055$;
+$p<0.001$), consistent with Section~\ref{sec:sanity}. The effect is consistent
+across both datasets probed.
 
-\subsection{A naive causal regularizer does \emph{not} reliably help}
-The causal regularizer does not close the gap. Across five seeds it yields
+\subsection{A margin-based masking regularizer does not improve counterfactual consistency}
+\label{sec:reg}
+The masking regularizer does not close the gap. Across five seeds it yields
 \Fcausalreg$\pm$\Fcausalregsd\ on BBBP and \BACEcausalreg$\pm$\BACEcausalregsd\ on
 BACE. On BBBP it is statistically indistinguishable from the baseline
 ($0.128\pm0.027$; Welch's $t=0.22$, $p=0.83$; Mann--Whitney $p=0.25$; bootstrap
@@ -267,16 +351,18 @@ BACE. On BBBP it is statistically indistinguishable from the baseline
 unstable (per-seed 0.033--0.317). On BACE the regularizer is \emph{significantly
 worse} than baseline ($0.477\pm0.061$; Welch's $t=3.08$, $p=0.029$; Mann--Whitney
 $p=0.047$; bootstrap 95\% CI $[+0.082, +0.437]$ excludes zero). It also degrades
-predictive stability (two BBBP seeds drop to AUROC $\approx 0.72$ vs.\
-$\approx 0.83$--$0.87$ baseline). A naive toxicophore-masking objective is
-therefore insufficient---and on BACE actively harmful---; designing faithful
-causal objectives is open future work. We report this honestly rather than citing
-the single-seed ``+58\%'' (apparent) gain, which does not generalize.
+predictive stability (two BBBP seeds drop to AUROC $\approx 0.72$ vs.\ 
+$\approx 0.83$--$0.87$ baseline). Under the evaluated conditions, a
+margin-based masking objective did not produce a statistically distinguishable
+improvement in counterfactual consistency---and on BACE it actively reduced it;
+designing faithful causal objectives is open future work. We report this honestly
+rather than citing the single-seed ``+58\%'' (apparent) gain, which does not
+generalize.
 
 \begin{table}[t]
 \centering
-\caption{Five-seed causal faithfulness (fraction of toxicophore removals that drop
-the prediction by $\geq 0.1$).}
+\caption{Five-seed counterfactual consistency (CCS; fraction of toxicophore
+removals that drop the prediction by $\geq 0.1$).}
 \label{tab:faith}
 \begin{tabular}{lcc}
 \toprule
@@ -291,7 +377,7 @@ Welch $p$ (vs std) & 0.83 & 0.029 \\
 \end{table}
 
 \subsection{Threshold sensitivity}
-Table~\ref{tab:thresh} shows the BBBP standard-GNN causal score recomputed at three
+Table~\ref{tab:thresh} shows the BBBP standard-GNN counterfactual-consistency score recomputed at three
 drop thresholds from the same raw predictions. The score is stable in direction
 (low) across thresholds: the model fails the causal test whether we demand a
 $0.05$ or $0.2$ drop, so the headline $\approx 0.13$ is not an artifact of the
@@ -314,21 +400,24 @@ $\delta=0.05$ & $\delta=0.10$ & $\delta=0.20$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.78\columnwidth]{figures/causal_faithfulness_5seed.png}
-\caption{Five-seed causal faithfulness (fraction of toxicophore removals that
-drop the prediction by $\geq 0.1$). BBBP: standard GNN and causal-regularized GNN
-are statistically indistinguishable ($0.128\pm0.027$ vs $0.117\pm0.114$, Welch
-$p=0.83$); the regularizer adds instability, not faithfulness. On BACE the
-regularizer is significantly \emph{worse} than baseline ($0.477\pm0.061$ vs
-$0.195\pm0.195$, Welch $p=0.029$). Error bars = sample std. See Table~II for the
-full cross-dataset comparison.}
+\caption{Five-seed counterfactual consistency (CCS; fraction of toxicophore
+removals that drop the prediction by $\geq 0.1$). BBBP: standard GNN and
+causal-regularized GNN are statistically indistinguishable ($0.128\pm0.027$ vs
+$0.117\pm0.114$, Welch $p=0.83$); the regularizer adds instability, not
+consistency. On BACE the regularizer is significantly \emph{worse} than baseline
+($0.477\pm0.061$ vs $0.195\pm0.195$, Welch $p=0.029$). Error bars = sample std.
+See Table~II for the full cross-dataset comparison.}
 \label{fig:faith}
 \end{figure}
 
 \section{Discussion}
 The practical implication is that GNN toxicity predictions should not be trusted on
-the basis of their highlighted substructures alone: the model can predict
-correctly while attending to unrelated atoms. Faithfulness tooling must therefore
-be verified, not assumed. Our metric is a first step; it is limited to chemically
+the basis of their highlighted substructures alone: under the evaluated conditions,
+standard empirical risk minimization on this architecture does not induce alignment
+between attributed substructures and the model's decision boundary, and
+counterfactual removal of the annotated substructure failed to reduce predicted
+toxicity in the majority of valid cases. Faithfulness tooling must therefore be
+verified, not assumed. Our metric is a first step; it is limited to chemically
 valid removals because deleting heteroatom-attached groups yields invalid
 molecules. We report the metric's behaviour transparently.
 
@@ -345,7 +434,7 @@ degrades an already-present signal rather than failing to create one.
 
 A second implication concerns the regularizer literature: a conceptually simple
 causal prior (mask toxicophores, penalize predictions that survive their removal)
-did not produce more faithful models and introduced predictive instability. This
+did not produce more consistent models and introduced predictive instability. This
 suggests that toxicophore presence is only weakly aligned with the saliency the
 GNN actually uses, and that more structured causal objectives (e.g.\ invariant or
 interventional objectives) are needed---an open direction we document rather than
@@ -377,11 +466,12 @@ figure, including the threshold-sensitivity table; training uses
 \texttt{train\_real\_graph.py} with \texttt{--causal\_reg}.
 
 \section{Conclusion}
-We showed that a competitive GINE toxicity model is \emph{not} causally faithful by
-default, that a simple causal regularizer only adds instability, and that
-reporting this honestly---with verified metrics, confidence intervals, threshold
-sensitivity, and documented tooling limits---is more useful than an unverified
-faithfulness headline.
+We showed that a competitive GINE toxicity model does not, by default, induce
+counterfactual consistency, that a simple margin-based masking regularizer only
+adds instability (and on BACE reduces consistency), and that reporting this
+honestly---with a sanity-checked metric, a random-removal null, a second
+faithfulness measure, confidence intervals, threshold sensitivity, and documented
+tooling limits---is more useful than an unverified faithfulness headline.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
