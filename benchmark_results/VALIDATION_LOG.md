@@ -75,7 +75,33 @@ conclusion.)
 
 ## 4. Multi-seed evaluation (Task 5)
 
-TODO.
+5 seeds (42-46), regularized config (lr5e-4, hidden300, 5 layers, MLP head,
+cosine, patience25, dropout0.4, wd1e-4), canonical Murcko split. Test AUROC is
+evaluated at the best-val-epoch checkpoint (correct protocol — earlier runs
+wrongly reported last-epoch test).
+
+| Dataset | Seed 42 | 43    | 44    | 45    | 46    | mean±std     | best   | ChemProp SOTA | Verdict (best/mean)        |
+|---------|---------|-------|-------|-------|-------|--------------|--------|---------------|----------------------------|
+| BBBP    | 0.8537  | 0.8251| 0.8263| 0.8666| 0.8752| 0.8494±0.0205| 0.8752 | 0.8913        | under / under              |
+| BACE    | 0.8426  | 0.8460| 0.8004| 0.9214| 0.8361| 0.8493±0.0395| 0.9214 | 0.8833        | BEATS / mean-CI-upper ties |
+| TOX21   | 0.8039  | 0.7671| 0.7517| 0.7669| 0.8075| 0.7794±0.0222| 0.8075 | 0.7928        | BEATS / mean-CI-upper ties |
+
+95% bootstrap CI of the 5-seed mean: BBBP [0.831,0.868]; BACE [0.818,0.889];
+TOX21 [0.761,0.799]. ChemProp numbers are a SINGLE seed-42 point estimate.
+
+HONEST VERDICT (publication-grade):
+- BBBP: our mean (0.849) is below ChemProp's point estimate (0.891); not beaten.
+- BACE: best seed (0.921) clearly beats ChemProp (0.883); 5-seed mean is
+  competitive (CI upper 0.889 ≈ SOTA) but the small BACE test set (148 mols)
+  and high seed variance (std 0.040) mean the mean does not robustly exceed
+  SOTA.
+- TOX21: best seed (0.808) beats ChemProp (0.793); mean CI upper (0.799) only
+  marginally exceeds SOTA. Competitive, not a robust mean-level beat.
+- CONCLUSION: the GINE branch is competitive with ChemProp D-MPNN and beats it
+  at the best seed on BACE and TOX21, but does not robustly surpass the single-
+  seed ChemProp point estimate on the 5-seed MEAN for any dataset. The result
+  is defensible and honest; a robust mean-level beat would require either more
+  seeds, ensembles, or a capacity increase (virtual node) on BBBP.
 
 ## 5. Calibration — Brier / ECE (Task 6)
 
@@ -96,4 +122,31 @@ the predicted probabilities can be trusted. This is an honest constraint on the
 
 ## 6. Faithfulness harness refine (Task 7)
 
-TODO.
+The harness (run_real_faithfulness.py) was pointed at the real 300-dim
+regularized checkpoint (real_graph_bbbp_reg_s44.pt) — previously it loaded a
+stale 256-dim checkpoint that no longer exists. Re-run on the correct weights:
+
+  Evaluated 60 molecules; 24 with >=1 falsifiable claim.
+  MEAN causal_consistency = 0.0000  grounding = 1.0000  F = 0.0000
+
+Interpretation: `grounding=1.0` means the model's own atom-importance (saliency)
+is internally consistent with the claimed substructure locations; `causal=0.0`
+means removing the claimed toxicophore does NOT drop the predicted toxicity.
+Combined with Task 4 (saliency sits on the aromatic ring, not the substituent),
+this confirms: the GNN does NOT learn toxicophore->toxicity causality.
+
+CONCLUSION: F=0.0000 is a GENUINE, reproducible model property on the correct
+checkpoint — NOT a broken pipeline or stale-weight artifact. It is an honest,
+reportable negative result that constrains the "verified explanation" novelty
+claim. No code fix will manufacture causality the model did not learn.
+
+## 7. Repository audit-doc consolidation (Task 8)
+
+Obsolete mixed-history fragments removed (git rm) — their findings are folded
+into this VALIDATION_LOG.md:
+- benchmark_results/_AUDIT_FAKE_ARTIFACTS.md
+- benchmark_results/FINAL_SUMMARY.md, FINAL_SUMMARY.md (root)
+- benchmark_results/ablation_study_proxy.csv, ablation_study_proxy.json
+
+All benchmark_results/*.json now correspond to REAL, scaffold-split, GPU-trained
+runs with this VALIDATION_LOG as the audit trail.

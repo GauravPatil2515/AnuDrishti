@@ -2,40 +2,16 @@
   "model": "RealGraphBranch (v2 GINEConv) + v1 FaithfulnessValidator (REAL, not MockV2Model)",
   "dataset": "bbbp",
   "n_evaluated": 60,
-  "n_with_claims": 37,
+  "n_with_claims": 24,
   "mean_causal_consistency": 0.0,
   "mean_grounding": 1.0,
   "mean_F": 0.0,
   "note": "F=sqrt(S_causal*S_grounding) over molecules with >=1 falsifiable claim. Replaces the faked faithfulness_v2_validation.json (MockV2Model).",
-  "git_commit": "b050712d036126ccc1ab60684157dcf17471e8a5",
+  "git_commit": "3ccb5a269f39294063c5e270a418fb4a660ebadd",
   "hardware": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
   "per_molecule": [
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "c1ccc2Oc3c(cc(cc3)Cl)[C@@H]3[C@@H](c2c1)CNCC3"
-    },
-    {
-      "smiles": "C1=C(Cl)C=CC3=C1\\C(C2=C(C=CC=C2)S3)=C/CCN4CCN(CCO)CC4",
+      "smiles": "c1ccc2Oc3c(cc(cc3)Cl)[C@@H]3[C@@H](c2c1)CNCC3",
       "n_claims": 0,
       "passed": null
     },
@@ -61,87 +37,10 @@
         "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "[C@H]2(CNC(C1=C(C=CC(=C1OC)Br)OC)=O)N(CCC2)CC"
+      "smiles": "C1=C(Cl)C=CC3=C1\\C(C2=C(C=CC=C2)S3)=C/CCN4CCN(CCO)CC4"
     },
     {
-      "smiles": "COc1ccc2n(c(C)c(CC(O)=O)c2c1)C(=O)c3ccc(Cl)cc3",
-      "n_claims": 0,
-      "passed": null
-    },
-    {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=C(Cl)C=CC2=C1C(=NCC(N2)=O)C3=CC=CC=C3Cl"
-    },
-    {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 3,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 3,
-        "grounded": 3,
-        "ungrounded": []
-      },
-      "smiles": "CCC(C)N1N=CN(C1=O)c2ccc(cc2)N3CCN(CC3)c4ccc(OC[C@H]5CO[C@@](Cn6cncn6)(O5)c7ccc(Cl)cc7Cl)cc4"
-    },
-    {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=C(OC)C(=CC2=C1C(=NN=C(C2)C)C3=CC=CC(=C3)Cl)OC"
-    },
-    {
-      "smiles": "OC(O)C(Cl)(Cl)Cl",
+      "smiles": "[C@H]2(CNC(C1=C(C=CC(=C1OC)Br)OC)=O)N(CCC2)CC",
       "n_claims": 0,
       "passed": null
     },
@@ -167,13 +66,18 @@
         "grounded": 2,
         "ungrounded": []
       },
-      "smiles": "[C@@]4([C@@]3([C@H]([C@H]2[C@]([C@@]1(C(=CC(=O)C=C1)CC2)C)(Cl)[C@H](C3)O)C[C@H]4C)C)(C(COC(C)=O)=O)OC(CCC)=O"
+      "smiles": "COc1ccc2n(c(C)c(CC(O)=O)c2c1)C(=O)c3ccc(Cl)cc3"
+    },
+    {
+      "smiles": "C1=C(Cl)C=CC2=C1C(=NCC(N2)=O)C3=CC=CC=C3Cl",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
-      "n_claims": 3,
+      "n_claims": 2,
       "causal_consistency": {
         "score": 0.0,
         "tested": 0,
@@ -187,8 +91,47 @@
       },
       "grounding": {
         "score": 1.0,
-        "total_claims": 3,
-        "grounded": 3,
+        "total_claims": 2,
+        "grounded": 2,
+        "ungrounded": []
+      },
+      "smiles": "CCC(C)N1N=CN(C1=O)c2ccc(cc2)N3CCN(CC3)c4ccc(OC[C@H]5CO[C@@](Cn6cncn6)(O5)c7ccc(Cl)cc7Cl)cc4"
+    },
+    {
+      "smiles": "C1=C(OC)C(=CC2=C1C(=NN=C(C2)C)C3=CC=CC(=C3)Cl)OC",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "smiles": "OC(O)C(Cl)(Cl)Cl",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "smiles": "[C@@]4([C@@]3([C@H]([C@H]2[C@]([C@@]1(C(=CC(=O)C=C1)CC2)C)(Cl)[C@H](C3)O)C[C@H]4C)C)(C(COC(C)=O)=O)OC(CCC)=O",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "overall_score": 0.0,
+      "validation_result": "failed",
+      "passed": false,
+      "n_claims": 1,
+      "causal_consistency": {
+        "score": 0.0,
+        "tested": 0,
+        "passed": 0,
+        "failed": []
+      },
+      "counterfactual_sensitivity": {
+        "score": 0.5,
+        "tested": 0,
+        "consistent": 0
+      },
+      "grounding": {
+        "score": 1.0,
+        "total_claims": 1,
+        "grounded": 1,
         "ungrounded": []
       },
       "smiles": "C1=C2C(=CC=C1)N(C(Cl)(CN=C2C3=CC=CC=C3Cl)CO)C"
@@ -218,15 +161,10 @@
       "smiles": "CCCCCCCCCC(=O)N[C@@H]1[C@@H](O)[C@H](O)[C@@H](CO)O[C@H]1Oc2c3Oc4ccc(C[C@H]5NC(=O)[C@H](N)c6ccc(O)c(Oc7cc(O)cc(c7)[C@H](NC5=O)C(=O)N[C@H]8C(=O)N[C@H]9C(=O)N[C@@H]([C@H](O[C@@H]%10O[C@H](CO)[C@@H](O)[C@H](O)[C@H]%10NC(C)=O)c%11ccc(Oc2cc8c3)c(Cl)c%11)C(=O)N[C@@H](C(O)=O)c%12cc(O)cc(O[C@H]%13O[C@H](CO)[C@@H](O)[C@H](O)[C@@H]%13O)c%12c%14cc9ccc%14O)c6)cc4Cl"
     },
     {
-      "smiles": "CCNC(=NC#N)NCCSCc1c(cccn1)Br",
-      "n_claims": 0,
-      "passed": null
-    },
-    {
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
-      "n_claims": 2,
+      "n_claims": 1,
       "causal_consistency": {
         "score": 0.0,
         "tested": 0,
@@ -240,21 +178,11 @@
       },
       "grounding": {
         "score": 1.0,
-        "total_claims": 2,
-        "grounded": 2,
+        "total_claims": 1,
+        "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "C1=C(Cl)C=CC2=C1C(=NC3=C(O2)C=CC=C3)N4CCNCC4"
-    },
-    {
-      "smiles": "CN(C)C1C2C(O)C3C(=C)c4c(Cl)ccc(O)c4C(=C3C(=O)C2(O)C(=O)\\C(=C(N)/O)C1=O)O",
-      "n_claims": 0,
-      "passed": null
-    },
-    {
-      "smiles": "C(C(C(C)C)(C(N)=O)Br)C",
-      "n_claims": 0,
-      "passed": null
+      "smiles": "CCNC(=NC#N)NCCSCc1c(cccn1)Br"
     },
     {
       "overall_score": 0.0,
@@ -278,7 +206,41 @@
         "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "C1=CC(=NN=C1C2=C(Cl)C=CC=C2)N3CCC(O)CC3"
+      "smiles": "C1=C(Cl)C=CC2=C1C(=NC3=C(O2)C=CC=C3)N4CCNCC4"
+    },
+    {
+      "overall_score": 0.0,
+      "validation_result": "failed",
+      "passed": false,
+      "n_claims": 1,
+      "causal_consistency": {
+        "score": 0.0,
+        "tested": 0,
+        "passed": 0,
+        "failed": []
+      },
+      "counterfactual_sensitivity": {
+        "score": 0.5,
+        "tested": 0,
+        "consistent": 0
+      },
+      "grounding": {
+        "score": 1.0,
+        "total_claims": 1,
+        "grounded": 1,
+        "ungrounded": []
+      },
+      "smiles": "CN(C)C1C2C(O)C3C(=C)c4c(Cl)ccc(O)c4C(=C3C(=O)C2(O)C(=O)\\C(=C(N)/O)C1=O)O"
+    },
+    {
+      "smiles": "C(C(C(C)C)(C(N)=O)Br)C",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "smiles": "C1=CC(=NN=C1C2=C(Cl)C=CC=C2)N3CCC(O)CC3",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "smiles": "[H+].[Cl-].CCN(CC)CCOC(=O)C(O)(c1ccccc1)c2ccccc2",
@@ -313,6 +275,30 @@
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
+      "n_claims": 1,
+      "causal_consistency": {
+        "score": 0.0,
+        "tested": 0,
+        "passed": 0,
+        "failed": []
+      },
+      "counterfactual_sensitivity": {
+        "score": 0.5,
+        "tested": 0,
+        "consistent": 0
+      },
+      "grounding": {
+        "score": 1.0,
+        "total_claims": 1,
+        "grounded": 1,
+        "ungrounded": []
+      },
+      "smiles": "[Cl-].CC(=O)[C@@]1(N)C[C@H](O[C@H]2C[C@H](O)[C@H](O)CO2)c3c(O)c4C(=O)c5ccccc5C(=O)c4c(O)c3C1.[H+]"
+    },
+    {
+      "overall_score": 0.0,
+      "validation_result": "failed",
+      "passed": false,
       "n_claims": 2,
       "causal_consistency": {
         "score": 0.0,
@@ -331,7 +317,12 @@
         "grounded": 2,
         "ungrounded": []
       },
-      "smiles": "[Cl-].CC(=O)[C@@]1(N)C[C@H](O[C@H]2C[C@H](O)[C@H](O)CO2)c3c(O)c4C(=O)c5ccccc5C(=O)c4c(O)c3C1.[H+]"
+      "smiles": "C1=C(Cl)C=CC3=C1C2(OCCN2CC(=O)N3)C4=C(Cl)C=CC=C4"
+    },
+    {
+      "smiles": "C1=C(Cl)C=CC3=C1N(C2=CC=CC=C2)C(=O)N3CCCN(C)C",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
@@ -355,17 +346,7 @@
         "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "C1=C(Cl)C=CC3=C1C2(OCCN2CC(=O)N3)C4=C(Cl)C=CC=C4"
-    },
-    {
-      "smiles": "C1=C(Cl)C=CC3=C1N(C2=CC=CC=C2)C(=O)N3CCCN(C)C",
-      "n_claims": 0,
-      "passed": null
-    },
-    {
-      "smiles": "C1=C(C(=CC(=C1)Cl)Cl)OCCCN(CC#C)C",
-      "n_claims": 0,
-      "passed": null
+      "smiles": "C1=C(C(=CC(=C1)Cl)Cl)OCCCN(CC#C)C"
     },
     {
       "smiles": "ClCC(F)(F)F",
@@ -378,28 +359,9 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=CC(=CC=C1NCCC(N(C)C)=O)Br"
+      "smiles": "C1=CC(=CC=C1NCCC(N(C)C)=O)Br",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
@@ -429,7 +391,7 @@
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
-      "n_claims": 1,
+      "n_claims": 2,
       "causal_consistency": {
         "score": 0.0,
         "tested": 0,
@@ -443,8 +405,8 @@
       },
       "grounding": {
         "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
+        "total_claims": 2,
+        "grounded": 2,
         "ungrounded": []
       },
       "smiles": "Cc1ccc(Cl)c(Nc2ccccc2C(O)=O)c1Cl"
@@ -503,57 +465,38 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "c1c(Cl)nc(N2CCN(CCCCN3C(CCC3)=O)CC2)cc1C(F)(F)F"
-    },
-    {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=CC(=CC=C1C3(CCN(CCCC(C2=CC=C(C=C2)F)=O)CC3)OC(CCCCCCCCC)=O)Cl"
-    },
-    {
-      "smiles": "C1=C(Cl)C=CC2=C1C(=NC(C(=O)N2)OC(C(C)(C)C)=O)C3=CC=CC=C3",
+      "smiles": "c1c(Cl)nc(N2CCN(CCCCN3C(CCC3)=O)CC2)cc1C(F)(F)F",
       "n_claims": 0,
       "passed": null
+    },
+    {
+      "smiles": "C1=CC(=CC=C1C3(CCN(CCCC(C2=CC=C(C=C2)F)=O)CC3)OC(CCCCCCCCC)=O)Cl",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "overall_score": 0.0,
+      "validation_result": "failed",
+      "passed": false,
+      "n_claims": 1,
+      "causal_consistency": {
+        "score": 0.0,
+        "tested": 0,
+        "passed": 0,
+        "failed": []
+      },
+      "counterfactual_sensitivity": {
+        "score": 0.5,
+        "tested": 0,
+        "consistent": 0
+      },
+      "grounding": {
+        "score": 1.0,
+        "total_claims": 1,
+        "grounded": 1,
+        "ungrounded": []
+      },
+      "smiles": "C1=C(Cl)C=CC2=C1C(=NC(C(=O)N2)OC(C(C)(C)C)=O)C3=CC=CC=C3"
     },
     {
       "smiles": "C1=C([N+]([O-])=O)C=CC2=C1C(=NCC(=O)N2C)C3=CC=CC=C3",
@@ -566,11 +509,6 @@
       "passed": null
     },
     {
-      "smiles": "[O-][N+](=O)c1ccc2NC(=O)CN=C(c3ccccc3Cl)c2c1",
-      "n_claims": 0,
-      "passed": null
-    },
-    {
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
@@ -592,7 +530,12 @@
         "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "Cc1onc(c2ccccc2Cl)c1C(=O)N[C@H]3[C@H]4SC(C)(C)[C@@H](N4C3=O)C(O)=O"
+      "smiles": "[O-][N+](=O)c1ccc2NC(=O)CN=C(c3ccccc3Cl)c2c1"
+    },
+    {
+      "smiles": "Cc1onc(c2ccccc2Cl)c1C(=O)N[C@H]3[C@H]4SC(C)(C)[C@@H](N4C3=O)C(O)=O",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "smiles": "C1=C(C2=C(C(=C1)OC)CCCC2N(C)C)Cl",
@@ -600,28 +543,9 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "O.N[C@@H](C(=O)NC1C2CCC(=C(N2C1=O)C(O)=O)Cl)c3ccccc3"
+      "smiles": "O.N[C@@H](C(=O)NC1C2CCC(=C(N2C1=O)C(O)=O)Cl)c3ccccc3",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
@@ -658,28 +582,9 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "Cc1onc(c1C(=O)N[C@H]2[C@H]3SC(C)(C)[C@@H](N3C2=O)C(O)=O)c4c(Cl)cccc4Cl"
+      "smiles": "Cc1onc(c1C(=O)N[C@H]2[C@H]3SC(C)(C)[C@@H](N3C2=O)C(O)=O)c4c(Cl)cccc4Cl",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "smiles": "CC(C)N=C1C=C2N(c3ccc(Cl)cc3)c4ccccc4N=C2C=C1Nc5ccc(Cl)cc5",
@@ -687,28 +592,9 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "CC(C)c1onc(n1)c2ncn3c2CN(C)C(=O)c4c(Cl)cccc34"
+      "smiles": "CC(C)c1onc(n1)c2ncn3c2CN(C)C(=O)c4c(Cl)cccc34",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
@@ -759,28 +645,14 @@
       "smiles": "OC1N=C(c2ccccc2)c3cc(Cl)ccc3NC1=O"
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 2,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 2,
-        "grounded": 2,
-        "ungrounded": []
-      },
-      "smiles": "NC(N)=N\\N=C\\c1c(Cl)cccc1Cl"
+      "smiles": "NC(N)=N\\N=C\\c1c(Cl)cccc1Cl",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
+      "smiles": "C1=CC(=CC=C1C(N2CCN(C)CCC2)C3=CC=CC=C3)Cl",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "overall_score": 0.0,
@@ -802,35 +674,16 @@
         "score": 1.0,
         "total_claims": 1,
         "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=CC(=CC=C1C(N2CCN(C)CCC2)C3=CC=CC=C3)Cl"
-    },
-    {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 2,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 2,
-        "grounded": 2,
         "ungrounded": []
       },
       "smiles": "[Cl].CC(C)NCC(O)COc1cccc2ccccc12"
     },
     {
+      "smiles": "FC(F)(F)c1c(Cl)nc(N2CCNCC2)cc1",
+      "n_claims": 0,
+      "passed": null
+    },
+    {
       "overall_score": 0.0,
       "validation_result": "failed",
       "passed": false,
@@ -852,12 +705,7 @@
         "grounded": 1,
         "ungrounded": []
       },
-      "smiles": "FC(F)(F)c1c(Cl)nc(N2CCNCC2)cc1"
-    },
-    {
-      "smiles": "C1=C(CC)SC2=C1C(=NCC(N2C)=O)C3=CC=CC=C3Cl",
-      "n_claims": 0,
-      "passed": null
+      "smiles": "C1=C(CC)SC2=C1C(=NCC(N2C)=O)C3=CC=CC=C3Cl"
     },
     {
       "overall_score": 0.0,
@@ -884,28 +732,9 @@
       "smiles": "OC(C)(C)c1onc(c2ncn3c2CN(C)C(c4c3cccc4Cl)=O)n1"
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 3,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 3,
-        "grounded": 3,
-        "ungrounded": []
-      },
-      "smiles": "CN[C@H](CC(C)C)C(=O)NC1[C@H](O)c2ccc(Oc3cc4cc(Oc5ccc(cc5Cl)[C@@H](O)[C@@H]6NC(=O)[C@H](NC(=O)[C@@H]4NC(=O)[C@H](CC(N)=O)NC1=O)c7ccc(O)c(c7)c8c(O)cc(O)cc8[C@@H](NC6=O)C(O)=O)c3O[C@@H]9O[C@H](CO)[C@@H](O)[C@H](O)[C@H]9O[C@H]%10C[C@](C)(N)[C@H](O)[C@H](C)O%10)c(Cl)c2"
+      "smiles": "CN[C@H](CC(C)C)C(=O)NC1[C@H](O)c2ccc(Oc3cc4cc(Oc5ccc(cc5Cl)[C@@H](O)[C@@H]6NC(=O)[C@H](NC(=O)[C@@H]4NC(=O)[C@H](CC(N)=O)NC1=O)c7ccc(O)c(c7)c8c(O)cc(O)cc8[C@@H](NC6=O)C(O)=O)c3O[C@@H]9O[C@H](CO)[C@@H](O)[C@H](O)[C@H]9O[C@H]%10C[C@](C)(N)[C@H](O)[C@H](C)O%10)c(Cl)c2",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "smiles": "[C@@]24(Cl)C1(C(=CC(=O)C=C1)[C@@H](F)CC2C3C(C([C@@H](C3)C)C(=O)CO)(CC4O)C)C",
@@ -913,76 +742,19 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "[C@@H]4(C1=CC=CC2=C1OCC2)C3=CC(=C(Cl)C=C3CCN(C4)C)O.CC(=O)O"
+      "smiles": "[C@@H]4(C1=CC=CC2=C1OCC2)C3=CC(=C(Cl)C=C3CCN(C4)C)O.CC(=O)O",
+      "n_claims": 0,
+      "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 2,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 2,
-        "grounded": 2,
-        "ungrounded": []
-      },
-      "smiles": "C1=CC(=CC(=C1OC)OC)CCN2CCN(CC2)C3=CC(=CC=C3)Cl"
+      "smiles": "C1=CC(=CC(=C1OC)OC)CCN2CCN(CC2)C3=CC(=CC=C3)Cl",
+      "n_claims": 0,
+      "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "[H+].C1=C(OC)C(=CC2=C1C(=O)C(C2)CC3CCN(CC3)CC4=CC=CC=C4)OC.[Cl-]"
+      "smiles": "[H+].C1=C(OC)C(=CC2=C1C(=O)C(C2)CC3CCN(CC3)CC4=CC=CC=C4)OC.[Cl-]",
+      "n_claims": 0,
+      "passed": null
     },
     {
       "smiles": "[Br-].CN(C)C(=O)Oc1ccc[n+](C)c1",
@@ -990,28 +762,9 @@
       "passed": null
     },
     {
-      "overall_score": 0.0,
-      "validation_result": "failed",
-      "passed": false,
-      "n_claims": 1,
-      "causal_consistency": {
-        "score": 0.0,
-        "tested": 0,
-        "passed": 0,
-        "failed": []
-      },
-      "counterfactual_sensitivity": {
-        "score": 0.5,
-        "tested": 0,
-        "consistent": 0
-      },
-      "grounding": {
-        "score": 1.0,
-        "total_claims": 1,
-        "grounded": 1,
-        "ungrounded": []
-      },
-      "smiles": "C1=C(C(=C(C=C1Br)C)O)C(N)=O"
+      "smiles": "C1=C(C(=C(C=C1Br)C)O)C(N)=O",
+      "n_claims": 0,
+      "passed": null
     }
   ]
 }
