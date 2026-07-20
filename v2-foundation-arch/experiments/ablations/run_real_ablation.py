@@ -129,10 +129,10 @@ def evaluate_ablation(model, loader, device, config):
     for i in range(all_labels.shape[1]):
         lbl = all_labels[:, i]
         prd = all_preds[:, i]
-        valid_mask = (~torch.isnan(lbl)) & (lbl != -1)
-        lbl_valid = lbl[valid_mask]
-        prd_valid = prd[valid_mask]
-        if len(lbl_valid.unique()) > 1:
+        valid_mask = (~torch.isnan(lbl)) & (lbl != -1) & (~torch.isnan(prd)) & (~torch.isinf(prd))
+        lbl_valid = lbl[valid_mask].numpy()
+        prd_valid = prd[valid_mask].numpy()
+        if len(lbl_valid) > 1 and len(set(lbl_valid.tolist())) > 1:
             aurocs.append(roc_auc_score(lbl_valid, prd_valid))
             
     return sum(aurocs) / len(aurocs) if aurocs else 0.5
@@ -189,7 +189,7 @@ def main():
     print(f"Epochs per config: {args.epochs}")
     print()
     
-    datasets = ['clintox', 'bbbp']
+    datasets = ['clintox', 'bbbp', 'tox21']
     results = {}
     
     for ds in datasets:
@@ -201,12 +201,11 @@ def main():
     # Format results to match output format
     formatted_results = []
     for name, config in CONFIGS.items():
-        # Get metrics or fallback if not run
+        # Get metrics from ACTUAL training runs (no hardcoded placeholders)
         clintox_val = results['clintox'].get(name, 0.5)
         bbbp_val = results['bbbp'].get(name, 0.5)
-        # Tox21 placeholder or default
-        tox21_val = 0.82 if name == 'graph_only' else (0.85 if name == 'graph_smiles' else 0.89)
-        
+        tox21_val = results['tox21'].get(name, 0.5)
+
         formatted_results.append({
             'name': name,
             'config': config,
