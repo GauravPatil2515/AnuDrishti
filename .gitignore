@@ -95,3 +95,12 @@ overleaf/*.out
 checkpoints/
 *.pt
 
+# Raw data CSVs (large, kept local only)
+model-training/data/raw/*.csv
+
+# Jupyter notebooks (not part of the reproducible pipeline)
+*.ipynb
+.ipynb_checkpoints/
+
+# Hermes plan scratch
+.hermes/
