@@ -1,4 +1,12 @@
 # DeNovo — Master Codebase Inspection & Fix Prompt
+
+> **V1 HISTORY — SUPERSEDED.** This prompt predates the scientific audit. The
+> numbers and claims it references (e.g. `F=1.000/0.054`, Tox21 0.802) are
+> outdated or mock-backed. Authoritative, verified results are in
+> `benchmark_results/VALIDATION_LOG.md`, `benchmark_results/ABLATION_TABLE.md`,
+> and `paper-2/main.tex` (true GNN causal faithfulness ≈0.13; causal regularizer
+> does NOT reliably help). Do not rely on figures quoted here.
+
 > Feed this entire file to Claude (or any capable LLM) with your codebase attached.  
 > It covers every layer: paper, code, experiments, training, API, and research strategy.  
 > Work through it section by section — don't try to do everything at once.

@@ -1,5 +1,13 @@
 # DeNovo Research Submission: Replication & Reviewer Checklist
 
+> **CORRECTED / SUPERSEDED NUMBERS BELOW (v1).** This file is v1 history. The
+> verified, current results are in `benchmark_results/VALIDATION_LOG.md`,
+> `benchmark_results/ABLATION_TABLE.md`, and the reframed manuscript
+> `paper-2/main.tex`. Key corrections: the headline faithfulness
+> `F=1.000 / F=0.054` came from a **mock model** and is superseded; the true
+> GNN causal faithfulness is ≈0.13 (5 seeds); the causal regularizer does **not**
+> reliably help (0.117 ± 0.114). Do not cite figures from this file.
+
 This document maps all figures, tables, and key quantitative claims in the manuscript to their corresponding scripts, codebase structures, and result artifacts in the repository.
 
 ---

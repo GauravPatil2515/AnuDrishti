@@ -1,0 +1,621 @@
+{
+  "model": "RealGraphBranch (v2 GINEConv) + v1 FaithfulnessValidator (REAL, not MockV2Model)",
+  "dataset": "bace",
+  "n_evaluated": 60,
+  "n_with_claims": 60,
+  "mean_causal_consistency": 0.45,
+  "mean_grounding": 1.0,
+  "mean_F": 0.6708,
+  "threshold_sensitivity": {
+    "0.05": 0.5169,
+    "0.10": 0.4576,
+    "0.20": 0.4322
+  },
+  "note": "F=sqrt(S_causal*S_grounding) over molecules with >=1 falsifiable claim. Replaces the faked faithfulness_v2_validation.json (MockV2Model).",
+  "git_commit": "bcf18954e176c7f3bd6894119c7e66f4d9490b35",
+  "hardware": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "per_molecule": [
+    {
+      "smiles": "O1c2ncc(cc2C([NH2+]CC(O)C(NC(=O)COC)Cc2cc(ccc2)-c2nccn2C)CC12CCC2)CC(C)(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0115
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc(cc(c1)/C(=N\\OCC=C)/C)C(=O)N[C@H]([C@@H](O)C[NH2+]Cc1cc(OC)ccc1)Cc1cc(F)cc(F)c1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5259
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)c1cc(ccc1)C(=O)N(CCC)CCC)C(O)C1[NH2+]Cc2c(C1)cccc2",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5544
+      ]
+    },
+    {
+      "smiles": "O(C)c1cc(ccc1)C[NH2+]CC(O)C(NC(=O)c1c2c(n(c1)CCCC)cccc2)Cc1ccccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3359
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)c1cc(cc(Oc2ccc(F)cc2)c1)C(=O)N(CCC)CCC)C(O)C[NH2+]Cc1cc(OC)ccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.4363
+      ]
+    },
+    {
+      "smiles": "OC(C(NC(=O)C(NC(=O)C(NC(=O)C([NH3+])CCC(=O)[O-])C(C)C)CC(=O)N)CC(C)C)CC(C(=O)NC(C(=O)NC(CCC(=O)[O-])C(=O)NC(Cc1ccccc1)C(=O)[O-])C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.9506
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(CCC([NH3+])(Cc1ccccc1)CO)c1cc(cc(N(S(=O)(=O)C)C)c1)C(=O)NC(C)c1ccc(F)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0004
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc(cc(c1)C(=O)NCC([NH3+])(Cc1ccccc1)CO)C(=O)NC(C)c1ccc(F)cc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0153
+      ]
+    },
+    {
+      "smiles": "Fc1ncccc1-c1cc(ccc1)C1(N=C(N)N(C)C1=O)c1cn(nc1)C1CCCC1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0151
+      ]
+    },
+    {
+      "smiles": "O(C)c1cc(ccc1)C[NH2+]C[C@@H](O)[C@@H](NC(=O)c1cc(ccc1)C(=O)N(CCC)CCC)Cc1ccccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5507
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(c1cc(cc(c1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]Cc1cc(ccc1)C(F)(F)F)C1CCCC1)c1ccccc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5487
+      ]
+    },
+    {
+      "smiles": "O=C1Nc2c(cccc2)[C@]12C[C@@H]([NH2+]C2)C(OCc1ccccc1)=O",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NCC\\C=C\\COCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)(C)C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.8896
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(c1cc(cc(c1)C(=O)NC(Cc1cc(F)cc(F)c1)C(O)C[NH2+]Cc1cc(OC)ccc1)C(=O)N(CCC)CCC)c1ccc(OC)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.8889
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NCCCCCOCC(NC2=O)C(O)C[NH2+]Cc1cc(ccc1)C(C)C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.8985
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2cc(cc3N(CCN(CC1)c23)CC)C(=O)N[C@H]([C@H](O)C[NH2+]Cc1cc(OC)ccc1)Cc1ccccc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.8642
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C1CCCCC1)c1cc(ccc1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]C(C(=O)NC1CCCCC1)C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3892
+      ]
+    },
+    {
+      "smiles": "s1ccnc1-c1cc(ccc1)CC(NC(=O)[C@H]1OCCC1)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0072
+      ]
+    },
+    {
+      "smiles": "Fc1ncccc1-c1cc(ccc1)[C@]1(N=C(N)N(C)C1=O)c1ccc(OC)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.128
+      ]
+    },
+    {
+      "smiles": "O=C1N(C)C(=NC(C1)(C)C1CC1c1cc(ccc1)CCc1ccccc1)N",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.002
+      ]
+    },
+    {
+      "smiles": "Clc1cc(Cl)cnc1C(=O)Nc1cc(C2(N=C(N)COC2)C)c(F)cc1",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 2,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.1568,
+        0.2003
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)C[C@H](NC(=O)c1cc(cc(c1)C)C(=O)N(CCC)CCC)[C@H](O)[C@@H]1[NH2+]CCN(C1)C(=O)c1ccccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0314
+      ]
+    },
+    {
+      "smiles": "s1cc(cc1)[C@@]1(N=C(N)N(C)C1=O)c1cc(ccc1)-c1cccnc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0676
+      ]
+    },
+    {
+      "smiles": "O1c2ncc(cc2C([NH2+]CC(O)C(NC(=O)c2cccnc2)Cc2cc3OCOc3cc2)CC12CCC2)CC(C)(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0599
+      ]
+    },
+    {
+      "smiles": "Clc1cc(C)c(nc1)C(=O)Nc1cc(C2(N=C(OCC2(F)F)N)C)c(F)cc1",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0346,
+        0.0559
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc(cc(c1)C(=O)NCC(O)(Cc1ccccc1)CO)C(=O)NC(C)c1ccc(F)cc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0102
+      ]
+    },
+    {
+      "smiles": "O(C)c1ccc(cc1C#N)C1(N=C(N)N(C)C1=O)c1cc(ccc1)-c1cccnc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.001
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(CCCC1)c1cc(cc(c1)/C(=N\\OCCC)/C)C(=O)NC([C@@H](O)C[NH2+]Cc1cc(OC)ccc1)Cc1cc(F)cc(F)c1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.3635
+      ]
+    },
+    {
+      "smiles": "O1CC(NC(=O)c2cc(cc(c2)C(=O)NCC\\C=C\\C1)C)C(O)C[NH2+]Cc1cc(ccc1)C(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5288
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)C(N1CCC(CC(C)C)C1=O)CCc1ccccc1)C(O)C[NH2+]Cc1cc(OC)ccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5007
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(c1ccccc1)c1nc(ccc1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]Cc1cc(ccc1)C(F)(F)F)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.2828
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2cc(cc3n(cc(CC1)c23)CC)C(=O)N[C@H]([C@H](O)C[NH2+]C(CC)C)Cc1ccccc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.2956
+      ]
+    },
+    {
+      "smiles": "s1cc(cc1C(=O)CC)[C@]1(N=C(N)N(C)C1=O)c1cc(ccc1)-c1cccnc1F",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0418
+      ]
+    },
+    {
+      "smiles": "S(=O)(=O)(N(C)c1cc2cc(c1)C(=O)NC(OCCOC)c1cc(COCC(NC2=O)C(O)CC(C(C)C)C(=O)NCC(C)C)ccc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0126
+      ]
+    },
+    {
+      "smiles": "s1ccnc1-c1cc(CC(NC(=O)COC)C(O)C[NH2+]C2CC3(Oc4ncc(cc24)CC(C)(C)C)CCC3)c(F)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0018
+      ]
+    },
+    {
+      "smiles": "O=C1N(CCCCCC(=O)[O-])C(=NC1(C1CCCCC1)c1ccccc1)N",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.4924
+      ]
+    },
+    {
+      "smiles": "s1cc(cc1C)C1(N=C(N)N(C)C1=O)c1cc(ccc1)-c1cncnc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0113
+      ]
+    },
+    {
+      "smiles": "O1CCCC1CN1C(=O)C(N=C1N)(C1CCCCC1)c1ccccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.4167
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)C)C(O)C[NH2+]C1(CCCCC1)c1cc(N2CCCOCC2)ccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.017
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2c3n(cc(c3c(cc2)C(=O)NC(C(O)CC(OC)COCc2ccc(OC)cc2)COc2cc(F)cc(F)c2)CC)CC1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.1427
+      ]
+    },
+    {
+      "smiles": "Clc1cc(ccc1)-c1cc2c(OC(CC23N=C(N)N(CC)C3=O)(C)C)cc1",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 1,
+      "mol_causal": 0.5,
+      "raw_drops": [
+        0.3304,
+        -0.2884
+      ]
+    },
+    {
+      "smiles": "Fc1ccc(cc1-c1cncnc1)[C@]1(N=C(N)N(C)C1=O)c1ccc(OC(F)(F)F)cc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0675
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2c(CCC1)c(NCC)cc(c2)C(=O)N[C@H]([C@H](O)C[NH2+]Cc1cc(OC)ccc1)Cc1ccccc1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.879
+      ]
+    },
+    {
+      "smiles": "O=C(NCc1nccnc1)C(Cc1cc2cc(ccc2nc1N)-c1ccccc1C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0007
+      ]
+    },
+    {
+      "smiles": "O1c2c(cc(cc2)-c2ccc(OC)cc2)C2(N=C(N)N(C)C2=O)CC1(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0705
+      ]
+    },
+    {
+      "smiles": "O=C(N)CC[C@H](N(C(=O)[C@@H](NC(=O)[C@@H](O)C)C(C)C)C)C(=O)N[C@H]([C@@H](O)CC(=O)N[C@@H](CC(C)C)C(=O)N[C@H](C(=O)N([C@H](CC1CCCCC1)C(=O)[O-])C)C)CC1CCCCC1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.7414
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)C)C(O)C[NH2+]C1(CC1)c1cc(ccc1)C1(OCCC1)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0226
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2cc(cc3c2n(cc3CC)CC1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.8099
+      ]
+    },
+    {
+      "smiles": "Fc1ccc(cc1OC)CC(NC(=O)C)C(O)C[NH2+]C1CC2(Oc3ncc(cc13)CC(C)(C)C)CCC2",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0055
+      ]
+    },
+    {
+      "smiles": "S1(=O)(=O)N(c2cc(cc3c2n(cc3CC)CC1)C(=O)NC(Cc1ccccc1)C(O)C[NH2+]CCC(F)(F)F)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.6121
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)C(N1CCC(NC(=O)C)(C(CC)C)C1=O)CCc1ccccc1)[C@H](O)[C@H]1[NH2+]Cc2c(C1)cccc2OC",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.6879
+      ]
+    },
+    {
+      "smiles": "O1c2cc(ccc2OC1)C1(N=C(N)N(C)C1=O)c1cc(ccc1)-c1cccnc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0027
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)C)C(O)C[NH2+]C1(CCCOC1)c1cc(-n2nccc2)ccc1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0677
+      ]
+    },
+    {
+      "smiles": "O1c2cc(ccc2OC1)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@H]([C@@H](O)C[C@H](C(=O)NCC(C)C)C)CC(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.6293
+      ]
+    },
+    {
+      "smiles": "Clc1ccc(nc1)C(=O)Nc1cc(C2(N=C(N)C3(CC2)CC3)C)c(F)cc1",
+      "n_claims": 2,
+      "causal_tested": 2,
+      "causal_passed": 1,
+      "mol_causal": 0.5,
+      "raw_drops": [
+        0.0466,
+        0.2192
+      ]
+    },
+    {
+      "smiles": "O=C1N(C)C(=NC1(c1cc(ccc1)-c1cncnc1)c1cn(nc1)CC(C)C)N",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.0025
+      ]
+    },
+    {
+      "smiles": "O1c2c(cc(cc2)CC)C([NH2+]CC(O)C2NC(=O)C=3C=C(c4ncccc4)C(=O)N(CCCCc4cc(C2)ccc4)C=3)CC12CCC2",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 1,
+      "mol_causal": 1.0,
+      "raw_drops": [
+        0.5153
+      ]
+    },
+    {
+      "smiles": "Fc1cc(cc(F)c1)CC(NC(=O)c1c2cccnc2n(c1)C(=O)N(CCCC)C)C(O)C1[NH2+]Cc2c(C1)cccc2",
+      "n_claims": 1,
+      "causal_tested": 0,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": []
+    },
+    {
+      "smiles": "FC(F)Oc1ccc(cc1)[C@@]1(N=C(N)N(C)C1=O)c1cc(ccc1)/C(/F)=C/C1CC1",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        -0.0469
+      ]
+    },
+    {
+      "smiles": "S1c2c(cc(cc2)-c2cc(ccc2)C#N)C2(N=C(N)N(C)C2=O)CC1(C)C",
+      "n_claims": 1,
+      "causal_tested": 1,
+      "causal_passed": 0,
+      "mol_causal": 0.0,
+      "raw_drops": [
+        0.047
+      ]
+    }
+  ]
+}

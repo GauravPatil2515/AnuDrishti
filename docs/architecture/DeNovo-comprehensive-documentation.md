@@ -1,5 +1,11 @@
 # DeNovo Project: Comprehensive Architecture and Methods Documentation
 
+> **V1 HISTORY — SUPERSEDED.** Numbers here (e.g. Tox21 0.802/0.837) are v1
+> Attention-GIN results, not the verified v2 GINE findings. Authoritative,
+> verified results: `benchmark_results/VALIDATION_LOG.md`, `ABLATION_TABLE.md`,
+> `paper-2/main.tex` (GINE 5-seed AUROC; true causal faithfulness ≈0.13; causal
+> regularizer does not reliably help). Do not cite figures from this file.
+
 ## Project Overview
 DeNovo is an AI-powered drug discovery platform that combines Graph Neural Networks (GNNs) for molecular property prediction with Large Language Models (LLMs) for faithful, explainable insights. The platform focuses on molecular toxicity prediction with explainable AI capabilities.
 

@@ -184,6 +184,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", required=True, help="path to RealGraphBranch checkpoint (.pt)")
     ap.add_argument("--out", required=True, help="output JSON path for this seed")
+    ap.add_argument("--dataset", default="bbbp", choices=["bbbp", "bace", "tox21"],
+                    help="which dataset's molecules to probe (must match the checkpoint)")
     args = ap.parse_args()
 
     # --- load trained branch + head (REAL checkpoint, parametrized per seed) ---
@@ -206,7 +208,8 @@ def main():
     #     (nitro / halogen) so the causal test has genuinely testable claims ---
     import pandas as pd
     from rdkit import Chem
-    df = pd.read_csv(REPO / "model-training" / "data" / "raw" / "bbbp_clean.csv")
+    _csv = {"bbbp": "bbbp_clean.csv", "bace": "bace_clean.csv", "tox21": "tox21_clean.csv"}[args.dataset]
+    df = pd.read_csv(REPO / "model-training" / "data" / "raw" / _csv)
     df = df.dropna(subset=["smiles"]).reset_index(drop=True)
 
     # Removable SMARTS the CounterfactualGenerator can remove to yield a VALID
@@ -252,6 +255,7 @@ def main():
         n_with_claims += 1
         passed = 0
         tested = 0
+        raw_drops = []
         for sp in matched:
             cf = cf_gen.generate_for_claimed_toxicophore(smi, sp, "grp")
             if cf is None or featurize_mol(cf.modified_smiles) is None:
@@ -260,6 +264,7 @@ def main():
             if mod is None:
                 continue
             tested += 1
+            raw_drops.append(prob - mod)
             if (prob - mod) >= 0.1:
                 passed += 1
         mol_causal = (passed / tested) if tested else 0.0
@@ -267,13 +272,27 @@ def main():
         grounding_scores.append(1.0)
         results.append({"smiles": smi, "n_claims": len(matched),
                         "causal_tested": tested, "causal_passed": passed,
-                        "mol_causal": round(mol_causal, 4)})
+                        "mol_causal": round(mol_causal, 4),
+                        "raw_drops": [round(float(d), 4) for d in raw_drops]})
 
     # Aggregate over molecules that had >=1 falsifiable claim
     n = len(causal_scores)
     mean_causal = float(np.mean(causal_scores)) if n else None
     mean_grounding = float(np.mean(grounding_scores)) if n else None
     mean_F = float(np.sqrt(mean_causal * mean_grounding)) if (n and mean_causal is not None) else None
+
+    # --- Threshold sensitivity: recompute causal score at several drop thresholds
+    #     from the SAME raw (prob - modified_prob) drops, so the headline number
+    #     is not an artifact of the single 0.1 choice.
+    thresholds = [0.05, 0.1, 0.2]
+    sens = {}
+    for t in thresholds:
+        per_mol = []
+        for r in results:
+            rd = r.get("raw_drops", [])
+            if rd:
+                per_mol.append(float(np.mean([1.0 if d >= t else 0.0 for d in rd])))
+        sens[f"{t:.2f}"] = round(float(np.mean(per_mol)), 4) if per_mol else None
 
     try:
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO).decode().strip()
@@ -283,12 +302,13 @@ def main():
 
     out = {
         "model": "RealGraphBranch (v2 GINEConv) + v1 FaithfulnessValidator (REAL, not MockV2Model)",
-        "dataset": "bbbp",
+        "dataset": args.dataset,
         "n_evaluated": len(results),
         "n_with_claims": n_with_claims,
         "mean_causal_consistency": round(mean_causal, 4) if mean_causal is not None else None,
         "mean_grounding": round(mean_grounding, 4) if mean_grounding is not None else None,
         "mean_F": round(mean_F, 4) if mean_F is not None else None,
+        "threshold_sensitivity": sens,
         "note": ("F=sqrt(S_causal*S_grounding) over molecules with >=1 falsifiable claim. "
                  "Replaces the faked faithfulness_v2_validation.json (MockV2Model)."),
         "git_commit": commit,
