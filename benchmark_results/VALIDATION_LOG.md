@@ -161,6 +161,43 @@ buggy 0.0 and not the mock-backed 1.0). The metric is now sanity-checked and
 correct. Canonical results: faithfulness_true_causal_s44.json (standard) and
 faithfulness_true_causal_reg_s44.json (causal_reg).
 
+## 6b. 5-seed replication of causal F (plan Task 2) — VERIFIED
+
+Harness (run_real_faithfulness.py) parametrized with `--ckpt`/`--out` and run on
+the five BBBP AUROC seeds (real_graph_bbbp_v5_s4{2,3,4,5,6}.pt). Causal F
+measured with the corrected metric (valid removable SMARTS, drop>=0.1):
+
+    seed 42: causal F = 0.0833   overall F = 0.2887
+    seed 43: causal F = 0.1250   overall F = 0.3536
+    seed 44: causal F = 0.1500   overall F = 0.3873
+    seed 45: causal F = 0.1417   overall F = 0.3764
+    seed 46: causal F = 0.1417   overall F = 0.3764
+    5-seed mean = 0.1283 +/- 0.0268 (sample std)
+
+CONCLUSION: across all five real GINE seeds the GNN's true causal faithfulness
+is ~0.13 — consistently LOW (not the buggy 0.0, not the mock 1.0). This is a
+replicated, genuine negative result: standard scaffold-split GINE training does
+not induce toxicophore->toxicity causal alignment. Per-seed results in
+benchmark_results/faithfulness_seed{42,43,44,45,46}.json.
+
+## 6c. 5-seed AUROC mean±std + bootstrap CI + ChemProp caveat (plan Task 3)
+
+Computed from the canonical v5 result files (real_graph_branch_*_v5_s4{2..6}.json),
+verified:
+
+    Dataset  mean AUROC   std     bootstrap CI95        best seed
+    BBBP     0.8494       0.0229  [0.8313, 0.8675]     0.8752
+    BACE     0.8493       0.0442  [0.8180, 0.8886]     0.9214
+    TOX21    0.7794       0.0248  [0.7609, 0.7987]     0.8075
+
+ChemProp D-MPNN reported point estimates (single seed): BBBP 0.8913, BACE 0.8833,
+ClinTox 0.8407/0.8600, TOX21 mean 0.7928. CAVEAT: ChemProp numbers are
+single-seed, so their variance is unknown and a direct mean-vs-mean comparison is
+not a valid significance test. With that caveat, our 5-seed means do NOT robustly
+beat ChemProp: BBBP 0.849 < 0.891 and TOX21 0.779 < 0.793 lie below; BACE 0.849
+< 0.883 but our best single seed (0.921) exceeds it. The honest framing is
+"competitive, not superior" — never headline a best seed as the model result.
+
 ## 7. Repository audit-doc consolidation (Task 8)
 
 Obsolete mixed-history fragments removed (git rm) — their findings are folded

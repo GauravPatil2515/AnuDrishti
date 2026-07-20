@@ -180,8 +180,14 @@ class RealFaithfulnessValidator(FaithfulnessValidator):
 
 
 def main():
-    # --- load trained branch + head (REAL 300-dim regularized checkpoint) ---
-    ckpt_path = f"{REPO}/checkpoints/real_graph_bbbp_reg_s44.pt"
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ckpt", required=True, help="path to RealGraphBranch checkpoint (.pt)")
+    ap.add_argument("--out", required=True, help="output JSON path for this seed")
+    args = ap.parse_args()
+
+    # --- load trained branch + head (REAL checkpoint, parametrized per seed) ---
+    ckpt_path = args.ckpt
     ckpt = torch.load(ckpt_path, weights_only=True)
     HID = ckpt["head"]["0.weight"].shape[0]   # 150 for the MLP head
     branch = RealGraphBranch(out_dim=300, hidden_dim=300, num_layers=5, dropout=0.3)
@@ -289,7 +295,8 @@ def main():
         "hardware": hw,
         "per_molecule": results,
     }
-    out_path = REPO / "benchmark_results" / "faithfulness_v2_real.json"
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, indent=2))
     print(f"Evaluated {len(results)} molecules; {n_with_claims} with >=1 claim.")
     print(f"MEAN  causal={mean_causal:.4f}  grounding={mean_grounding:.4f}  F={mean_F:.4f}")
