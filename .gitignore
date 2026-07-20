@@ -106,3 +106,8 @@ model-training/data/raw/*.csv
 .hermes/
 !.hermes/plans/
 !.hermes/plans/**
+
+# LaTeX build artifacts
+paper-2/*.aux
+paper-2/*.out
+paper-2/*.log

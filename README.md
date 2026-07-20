@@ -40,13 +40,25 @@ The v2 `RealGraphBranch` (GINEConv, atom+bond features) was trained and
 evaluated on **real, Murcko scaffold-split** MoleculeNet data with **5 seeds
 (42–46)**. Full audit trail (split-integrity check, overfitting diagnosis,
 calibration, faithfulness) is in
-[`benchmark_results/VALIDATION_LOG.md`](benchmark_results/VALIDATION_LOG.md).
+[`benchmark_results/VALIDATION_LOG.md`](benchmark_results/VALIDATION_LOG.md);
+the real-number ablation/comparison table is in
+[`benchmark_results/ABLATION_TABLE.md`](benchmark_results/ABLATION_TABLE.md);
+the reframed manuscript is in [`paper-2/`](paper-2/main.tex).
 
-| Dataset | 5-seed mean±std | best seed | ChemProp D-MPNN (seed 42) | Verdict |
-|---------|-----------------|-----------|---------------------------|---------|
-| BBBP    | 0.8494 ± 0.0205 | 0.8752    | 0.8913                    | under mean |
-| BACE    | 0.8493 ± 0.0395 | 0.9214    | 0.8833                    | best seed beats |
-| TOX21   | 0.7794 ± 0.0222 | 0.8075    | 0.7928                    | best seed beats |
+| Dataset | 5-seed mean±std | 95% CI | best seed | ChemProp D-MPNN (seed 42) | Verdict |
+|---------|-----------------|--------|-----------|---------------------------|---------|
+| BBBP    | 0.8494 ± 0.0229 | [0.831,0.868] | 0.8752 | 0.8913 | competitive (mean under) |
+| BACE    | 0.8493 ± 0.0442 | [0.818,0.889] | 0.9214 | 0.8833 | competitive (best beats) |
+| TOX21   | 0.7794 ± 0.0248 | [0.761,0.799] | 0.8075 | 0.7928 | competitive (best beats) |
+
+**Faithfulness (verified, corrected metric).** True causal-faithfulness score
+across 5 seeds = 0.128 ± 0.027 (range 0.083–0.150): removing a toxicophore
+usually does *not* drop (often raises) the prediction. This is a genuine,
+replicated negative result — standard GNN training does not induce
+toxicophore→toxicity causality. A causal regularizer improves alignment
+(0.058→0.092) but is insufficient. See `benchmark_results/faithfulness_seed*.json`.
+The earlier `faithfulness_v2_validation.json` (F=1.0) used a mock model and is
+superseded.
 
 **Honest verdict:** the GINE branch is competitive with ChemProp D-MPNN and
 beats it at the best seed on BACE and TOX21, but does **not** robustly surpass

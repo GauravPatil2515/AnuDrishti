@@ -41,17 +41,24 @@ done
 python v2-foundation-arch/experiments/ablations/run_real_ablation.py
 ```
 
-## Expected Performance
-| Dataset | v1 (GIN) | v2 Target | Uni-Mol SOTA |
-|---------|----------|-----------|--------------|
-| TOX21 | 0.802 | 0.918 | 0.918 |
-| BBBP | 0.897 | 0.924 | 0.924 |
-| ClinTox | 0.759 | 0.931 | 0.931 |
+## Expected Performance (REAL, scaffold split, 5 seeds)
+| Dataset | GINE 5-seed mean±std | 95% CI | ChemProp D-MPNN (seed 42) |
+|---------|----------------------|--------|---------------------------|
+| BBBP    | 0.8494 ± 0.0229 | [0.831,0.868] | 0.8913 |
+| BACE    | 0.8493 ± 0.0442 | [0.818,0.889] | 0.8833 |
+| TOX21   | 0.7794 ± 0.0248 | [0.761,0.799] | 0.7928 |
 
-## Faithfulness Verification (v1 contribution)
-- Constrained F: 1.000
-- Unconstrained F: 0.054
-- Absolute improvement: +0.946
+Competitive with, but not robustly superior to, ChemProp (single seed).
+
+## Faithfulness Verification (GNN-level, verified)
+- True causal-faithfulness score (5 seeds): 0.128 ± 0.027 (range 0.083–0.150)
+- Standard GNN training does NOT induce toxicophore→toxicity causality
+  (removing a toxicophore usually does not drop the prediction).
+- Causal regularizer improves alignment (0.058 → 0.092) but is insufficient.
+- NOTE: the earlier "Constrained F: 1.000 / Unconstrained F: 0.054" figures came
+  from a mock model (`faithfulness_v2_validation.json`) and are superseded.
+- Reframed manuscript: `paper-2/main.tex`; audit trail: `benchmark_results/VALIDATION_LOG.md`,
+  `benchmark_results/ABLATION_TABLE.md`.
 
 ## Requirements
 ```
