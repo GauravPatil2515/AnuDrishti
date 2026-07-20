@@ -142,10 +142,12 @@ class RealFaithfulnessValidator(FaithfulnessValidator):
 
 
 def main():
-    # --- load trained branch + head ---
-    ckpt = torch.load(f"{REPO}/checkpoints/real_graph_bbbp.pt", weights_only=True)
-    branch = RealGraphBranch(out_dim=256)
-    head = torch.nn.Linear(256, 1)
+    # --- load trained branch + head (REAL 300-dim regularized checkpoint) ---
+    ckpt_path = f"{REPO}/checkpoints/real_graph_bbbp_reg_s44.pt"
+    ckpt = torch.load(ckpt_path, weights_only=True)
+    HID = ckpt["head"]["0.weight"].shape[0]   # 150 for the MLP head
+    branch = RealGraphBranch(out_dim=300, hidden_dim=300, num_layers=5, dropout=0.3)
+    head = torch.nn.Sequential(torch.nn.Linear(300, HID), torch.nn.ReLU(), torch.nn.Linear(HID, 1))
     branch.load_state_dict(ckpt["model"]); head.load_state_dict(ckpt["head"])
     model = RealGraphFaithfulModel(branch, head, DEVICE)
 
