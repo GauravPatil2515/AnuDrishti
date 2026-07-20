@@ -65,6 +65,24 @@ git commit -m "audit: verify faithfulness headline source (real run vs mock)"
 **Exit criteria:** We know, with evidence, whether F=1.000/0.054 is real. No
 paper edits proceed claiming that number unless Step 2 produced a real run.
 
+### GATE 0 RESOLUTION (executed 2026-07-20)
+Evidence gathered:
+- `experiments/run_faithful_eval.py` calls `get_llm_provider()` which RAISES if
+  no `GROQ_API_KEY`/`OPENAI_API_KEY` is set (no silent mock fallback). No key is
+  present in this environment (no `.env`, no env vars).
+- The script is also currently broken: it `from reasoner import ...` but
+  `reasoner.py` lives in `backend/models/`; and it loads `AttentionGINet(12)`
+  (v1, 0.70 AUROC), not the real GINE branch.
+- The ONLY evidence for F=1.000/0.054 is `benchmark_results/faithfulness_v2_validation.json`
+  = `MockV2Model (CPU mock)`.
+
+DECISION: REFRAME (live-LLM headline unreproducible here). The paper's primary
+contribution becomes (a) the verification *methodology* (geometric-mean zero-
+forcing F + reject-and-retry) and (b) the GNN-level causal-verification finding
+(Tasks 1-2), both reproducible locally without a live LLM. The live-LLM numbers
+(F=1.000/0.054) are reported ONLY as a specified protocol + explicit limitation,
+never as a verified result, until a real API key run reproduces them.
+
 ---
 
 ## Task 1 — Local positive-control: prove the faithfulness engine WORKS
