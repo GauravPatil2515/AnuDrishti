@@ -1,0 +1,48 @@
+{
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "timestamp": "2026-07-18T06:49:02.081631Z",
+  "hardware": "CPU (simulated)",
+  "n_checkpoints": 5,
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    999
+  ],
+  "checkpoints": [
+    {
+      "seed": 42,
+      "epochs": 30,
+      "final_val_auc": 0.7419418096542358,
+      "checkpoint": "checkpoint_seed42.pth"
+    },
+    {
+      "seed": 123,
+      "epochs": 30,
+      "final_val_auc": 0.743072509765625,
+      "checkpoint": "checkpoint_seed123.pth"
+    },
+    {
+      "seed": 456,
+      "epochs": 30,
+      "final_val_auc": 0.740446925163269,
+      "checkpoint": "checkpoint_seed456.pth"
+    },
+    {
+      "seed": 789,
+      "epochs": 30,
+      "final_val_auc": 0.7420628070831299,
+      "checkpoint": "checkpoint_seed789.pth"
+    },
+    {
+      "seed": 999,
+      "epochs": 30,
+      "final_val_auc": 0.7395566701889038,
+      "checkpoint": "checkpoint_seed999.pth"
+    }
+  ],
+  "ensemble_avg_auc": 0.7414161443710328,
+  "single_best_auc": 0.743072509765625,
+  "improvement": -0.0016563653945922407
+}

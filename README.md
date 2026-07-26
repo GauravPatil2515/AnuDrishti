@@ -370,16 +370,17 @@ python experiments/faithful_xai_demo.py \
 
 ## 📚 Research Paper
 
-The research paper describing DeNovo is available in the `overleaf/` directory:
+The journal manuscript evaluating causal faithfulness is available in the `paper-2/` directory:
 
-- **Title**: *DeNovo: A Faithful, Multi-Task AI Platform for Safer Drug Discovery with LLM-Augmented Explainability*
+- **Title**: *Counterfactual Evaluation of Causal Faithfulness in GINE Explanations for Molecular Toxicity Prediction*
 - **Authors**: Gaurav Patil, Parth Parmar
-- **Key Contribution**: Causal faithfulness validation for LLM explanations in molecular toxicity prediction
+- **Key Contribution**: Causal faithfulness validation for GINE molecular toxicity prediction via counterfactual testing
+- **Compiled PDF**: Available in root as `CMPB_Manuscript_DeNovo.pdf` and `main.pdf`, or in `paper-2/main.pdf`
 
-To compile the paper:
+To compile the paper from source:
 
 ```bash
-cd overleaf
+cd paper-2
 pdflatex main.tex
 bibtex main
 pdflatex main.tex

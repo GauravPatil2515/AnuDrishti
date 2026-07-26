@@ -111,3 +111,7 @@ model-training/data/raw/*.csv
 paper-2/*.aux
 paper-2/*.out
 paper-2/*.log
+paper-2/*.bak*
+paper-2/*.backup*
+*.bak
+*.backup

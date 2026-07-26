@@ -8,53 +8,49 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: references.bib
-Warning--I didn't find a database entry for "velivckovic2018graph"
 -- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
-Warning--empty journal in gilmer2017neural
-Warning--empty journal in yuan2021explainability
 
 Done.
-You've used 19 entries,
+You've used 22 entries,
             4087 wiz_defined-function locations,
-            921 strings with 11365 characters,
-and the built_in function-call counts, 14839 in all, are:
-= -- 1091
-> -- 479
-< -- 100
-+ -- 264
-- -- 108
-* -- 731
-:= -- 2112
-add.period$ -- 38
-call.type$ -- 19
-change.case$ -- 19
-chr.to.int$ -- 240
-cite$ -- 21
-duplicate$ -- 1071
-empty$ -- 1230
-format.name$ -- 115
-if$ -- 3454
+            933 strings with 11781 characters,
+and the built_in function-call counts, 16506 in all, are:
+= -- 1198
+> -- 527
+< -- 102
++ -- 286
+- -- 119
+* -- 804
+:= -- 2359
+add.period$ -- 45
+call.type$ -- 22
+change.case$ -- 22
+chr.to.int$ -- 246
+cite$ -- 22
+duplicate$ -- 1210
+empty$ -- 1433
+format.name$ -- 128
+if$ -- 3859
 int.to.chr$ -- 0
-int.to.str$ -- 19
-missing$ -- 210
-newline$ -- 80
-num.names$ -- 19
-pop$ -- 541
+int.to.str$ -- 22
+missing$ -- 239
+newline$ -- 89
+num.names$ -- 22
+pop$ -- 624
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1117
+skip$ -- 1250
 stack$ -- 0
-substring$ -- 615
-swap$ -- 832
+substring$ -- 623
+swap$ -- 908
 text.length$ -- 20
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 19
-warning$ -- 2
-while$ -- 52
-width$ -- 21
-write$ -- 192
-(There were 3 warnings)
+type$ -- 22
+warning$ -- 0
+while$ -- 56
+width$ -- 24
+write$ -- 217

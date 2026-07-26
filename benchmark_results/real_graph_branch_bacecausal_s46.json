@@ -1,0 +1,27 @@
+{
+  "model": "RealGraphBranch (GINEConv, atom+bond features)",
+  "dataset": "bace",
+  "split": "murcko_scaffold",
+  "seed": 46,
+  "epochs": 200,
+  "test_auroc_mean": 0.7845,
+  "per_task_auroc": [
+    0.7845
+  ],
+  "n_train": 1211,
+  "n_val": 173,
+  "n_test": 129,
+  "git_commit": "bcf18954e176c7f3bd6894119c7e66f4d9490b35",
+  "hardware": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+  "note": "Real GINEConv GNN with atom+bond featurization; replaces one-hot linear stub.",
+  "hidden_dim": 300,
+  "num_layers": 5,
+  "head_mlp": true,
+  "schedule": "cosine",
+  "dropout": 0.4,
+  "weight_decay": 0.0001,
+  "best_val_auroc": 0.8529,
+  "best_epoch": 23,
+  "causal_reg": 0.5,
+  "causal_margin": 0.1
+}

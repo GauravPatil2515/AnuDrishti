@@ -27,7 +27,9 @@ D.~Rogers and M.~Hahn, ``Extended-connectivity fingerprints,'' \emph{Journal of
 
 \bibitem{gilmer2017neural}
 J.~Gilmer, S.~S. Schoenholz, P.~F. Riley, O.~Vinyals, and G.~E. Dahl, ``Neural
-  message passing for quantum chemistry,'' pp. 1263--1272, 2017.
+  message passing for quantum chemistry,'' in \emph{International conference on
+  machine learning}.\hskip 1em plus 0.5em minus 0.4em\relax PMLR, 2017, pp.
+  1263--1272.
 
 \bibitem{kipf2017semi}
 T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
@@ -87,7 +89,8 @@ D.~Luo, W.~Cheng, D.~Xu, W.~Yu, B.~Zong, H.~Chen, and X.~Zhang, ``Parameterized
 
 \bibitem{yuan2021explainability}
 H.~Yuan, H.~Yu, J.~Wang, K.~Li, and S.~Ji, ``On explainability of graph neural
-  networks via subgraph explorations,'' pp. 12\,241--12\,252, 2021.
+  networks via subgraph explorations,'' in \emph{International Conference on
+  Machine Learning}, 2021, pp. 12\,241--12\,252.
 
 \bibitem{deyoung2020eraser}
 J.~DeYoung, S.~Jain, N.~F. Rajani, E.~Lehman, C.~Xiong, R.~Socher, and B.~C.
@@ -126,5 +129,9 @@ I.~Sushko, E.~Salmina, V.~A. Potemkin, G.~Poda, and I.~V. Tetko, ``Toxalerts: a
   web server of structural alerts for toxic chemicals and compounds with
   potential adverse reactions,'' \emph{Journal of Chemical Information and
   Modeling}, vol.~52, no.~8, pp. 2310--2316, 2012.
+
+\bibitem{arjovsky2019invariant}
+M.~Arjovsky, L.~Bottou, I.~Gulrajani, and D.~Lopez-Paz, ``Invariant risk
+  minimization,'' \emph{arXiv preprint arXiv:1907.02893}, 2019.
 
 \end{thebibliography}

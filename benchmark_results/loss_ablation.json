@@ -1,0 +1,28 @@
+{
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "timestamp": "2026-07-18T06:46:54.352012Z",
+  "hardware": "CPU",
+  "epochs": 50,
+  "imbalance_ratio": "~30% positive",
+  "best_loss": "FocalLoss",
+  "results": {
+    "BCE": {
+      "loss_name": "BCE",
+      "final_loss": 0.10980496555566788,
+      "initial_loss": 0.74335116147995,
+      "avg_loss": 0.3111838890612125
+    },
+    "FocalLoss": {
+      "loss_name": "FocalLoss",
+      "final_loss": 0.003935966640710831,
+      "initial_loss": 0.1465730220079422,
+      "avg_loss": 0.02974525997415185
+    },
+    "AsymmetricLoss": {
+      "loss_name": "AsymmetricLoss",
+      "final_loss": 0.01883973740041256,
+      "initial_loss": 0.28374412655830383,
+      "avg_loss": 0.08006728164851666
+    }
+  }
+}

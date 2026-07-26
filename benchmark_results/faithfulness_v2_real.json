@@ -3,19 +3,19 @@
   "dataset": "bbbp",
   "n_evaluated": 60,
   "n_with_claims": 60,
-  "mean_causal_consistency": 0.0917,
+  "mean_causal_consistency": 0.0583,
   "mean_grounding": 1.0,
-  "mean_F": 0.3028,
+  "mean_F": 0.2415,
   "note": "F=sqrt(S_causal*S_grounding) over molecules with >=1 falsifiable claim. Replaces the faked faithfulness_v2_validation.json (MockV2Model).",
-  "git_commit": "ad9a888fd3d9a842c98ea37ea025a3b84dd8712a",
+  "git_commit": "a36c05edaa24054983c92aca60711bd1adeb3faa",
   "hardware": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
   "per_molecule": [
     {
       "smiles": "CC(C)N=C1C=C2N(c3ccc(Cl)cc3)c4ccccc4N=C2C=C1Nc5ccc(Cl)cc5",
       "n_claims": 1,
       "causal_tested": 1,
-      "causal_passed": 0,
-      "mol_causal": 0.0
+      "causal_passed": 1,
+      "mol_causal": 1.0
     },
     {
       "smiles": "C1=C(Cl)C=CC5=C1N(CCCN4CCC3(N2C(CCCC2)NC3=O)CC4)C6=C(CC5)C=CC=C6",
@@ -224,8 +224,8 @@
       "smiles": "O=C2\\C(=C1\\OC=NN1)C=CC=C2",
       "n_claims": 1,
       "causal_tested": 1,
-      "causal_passed": 1,
-      "mol_causal": 1.0
+      "causal_passed": 0,
+      "mol_causal": 0.0
     },
     {
       "smiles": "[C@]12(OC(O[C@@H]1C[C@@H]3C2(CC(O)[C@H]4C3CCC5=CC(=O)C=CC45C)C)(C)C)C(=O)CO",
@@ -392,8 +392,8 @@
       "smiles": "CO[C@H]1C[C@@H](O[C@@H](C)[C@@H]1OC(C)=O)O[C@H]2[C@H](C)[C@@H](O[C@@H]3O[C@H](C)C[C@@H]([C@H]3OC(C)=O)N(C)C)[C@@H](C)C[C@@]4(CO4)C(=O)[C@H](C)[C@@H](OC(C)=O)[C@@H](C)[C@@H](C)OC(=O)[C@@H]2C",
       "n_claims": 2,
       "causal_tested": 2,
-      "causal_passed": 2,
-      "mol_causal": 1.0
+      "causal_passed": 0,
+      "mol_causal": 0.0
     },
     {
       "smiles": "N[C@@H](CC1=C[NH]C2=CC=CC=C12)C(=O)O",
@@ -413,8 +413,8 @@
       "smiles": "C1=CC=CC2=C1N(C(CC(S2)C3=CC=CC=C3)=O)CCN(C)C",
       "n_claims": 1,
       "causal_tested": 1,
-      "causal_passed": 1,
-      "mol_causal": 1.0
+      "causal_passed": 0,
+      "mol_causal": 0.0
     },
     {
       "smiles": "[C@@]23(Cl)C(C1C([C@](O)([C@@H](C1)C)C(=O)CO)(CC2Cl)C)CCC4=CC(=O)C=CC34C",

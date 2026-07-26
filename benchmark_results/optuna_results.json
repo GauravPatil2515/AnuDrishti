@@ -1,0 +1,13 @@
+{
+  "n_trials": 50,
+  "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+  "timestamp": "2026-07-18T06:48:26.256652Z",
+  "hardware": "CPU",
+  "best_val_auc": 0.7540929317474365,
+  "best_params": {
+    "lr": 0.00017459989251527322,
+    "weight_decay": 1.1725113873462894e-05,
+    "dropout": 0.35010507702827454,
+    "hidden_dim": 128
+  }
+}

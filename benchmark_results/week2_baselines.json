@@ -1,0 +1,62 @@
+{
+  "TOX21": {
+    "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+    "timestamp": "2026-07-18T06:42:26.787512Z",
+    "hardware": "RTX 3050 6GB",
+    "seed": 42,
+    "dataset": "TOX21",
+    "model": "Attention-GIN (v1 baseline)",
+    "hyperparameters": {
+      "epochs": 150,
+      "batch_size": 32,
+      "lr_encoder": 0.0001,
+      "lr_attention": 0.0005,
+      "scaffold_split": true
+    },
+    "results": {
+      "AUROC": 0.8023,
+      "AUPRC": 0.72
+    },
+    "comparison_to_sota": "MISS (-0.116 AUROC, Uni-Mol 0.918)"
+  },
+  "BBBP": {
+    "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+    "timestamp": "2026-07-18T06:42:26.787539Z",
+    "hardware": "RTX 3050 6GB",
+    "seed": 42,
+    "dataset": "BBBP",
+    "model": "Attention-GIN (v1 baseline)",
+    "hyperparameters": {
+      "epochs": 150,
+      "batch_size": 32,
+      "lr_encoder": 0.0001,
+      "lr_attention": 0.0005,
+      "scaffold_split": true
+    },
+    "results": {
+      "AUROC": 0.8971,
+      "AUPRC": 0.82
+    },
+    "comparison_to_sota": "MISS (-0.027 AUROC, Uni-Mol 0.924)"
+  },
+  "ClinTox": {
+    "git_commit": "e23def5dbccbc45472c4105063da0b77ee01ee42",
+    "timestamp": "2026-07-18T06:42:26.787551Z",
+    "hardware": "RTX 3050 6GB",
+    "seed": 42,
+    "dataset": "ClinTox",
+    "model": "Attention-GIN (v1 baseline)",
+    "hyperparameters": {
+      "epochs": 150,
+      "batch_size": 32,
+      "lr_encoder": 0.0001,
+      "lr_attention": 0.0005,
+      "scaffold_split": true
+    },
+    "results": {
+      "AUROC": 0.7589,
+      "AUPRC": 0.68
+    },
+    "comparison_to_sota": "MISS (-0.172 AUROC, Uni-Mol 0.931)"
+  }
+}
