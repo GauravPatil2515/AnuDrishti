@@ -1,16 +1,19 @@
-\documentclass[a4paper,fleqn]{cas-dc}
-\usepackage[numbers]{natbib}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{algorithmic}
-\usepackage{algorithm}
 \usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{url}
 \usepackage{float}
 \usepackage{multirow}
-\usepackage{xcolor}
+\usepackage{hyperref}
 
-\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 % ---------------------------------------------------------------------------
 % REAL, VERIFIED NUMBERS (provenance: benchmark_results/VALIDATION_LOG.md,
@@ -49,51 +52,28 @@
 \newcommand{\BACEcausalregsd}{0.195} % causal_reg BACE
 
 \begin{document}
-\let\WriteBookmarks\relax
-\def\floatpagepagefraction{1}
-\def\textpagefraction{.001}
 
-\shorttitle{Counterfactual Evaluation of Causal Faithfulness in GINE Explanations}
-\shortauthors{G. Patil and P. Parmar}
-\title [mode = title]{Counterfactual Evaluation of Causal Faithfulness in GINE Explanations\\for Molecular Toxicity Prediction}
+\title{Counterfactual Evaluation of Causal Faithfulness in GINE Explanations\\for Molecular Toxicity Prediction}
 
-\author[1]{Gaurav Patil}[type=editor, orcid=]
-\cormark[1]
-\ead{gauravppaiml123@gst.sies.edu.in}
-\credit{Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data Curation, Writing - Original Draft, Writing - Review & Editing, Visualization, Project administration}
-
-\author[2]{Parth Parmar}
-\ead{parth.parmar.btech2028@atlasskilltech.university}
-\credit{Methodology, Software, Validation, Formal analysis, Investigation, Writing - Review & Editing}
-
-\affiliation[1]{organization={Dept. of Artificial Intelligence \& Machine Learning, SIES Graduate School of Technology},
-            city={Mumbai},
-            country={India}}
-
-\affiliation[2]{organization={Dept. of Artificial Intelligence \& Machine Learning, ATLAS SkillTech University},
-            city={Mumbai},
-            country={India}}
-
-\cortext[cor1]{Corresponding author}
+\author{
+\IEEEauthorblockN{Gaurav Patil}
+\IEEEauthorblockA{Dept. of Artificial Intelligence \& Machine Learning\\
+SIES Graduate School of Technology\\
+Mumbai, India\\
+Email: gauravppaiml123@gst.sies.edu.in}
+\and
+\IEEEauthorblockN{Parth Parmar}
+\IEEEauthorblockA{Dept. of Artificial Intelligence \& Machine Learning\\
+ATLAS SkillTech University\\
+Mumbai, India\\
+Email: parth.parmar.btech2028@atlasskilltech.university}
+}
+\maketitle
 
 \begin{abstract}
 We present a scaffold-split evaluation of a GINE-based architecture (RealGraphBranch) on BBBP, BACE, and TOX21, together with a verification methodology that tests, via counterfactual generation, whether removing a molecule's toxicophore lowers the predicted toxicity. We report this as a \textbf{Counterfactual Consistency Score (CCS)}---a counterfactual-sufficiency test that is a necessary-but-not-sufficient proxy for formal causal faithfulness.
 On predictive accuracy, the GNN is competitive with a ChemProp D-MPNN baseline (BBBP \BBBPauc{} $\pm$ \BBBPaucsd, BACE \BACEauc{} $\pm$ \BACEaucsd, TOX21 \TOXauc{} $\pm$ \TOXaucsd{} vs. single-seed ChemProp \ChemBBBP{} / \ChemBACE{} / \ChemTOX) but does not robustly exceed it. On explanation validity we report a genuine, replicated \emph{negative} result: standard empirical risk minimization on this architecture does not induce alignment between attributed substructures and the model's decision boundary (5-seed CCS $0.128\pm0.027$ on BBBP, \BACEcausalstd$\pm$\BACEcausalstdsd on BACE; counterfactual removal of the annotated substructure failed to reduce predicted toxicity in the majority of valid cases). We further show that, under the evaluated conditions, a margin-based masking objective did not produce a statistically distinguishable improvement in counterfactual consistency (BBBP $0.117\pm0.114$, BACE \BACEcausalreg$\pm$\BACEcausalregsd; Welch's $t$-test $p=0.83$ on BBBP, and \emph{significantly worse} on BACE, $p=0.029$), motivating better causal objectives. We document the protocol's chemical-validity limits and provide reproducible code and metrics.
 \end{abstract}
-
-\begin{highlights}
-\item We test whether GNN training induces causally faithful explanations.
-\item Counterfactual-sufficiency test (CCS) is validated on known-ground-truth probes.
-\item Standard ERM fails to align toxicophore attribution with decision boundaries.
-\item Causal regularization fails to improve alignment and degrades BACE consistency.
-\item Negative result replicated across 5 seeds, 3 datasets, and 3 metrics.
-\end{highlights}
-
-\begin{keywords}
-Explainable AI \sep Graph Neural Networks \sep Molecular Toxicity Prediction \sep Causal Faithfulness \sep Counterfactual Evaluation \sep Drug Discovery
-\end{keywords}
-
-\maketitle
 
 \section{Introduction}
 Molecular-toxicity prediction with graph neural networks has matured to near-baseline accuracy on scaffold-split benchmarks, but the trustworthiness of the explanations those models produce remains under-examined. Most explainability work reports attribution scores or natural-language rationales without verifying that the highlighted substructure \emph{causally} drives the prediction. A faithful explanation must satisfy a simple counterfactual test: removing the claimed toxicophore should lower the predicted toxicity.
@@ -158,9 +138,9 @@ Before trusting CCS to make claims about the model, we validate the instrument i
 \centering
 \caption{Instrument validation (5-seed mean). BBBP: toxicophore removal (CCS) is indistinguishable from random removal (Welch $p=0.98$), so the GNN shows no excess counterfactual consistency; BACE: CCS significantly exceeds random ($p<0.001$). Gradient-deletion disagrees in direction with CCS, illustrating the metric-disagreement problem.}
 \label{tab:validate}
-\begin{tabular}{@{}l c c c@{}}
+\begin{tabular}{l c c c}
 \toprule
-Metric & BBBP & BACE & Drop (BB/BA) \\
+Metric & BBBP & BACE & Mean Drop (BB/BA) \\
 \midrule
 CCS (toxicophore) & 0.128 & 0.477 & $0.043$ / $0.158$ \\
 Random-removal null & 0.128 & 0.205 & $0.011$ / $0.039$ \\
@@ -177,7 +157,7 @@ Table~\ref{tab:auroc} summarizes 5-seed test AUROC. The GNN is within noise of t
 \centering
 \caption{Test AUROC (scaffold split). GINE = 5-seed mean$\pm$std; ChemProp = single seed.}
 \label{tab:auroc}
-\begin{tabular}{@{}l c c c@{}}
+\begin{tabular}{lccc}
 \toprule
 Dataset & ChemProp & GINE (ours) & 95\% CI \\
 \midrule
@@ -192,9 +172,9 @@ TOX21 (mean) & \ChemTOX & \TOXauc$\pm$\TOXaucsd & [0.761, 0.799] \\
 \centering
 \caption{BBBP architecture / regularizer ablations (test AUROC, 5-seed mean$\pm$std unless noted). Lower LR and the causal regularizer both reduce accuracy and stability.}
 \label{tab:abl}
-\begin{tabular}{@{}l c l@{}}
+\begin{tabular}{l c l}
 \toprule
-Config. & Test AUROC & Notes \\
+Configuration & Test AUROC & Notes \\
 \midrule
 GINE base & $0.849\pm0.023$ & lr 5e-4, hd 300, 5L \\
 GINE, lr$=$3e-4 & 0.827 & lower LR hurts AUROC \\
@@ -215,7 +195,7 @@ The masking regularizer does not close the gap. Across five seeds it yields \Fca
 \centering
 \caption{Five-seed counterfactual consistency (CCS; fraction of toxicophore removals that drop the prediction by $\geq 0.1$).}
 \label{tab:faith}
-\begin{tabular}{@{}l c c@{}}
+\begin{tabular}{lcc}
 \toprule
 Condition & BBBP & BACE \\
 \midrule
@@ -235,7 +215,7 @@ Table~\ref{tab:thresh} shows the BBBP standard-GNN counterfactual-consistency sc
 \centering
 \caption{BBBP standard-GNN causal score at three drop thresholds (5-seed mean).}
 \label{tab:thresh}
-\begin{tabular}{@{}c c c@{}}
+\begin{tabular}{ccc}
 \toprule
 $\delta=0.05$ & $\delta=0.10$ & $\delta=0.20$ \\
 \midrule
@@ -285,7 +265,7 @@ All numbers derive from committed result files under \texttt{benchmark\_results/
 \section{Conclusion}
 We showed that a competitive GINE toxicity model does not, by default, induce counterfactual consistency, that a simple margin-based masking regularizer only adds instability (and on BACE reduces consistency), and that reporting this honestly---with a sanity-checked metric, a random-removal null, a second faithfulness measure, confidence intervals, threshold sensitivity, and documented tooling limits---is more useful than an unverified faithfulness headline.
 
-\bibliographystyle{cas-model2-names}
+\bibliographystyle{IEEEtran}
 \bibliography{references}
 
 \end{document}
