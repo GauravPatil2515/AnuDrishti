@@ -86,3 +86,4 @@ test_library.csv
 
 # OS
 *.DS_Storebackend/batch_results/*.json
+backend/batch_results/
