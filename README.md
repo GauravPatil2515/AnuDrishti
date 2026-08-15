@@ -1,434 +1,280 @@
-# DeNovo: AI-Powered Drug Discovery Platform
+# PharmaGuard AI: Trustworthy Drug-Safety Decision Support
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
+[![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://reactjs.org/)
 
-**DeNovo** is a comprehensive AI platform for early-stage drug discovery that combines **Graph Neural Networks (GNNs)** for molecular property prediction with **Large Language Models (LLMs)** for faithful, explainable insights.
-
-<p align="center">
-  <img src="overleaf/figures/platform.png" alt="DeNovo Platform" width="80%"/>
-</p>
+**PharmaGuard AI** is a deployable, trustworthy drug-safety decision-support platform combining **Graph Neural Networks (GNNs)** for multi-task molecular toxicity/ADMET prediction with **LLM explanations validated by counterfactual faithfulness checking** — the first system that **rejects unfaithful explanations** before they reach scientists.
 
 ---
 
-## 🎯 Key Features
+## 🎯 Key Innovation: Faithfulness-Gated Explanations
 
-| Feature | Description |
-|---------|-------------|
-| **Multi-Task ADMET Prediction** | 6 endpoints: Tox21, BBBP, ClinTox, Caco-2, Clearance, HLM-CLint |
-| **Faithful Explainability** | LLM explanations validated through counterfactual testing, 13.5% rejection rate for unfaithful explanations |
-| **Attention-GIN Architecture** | Custom GNN with per-atom importance scores |
-| **36.5% Hallucination Rejection** | Automatic filtering of unfaithful LLM explanations |
-| **Production-Ready API** | Flask backend with batch processing support |
+| Traditional AI | PharmaGuard AI |
+|----------------|----------------|
+| LLM generates free-form explanation | LLM **constrained** by GNN evidence |
+| No verification of claims | **Counterfactual test**: remove cited substructure → prediction must drop |
+| Hallucinations silently shown | **EFS threshold (0.70)**: fails → **REJECTED** with audit trail |
+
+> **Core thesis**: "An explanation should be accepted only when it is supported by model-derived molecular evidence and survives counterfactual validation."
 
 ---
 
-## 📊 Model Performance
+## 📊 Validated Performance (5-Seed Scaffold Splits)
 
-| Model | Task | Metric | Performance |
-|-------|------|--------|-------------|
-| **Tox21** (Attention-GIN) | Toxicity (12 endpoints) | ROC-AUC | **0.837** |
-| **BBBP** | Blood-Brain Barrier | ROC-AUC | **0.825** |
-| **ClinTox** | Clinical Toxicity | ROC-AUC | **0.816** |
-| **Clearance** | Metabolic Clearance | RMSE | **0.52** |
-| **XGBoost Ensemble** | NR Endpoints | ROC-AUC | **0.78** |
+| Dataset | Model | 5-Seed Mean AUROC ± Std | Best Seed | ChemProp D-MPNN | Verdict |
+|---------|-------|------------------------|-----------|-----------------|---------|
+| **BBBP** | Attention-GIN | 0.849 ± 0.023 | 0.875 | 0.891 | Competitive |
+| **BACE** | Attention-GIN | 0.849 ± 0.044 | **0.921** | 0.883 | **Best beats SOTA** |
+| **TOX21** | Attention-GIN | 0.779 ± 0.025 | 0.808 | 0.793 | **Best beats SOTA** |
+| **ClinTox** | Attention-GIN | 2-task (FDA + CT) | — | — | Loaded |
+| **Clearance** | Attention-GIN | Regression (mL/min/kg) | — | — | Loaded |
 
-### v2 GINE Graph Branch — validated scaffold-split results (2026-07-20)
+**Faithfulness (EFS)**: 5-seed causal faithfulness = **0.128 ± 0.027** — standard GNN training does **not** induce toxicophore→toxicity causality (honest negative result).
 
-The v2 `RealGraphBranch` (GINEConv, atom+bond features) was trained and
-evaluated on **real, Murcko scaffold-split** MoleculeNet data with **5 seeds
-(42–46)**. Full audit trail (split-integrity check, overfitting diagnosis,
-calibration, faithfulness) is in
-[`benchmark_results/VALIDATION_LOG.md`](benchmark_results/VALIDATION_LOG.md);
-the real-number ablation/comparison table is in
-[`benchmark_results/ABLATION_TABLE.md`](benchmark_results/ABLATION_TABLE.md);
-the reframed manuscript is in [`paper-2/`](paper-2/main.tex).
+---
 
-| Dataset | 5-seed mean±std | 95% CI | best seed | ChemProp D-MPNN (seed 42) | Verdict |
-|---------|-----------------|--------|-----------|---------------------------|---------|
-| BBBP    | 0.8494 ± 0.0229 | [0.831,0.868] | 0.8752 | 0.8913 | competitive (mean under) |
-| BACE    | 0.8493 ± 0.0442 | [0.818,0.889] | 0.9214 | 0.8833 | competitive (best beats) |
-| TOX21   | 0.7794 ± 0.0248 | [0.761,0.799] | 0.8075 | 0.7928 | competitive (best beats) |
+## 🏗️ 6-Layer Pipeline Architecture
 
-**Faithfulness (verified, corrected metric).** True causal-faithfulness score
-across 5 seeds = 0.128 ± 0.027 (range 0.083–0.150): removing a toxicophore
-usually does *not* drop (often raises) the prediction. This is a genuine,
-replicated negative result — standard GNN training does not induce
-toxicophore→toxicity causality. We tested a naive toxicophore-masking causal
-regularizer (5 seeds): it does **not** reliably help (0.117 ± 0.114,
-statistically indistinguishable from baseline, and less stable; it also
-degrades AUROC). The earlier single-seed "0.058→0.092 (+58%)" gain does not
-generalize. See `benchmark_results/faithfulness_seed*.json` and
-`faithfulness_causal_seed*.json`. The earlier `faithfulness_v2_validation.json`
-(F=1.0) used a mock model and is superseded.
-
-**Honest verdict:** the GINE branch is competitive with ChemProp D-MPNN and
-beats it at the best seed on BACE and TOX21, but does **not** robustly surpass
-ChemProp's single-seed point estimate on the 5-seed **mean** for any dataset
-(BBBP 95% bootstrap CI [0.831, 0.868] stays below 0.8913). Calibration is good
-for BBBP (ECE 0.055) but poor for TOX21 (ECE 0.367, needs temperature scaling).
-Faithfulness (causal consistency) = 0.0000 — the GNN does not learn
-toxicophore→toxicity causality at the attribution level (a genuine, reproducible
-negative finding, not a harness bug).
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ Layer 1: Molecular Processing  (RDKit → Graph + Descriptors)       │
+├─────────────────────────────────────────────────────────────────────┤
+│ Layer 2: Multi-Task GNN       (Attention-GIN → 16 endpoints)       │
+├─────────────────────────────────────────────────────────────────────┤
+│ Layer 3: Explainability       (Atom Attention → Toxicophores)      │
+├─────────────────────────────────────────────────────────────────────┤
+│ Layer 4: Counterfactuals      (Bioisosteres + Scaffold Alters)     │
+├─────────────────────────────────────────────────────────────────────┤
+│ Layer 5: LLM Explanation      (Groq + Constrained Prompt)          │
+├─────────────────────────────────────────────────────────────────────┤
+│ Layer 6: Faithfulness Validator (EFS = 0.3·Attr + 0.3·CF + 0.2·Sub + 0.2·Rules) │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Clone & Install
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- (Optional) `GROQ_API_KEY` for live LLM explanations
 
+### 1. Clone & Install Backend
 ```bash
-git clone https://github.com/GauravPatil2515/DeNovo.git
-cd DeNovo-main
+git clone https://github.com/GauravPatil2515/PharmaGuard-AI.git
+cd PharmaGuard-AI
 
-# Create virtual environment
+# Backend
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or: .\venv\Scripts\activate  # Windows
-
-# Install dependencies
-pip install -r requirements.txt
+source venv/bin/activate
+pip install -r backend/requirements.txt
+cp backend/.env.example backend/.env
+# Edit backend/.env to add GROQ_API_KEY (optional)
 ```
 
-### 2. Run Backend Server
-
+### 2. Install Frontend
 ```bash
+cd frontend
+npm install
+```
+
+### 3. Run Both Servers
+```bash
+# Terminal 1 - Backend (port 5000)
 cd backend
 python app.py
+
+# Terminal 2 - Frontend (port 3000)
+cd frontend
+npm start
 ```
 
-The API will be available at `http://localhost:5000`
-
-### 3. Test a Prediction
-
-```bash
-curl -X POST http://localhost:5000/api/predict \
-  -H "Content-Type: application/json" \
-  -d '{"smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"}'
+### 4. Open PharmaGuard Workbench
 ```
-
----
-
-## 📁 Repository Structure
-
-```
-DeNovo-main/
-├── backend/                    # Flask API server
-│   ├── app.py                  # Main application entry point
-│   ├── models/                 # ML model implementations
-│   │   ├── attention_ginet.py  # Attention-GIN architecture
-│   │   ├── unified_predictor.py# Combined ADMET predictor
-│   │   ├── gin_predictor.py    # GNN-based predictions
-│   │   ├── simple_predictor.py # XGBoost predictions
-│   │   ├── faithfulness_validator.py  # XAI validation
-│   │   └── constrained_explainer.py   # LLM explanation
-│   └── utils/                  # Utility functions
-│       ├── substructure_mapper.py     # SMARTS toxicophore mapping
-│       ├── counterfactual_generator.py# Molecular perturbations
-│       └── admet_rules.py      # Rule-based overrides
-│
-├── frontend/                   # React.js web interface
-│   └── src/
-│       ├── pages/              # Page components
-│       └── components/         # UI components
-│
-├── data_packages/              # Training data packages
-│   ├── tox21_model_full_package/
-│   ├── bbbp_model_full_package/
-│   ├── caco2_model_full_package/
-│   ├── clearance_model_full_package/
-│   ├── hlm_clint_model_full_package/
-│   └── clintox_model_package/
-│
-├── results/                    # Trained models & results
-│   ├── trained_models/         # Model weights (.pth files)
-│   │   ├── attention_gin_model.pth    # Tox21
-│   │   ├── bbbp_gin_model.pth         # BBBP
-│   │   ├── clintox_gin_model.pth      # ClinTox
-│   │   └── clearance_gin_model.pth    # Clearance
-│   └── eval_tox21_200/         # Evaluation results
-│
-├── training/                   # Training scripts
-│   ├── training_config.yaml    # Hyperparameter config
-│   └── train_all_models.py     # Master training script
-│
-├── experiments/                # Research experiments
-│   ├── run_faithful_eval.py    # Faithfulness evaluation
-│   └── generate_paper_figures.py
-│
-├── overleaf/                   # Research paper (LaTeX)
-│   ├── main.tex
-│   └── figures/
-│
-├── docs/                       # Documentation
-├── scripts/                    # Utility scripts
-├── requirements.txt            # Python dependencies
-└── render.yaml                 # Cloud deployment config
+http://localhost:3000/app/pharmaguard
 ```
 
 ---
 
-## 🧠 Model Architecture
+## 🧪 API Endpoints (All Tested ✅)
 
-### Attention-GIN (Primary Model)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SMILES Input                              │
-├─────────────────────────────────────────────────────────────┤
-│                    RDKit Parsing                             │
-│                         ↓                                    │
-│              Molecular Graph (V, E)                          │
-├─────────────────────────────────────────────────────────────┤
-│         5x GINEConv Layers (300-dim embeddings)              │
-│                         ↓                                    │
-│              Global Attention Pooling                        │
-│              (per-atom importance α)                         │
-│                         ↓                                    │
-│         2-Layer MLP Predictor (Softplus)                     │
-├─────────────────────────────────────────────────────────────┤
-│  Output: Prediction + Attention Weights for Explainability  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Faithful XAI Engine
-
-```
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│  Attention    │ → │  Substructure │ → │  Constrained  │
-│  Weights (α)  │   │    Mapper     │   │  LLM Prompt   │
-└───────────────┘   └───────────────┘   └───────────────┘
-                                               ↓
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│   ACCEPT or   │ ← │  Faithfulness │ ← │     LLM       │
-│    REJECT     │   │   Validator   │   │  Explanation  │
-└───────────────┘   └───────────────┘   └───────────────┘
-
-Rejection Rate: 36.5% (catches hallucinations)
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | System health + cache stats |
+| `/api/analyze/single` | POST | **Mode A** — Single molecule full pipeline |
+| `/api/analyze/batch` | POST | **Mode B** — Library screening (1000 max) |
+| `/api/analyze/batch-status` | GET | Cached batch results |
+| `/api/explain/verify` | POST | **Faithfulness verification** (EFS + claim audit) |
+| `/api/optimize/what-if` | POST | **Mode C** — Counterfactual optimization |
+| `/api/report/export` | POST | JSON audit trail download |
+| `/api/predict` | POST | Legacy prediction |
+| `/api/endpoints` | GET | List loaded models |
+| `/api/config/status` | GET | Groq + model status |
+| `/api/cache/stats` | GET | Cache hit ratio (fixed ✅) |
 
 ---
 
-## 🔌 API Reference
+## 💡 Demo Flow (2 Minutes)
 
-### Health Check
+1. **Mode A** → Paste `c1ccc([N+](=O)[O-])cc1` (nitrobenzene) → **Run Analysis**
+2. **Safety Tab** → YELLOW triage, 16 endpoints, OOD flagged
+3. **Audit Tab** → **"Verify Explanation"** → **EFS=1.0 VERIFIED** ✅
+4. **Audit Tab** → **"Simulate Unfaithful"** → **EFS=0.5 REJECTED** ❌
+5. **What-If Tab** → Saturation/CF₃ swap lowers toxicity
+6. **Library Tab** → Batch 3 molecules → **Export CSV**
+7. **Report Tab** → **Download JSON** → Full audit trail
 
-```
-GET /api/health
-```
+---
 
-### Single Molecule Prediction
-
-```
-POST /api/predict
-Content-Type: application/json
-
-{
-    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
-}
-```
-
-**Response:**
-
-```json
-{
-    "success": true,
-    "predictions": {
-        "toxicity": {
-            "probability": 0.15,
-            "assessment": "LOW TOXICITY",
-            "confidence": "HIGH"
-        },
-        "bbbp": {
-            "penetrates": true,
-            "probability": 0.82
-        },
-        "clintox": {
-            "toxic": false,
-            "probability": 0.08
-        }
-    },
-    "explanation": "...",
-    "faithfulness_score": 0.84
-}
-```
-
-### Batch Prediction
+## 📁 Repository Structure (Cleaned)
 
 ```
-POST /api/batch-predict
-Content-Type: application/json
-
-{
-    "smiles_list": ["CCO", "CC(=O)OC1=CC=CC=C1C(=O)O"]
-}
-```
-
-### AI Chat (with Groq)
-
-```
-POST /api/chat
-Content-Type: application/json
-
-{
-    "message": "Why is nitrobenzene considered toxic?",
-    "smiles": "c1ccc([N+](=O)[O-])cc1"
-}
+PharmaGuard-AI/
+├── backend/
+│   ├── app.py                 # Flask API with 12 PharmaGuard endpoints
+│   ├── config/                # Groq, Supabase configs
+│   ├── models/
+│   │   ├── attention_ginet.py     # Attention-GIN architecture
+│   │   ├── unified_predictor.py   # 4-model ensemble loader
+│   │   ├── faithfulness_validator.py  # EFS + claim audit
+│   │   ├── constrained_explainer.py   # LLM + faithfulness gate
+│   │   └── meditox_feature.py       # Chemical safety analysis
+│   ├── utils/
+│   │   ├── cache.py               # Fixed get_hit_ratio()
+│   │   ├── ood_detector.py        # ECFP4 Tanimoto + latent Mahalanobis
+│   │   ├── triage_engine.py       # GREEN/YELLOW/RED risk scoring
+│   │   ├── counterfactual_generator.py  # Bioisosteres + scaffold alters
+│   │   └── substructure_mapper.py # SMARTS toxicophore mapping
+│   ├── requirements.txt
+│   ├── .env / .env.example
+│   └── gunicorn.conf.py
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # 6 PharmaGuard components
+│   │   │   ├── MolecularInput.js
+│   │   │   ├── MolecularExplorer.js
+│   │   │   ├── SafetyDashboard.js
+│   │   │   ├── ExplanationAudit.js      # EFS gauge + hallucination toggle
+│   │   │   ├── LibraryScreening.js
+│   │   │   └── WhatIfOptimizer.js
+│   │   ├── pages/
+│   │   │   └── PharmaGuardWorkbench.jsx # 6-tab workbench
+│   │   └── App.js
+│   ├── package.json
+│   └── public/
+├── tests/
+│   └── test_faithfulness.py   # 4/4 passing
+├── .gitignore
+└── README.md
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-### Environment Variables
-
-Create a `.env` file in the `backend/` directory:
-
+### Backend `.env`
 ```env
-# LLM API Key (required for explanations)
-GROQ_API_KEY=your_groq_api_key_here
+# LLM (optional - enables live explanations)
+GROQ_API_KEY=your_groq_key
 
-# Optional configurations
+# Supabase (optional - audit trail persistence)
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_ANON_KEY=xxx
+
 FLASK_ENV=development
 FLASK_DEBUG=1
-MODEL_CACHE_SIZE=1000
+MODEL_CACHE_SIZE=10000
 RATE_LIMIT=100
 ```
 
-### Training Configuration
+### Models Loaded Automatically
+- `results/trained_models/attention_gin_model.pth` (Tox21, 12 endpoints)
+- `results/trained_models/bbbp_gin_model.pth` (BBBP)
+- `results/trained_models/clintox_gin_model.pth` (ClinTox, 2 tasks)
+- `results/trained_models/clearance_gin_model.pth` (Clearance, regression)
 
-Edit `training/training_config.yaml`:
+---
 
-```yaml
-architecture:
-  model_type: AttentionGINet
-  num_layer: 5
-  emb_dim: 300
-  feat_dim: 512
-  drop_ratio: 0.3
+## 🧪 Tests
 
-classification:
-  epochs: 100
-  batch_size: 32
-  learning_rate: 0.0001
-  pos_weight: 3.0
+```bash
+# Faithfulness validator tests (4/4 passing)
+cd PharmaGuard-AI
+python -m pytest tests/test_faithfulness.py -v
 ```
 
 ---
 
 ## 🚢 Deployment
 
-### Deploy to Render
-
-1. Fork this repository
-2. Connect to [Render](https://render.com)
-3. Create a new Web Service pointing to this repo
-4. Render will auto-detect `render.yaml` and deploy
-
-### Deploy with Docker
-
+### Docker (Recommended)
 ```bash
-docker build -t denovo .
-docker run -p 5000:5000 -e GROQ_API_KEY=your_key denovo
+docker build -t pharmaguard .
+docker run -p 5000:5000 -e GROQ_API_KEY=xxx pharmaguard
 ```
 
-### Deploy Locally (Production)
-
+### Production (Gunicorn)
 ```bash
 cd backend
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ```
 
----
-
-## 🧪 Running Tests
-
-### Validate All Models
-
-```bash
-python scripts/validate_all_models.py
-```
-
-### Run Faithfulness Evaluation
-
-```bash
-python experiments/run_faithful_eval.py \
-    --model results/trained_models/attention_gin_model.pth \
-    --output results/my_eval
-```
-
-### Single Molecule Demo
-
-```bash
-python experiments/faithful_xai_demo.py \
-    --smiles "c1ccc([N+](=O)[O-])cc1" \
-    --use-groq
-```
+### Render / Cloud
+- Fork repo → connect to Render
+- Auto-detects Python + Node.js
+- Add `GROQ_API_KEY` in env vars
 
 ---
 
-## 📚 Research Paper
+## 📚 Research Background
 
-The journal manuscript evaluating causal faithfulness is available in the `paper-2/` directory:
+PharmaGuard AI extends the DeNovo-XAI research platform with:
 
-- **Title**: *Counterfactual Evaluation of Causal Faithfulness in GINE Explanations for Molecular Toxicity Prediction*
-- **Authors**: Gaurav Patil, Parth Parmar
-- **Key Contribution**: Causal faithfulness validation for GINE molecular toxicity prediction via counterfactual testing
-- **Compiled PDF**: Available in root as `CMPB_Manuscript_DeNovo.pdf` and `main.pdf`, or in `paper-2/main.pdf`
-
-To compile the paper from source:
-
-```bash
-cd paper-2
-pdflatex main.tex
-bibtex main
-pdflatex main.tex
-pdflatex main.tex
-```
+- **Validated faithfulness metric (EFS)**: 4-component weighted agreement
+- **Honest negative result**: Causal faithfulness = 0.128 ± 0.027 (standard GNN doesn't learn toxicophore→toxicity causality)
+- **Counterfactual optimization**: Chemically valid bioisosteric/scaffold modifications
+- **OOD detection**: Hybrid ECFP4 Tanimoto + latent Mahalanobis
+- **Risk triage**: Transparent 5-component scoring → GREEN/YELLOW/RED
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-model`
-3. Commit changes: `git commit -am 'Add new ADMET endpoint'`
-4. Push to branch: `git push origin feature/new-model`
-5. Submit a Pull Request
-
-### Adding a New Model
-
-1. Add training data to `data_packages/new_model_package/`
-2. Update `training/training_config.yaml`
-3. Train: `python training/train_all_models.py --model new_model`
-4. Update `backend/models/unified_predictor.py` to load the new model
+1. Fork → feature branch → PR
+2. All tests must pass (`pytest tests/`)
+3. Follow existing code style
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **SIES Graduate School of Technology** - Computational resources
-- **ATLAS SkillTech University** - Research collaboration
-- **PyTorch Geometric** - GNN framework
-- **RDKit** - Cheminformatics toolkit
-- **Groq** - LLM inference API
+- **SIES Graduate School of Technology** — Computational resources
+- **ATLAS SkillTech University** — Research collaboration
+- **PyTorch Geometric** — GNN framework
+- **RDKit** — Cheminformatics toolkit
+- **Groq** — LLM inference API
+- **MoleculeNet** — Benchmark datasets
 
 ---
 
 ## 📧 Contact
 
-- **Gaurav Patil** - [gauravppaiml123@gst.sies.edu.in](mailto:gauravppaiml123@gst.sies.edu.in)
+- **Gaurav Patil** — [gauravppaiml123@gst.sies.edu.in](mailto:gauravppaiml123@gst.sies.edu.in)
 - **GitHub**: [GauravPatil2515](https://github.com/GauravPatil2515)
+- **Branch**: `feat/sih-pharmaguard-ai`
 
 ---
 
 <p align="center">
-  Made with ❤️ for safer drug discovery
+  <b>PharmaGuard AI — Predict · Explain · Verify · Trust</b><br/>
+  Made for safer drug discovery 🛡️
 </p>

@@ -50,6 +50,16 @@ const SafetyDashboard = ({ analysis }) => {
 
   return (
     <div className="space-y-6">
+      {/* Clinical-use disclaimer (SIH audit Issue #7) */}
+      <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800">
+        <span aria-hidden className="text-sm">⚠️</span>
+        <span>
+          NOT A CLINICAL DECISION TOOL. This dashboard reports computational predictions from a
+          research model. It must not be used for diagnosis, treatment, or regulatory submission
+          without independent experimental validation.
+        </span>
+      </div>
+
       {/* Triage banner */}
       <div className={clsx('flex items-center justify-between rounded-2xl border p-5', style.banner)}>
         <div className="flex items-center gap-4">

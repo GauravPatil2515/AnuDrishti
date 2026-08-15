@@ -11,6 +11,7 @@ import SafetyDashboard from '../components/SafetyDashboard';
 import ExplanationAudit from '../components/ExplanationAudit';
 import LibraryScreening from '../components/LibraryScreening';
 import WhatIfOptimizer from '../components/WhatIfOptimizer';
+import PipelineProgress from '../components/PipelineProgress';
 
 const TABS = [
   { id: 'input', label: 'Input', icon: BeakerIcon },
@@ -78,6 +79,17 @@ const PharmaGuardWorkbench = () => {
         </div>
       </header>
 
+      {/* Prominent clinical-use disclaimer (SIH audit P2 #8) */}
+      <div className="border-b border-amber-200 bg-amber-50">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-6 py-2 text-xs font-semibold text-amber-800">
+          <span aria-hidden>⚠️</span>
+          <span>
+            NOT FOR CLINICAL USE — PharmaGuard AI is a computational decision-support tool.
+            Predictions are not regulatory, clinical, or toxicological approval and require experimental validation.
+          </span>
+        </div>
+      </div>
+
       {/* Tab bar */}
       <nav className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-6 py-2">
@@ -101,6 +113,11 @@ const PharmaGuardWorkbench = () => {
 
       {/* Content */}
       <main className="mx-auto max-w-7xl px-6 py-6">
+        {loading && (
+          <div className="mb-6">
+            <PipelineProgress active={loading} />
+          </div>
+        )}
         {activeTab === 'input' && <MolecularInput onAnalyze={handleAnalyze} isLoading={loading} />}
         {activeTab === 'explorer' && <MolecularExplorer analysis={analysis} />}
         {activeTab === 'safety' && <SafetyDashboard analysis={analysis} />}

@@ -38,8 +38,8 @@ class TestFaithfulnessValidator(unittest.TestCase):
                 }
             ]
         }
-        # Attention on all 3 atoms is 0.15 (avg 0.15 >= threshold 0.1)
-        attention_weights = np.array([0.15, 0.15, 0.15, 0.05])
+        # Attention on all 3 atoms is 0.6 (avg 0.6 >= adaptive cutoff kappa/N = 0.5)
+        attention_weights = np.array([0.6, 0.6, 0.6, 0.05])
         
         result = self.validator.test_grounding(explanation, attention_weights)
         self.assertEqual(result.score, 1.0)

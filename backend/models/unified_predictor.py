@@ -138,13 +138,12 @@ class UnifiedADMETPredictor:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None: return None
             
-            # Constants matching training script
-            ATOM_LIST = list(range(1, 119))
+            # Constants matching training script - atom types 1-118, chirality 0-3
+            ATOM_LIST = list(range(1, 119))  # 1-118
             CHIRALITY_LIST = [
                 Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
                 Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
-                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW,
-                Chem.rdchem.ChiralType.CHI_OTHER
+                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW
             ]
             BOND_LIST = [
                 Chem.rdchem.BondType.SINGLE,
@@ -158,13 +157,13 @@ class UnifiedADMETPredictor:
                 Chem.rdchem.BondDir.ENDDOWNRIGHT
             ]
             
-            # Atom features
+            # Atom features: [atom_type_index, chirality_index]
             atom_features = []
             for atom in mol.GetAtoms():
                 atom_type = atom.GetAtomicNum()
                 chirality = atom.GetChiralTag()
                 atom_features.append([
-                    ATOM_LIST.index(atom_type) if atom_type in ATOM_LIST else len(ATOM_LIST),
+                    ATOM_LIST.index(atom_type) if atom_type in ATOM_LIST else len(ATOM_LIST),  # 0-118
                     CHIRALITY_LIST.index(chirality) if chirality in CHIRALITY_LIST else 0
                 ])
             
@@ -410,8 +409,8 @@ class UnifiedADMETPredictor:
         model_info = self.models['attention_gin']
         model = model_info['model']
         
-        # Convert to graph
-        data = self._smiles_to_graph(smiles)
+        # Convert to graph using the CORRECT featurization (matches training)
+        data = self._smiles_to_graph_simple(smiles)
         if data is None:
             return {}
         
@@ -419,10 +418,14 @@ class UnifiedADMETPredictor:
         from torch_geometric.data import Batch
         batch = Batch.from_data_list([data]).to(self.device)
         
-        # Predict
+        # Predict - handle both 2 and 3 return values
         with torch.no_grad():
-            output, _ = model(batch)
-            probabilities = torch.sigmoid(output).cpu().numpy()[0]
+            result = model(batch, return_attention=False)
+            if len(result) == 3:
+                features, predictions, _ = result
+            else:
+                features, predictions = result
+            probabilities = torch.sigmoid(predictions).cpu().numpy()[0]
         
         # Map to endpoints
         results = {}

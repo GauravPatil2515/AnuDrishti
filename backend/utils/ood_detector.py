@@ -25,6 +25,7 @@ Author: PharmaGuard AI Team
 """
 
 import logging
+import os
 import numpy as np
 from typing import Dict, Any, List, Optional
 
@@ -54,7 +55,8 @@ class OODDetector:
         latent_weight: float = 0.5,
         fp_radius: int = 2,
         fp_bits: int = 2048,
-        max_train_samples: int = 2000
+        max_train_samples: int = 2000,
+        reference_path: Optional[str] = None
     ):
         """
         Args:
@@ -69,6 +71,10 @@ class OODDetector:
             tanimoto_weight / latent_weight: Blend weights (auto-normalized).
             fp_radius, fp_bits: Morgan fingerprint parameters.
             max_train_samples: Cap on reference set size for speed.
+            reference_path: Path to a ``.npz`` file with a pre-computed reference
+                distribution (fingerprints + latent centroid + precision). When it
+                exists it is loaded directly; otherwise the distribution is built,
+                fitted and persisted there for fast startup next time.
         """
         if not RDKIT_AVAILABLE:
             raise ImportError("RDKit is required for OOD detection")
@@ -80,42 +86,184 @@ class OODDetector:
         self.fp_radius = fp_radius
         self.fp_bits = fp_bits
         self.max_train_samples = max_train_samples
+        self.reference_path = reference_path
 
         self.fingerprints = fingerprints
         self.latent_centroid = latent_centroid
         self.latent_precision = latent_precision
         self._train_smiles: List[str] = []
 
+        # Prefer a pre-computed reference distribution for speed + consistency.
+        if reference_path and os.path.exists(reference_path):
+            try:
+                self._load_reference(reference_path)
+                logger.info(f"✅ OOD reference distribution loaded from {reference_path}")
+                return
+            except Exception as e:
+                logger.warning(f"⚠️ Could not load OOD reference ({e}); rebuilding it")
+
         if fingerprints is None:
             self._build_reference_set()
+
+        # Fit the latent (GNN-embedding) distribution when a predictor is available,
+        # so the Mahalanobis signal is meaningful rather than a null Euclidean norm.
+        if predictor is not None and self.fingerprints is not None:
+            try:
+                self.fit_latent_distribution(self._train_smiles)
+            except Exception as e:
+                logger.warning(f"⚠️ Latent OOD distribution fit failed: {e}")
+
+        if reference_path:
+            try:
+                self.save_reference(reference_path)
+            except Exception as e:
+                logger.warning(f"⚠️ Could not persist OOD reference: {e}")
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Reference-set persistence
+    # ─────────────────────────────────────────────────────────────────────
+    def _load_reference(self, path: str):
+        """Load a pre-computed reference distribution from an ``.npz`` file."""
+        data = np.load(path, allow_pickle=True)
+        self.fingerprints = data['fingerprints']
+        self.latent_centroid = (
+            data['latent_centroid'] if data['latent_centroid'].size else None
+        )
+        self.latent_precision = (
+            data['latent_precision'] if data['latent_precision'].size else None
+        )
+        self._train_smiles = [str(s) for s in data['train_smiles']]
+
+    def save_reference(self, path: str):
+        """Persist the reference distribution (fingerprints + latent stats)."""
+        os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+        np.savez(
+            path,
+            fingerprints=self.fingerprints,
+            latent_centroid=(
+                self.latent_centroid
+                if self.latent_centroid is not None else np.zeros((0,), dtype=np.float64)
+            ),
+            latent_precision=(
+                self.latent_precision
+                if self.latent_precision is not None else np.zeros((0, 0), dtype=np.float64)
+            ),
+            train_smiles=np.array(self._train_smiles, dtype=object)
+        )
+        logger.info(f"✅ OOD reference distribution saved to {path}")
 
     # ─────────────────────────────────────────────────────────────────────
     # Reference-set construction
     # ─────────────────────────────────────────────────────────────────────
-    def _build_reference_set(self):
-        """Build a small but representative drug-like reference set.
+    # A diverse, drug-like reference set spanning the common scaffolds a
+    # medicinal-chemist is likely to query. Covering heterocycles, aromatics,
+    # NSAIDs, antibiotics, CNS drugs, etc. makes Tanimoto + latent OOD signals
+    # meaningful (SIH audit Bug #1: the previous 15-molecule set was too small
+    # to anchor a real training distribution). Invalid entries are skipped.
+    DEFAULT_REFERENCE_SMILES = [
+        "CC(=O)OC1=CC=CC=C1C(=O)O",              # Aspirin
+        "CC(=O)NC1=CC=C(C=C1)O",                 # Acetaminophen
+        "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",         # Ibuprofen
+        "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",          # Caffeine
+        "CCO",                                   # Ethanol
+        "c1ccccc1",                              # Benzene
+        "Cc1ccccc1",                             # Toluene
+        "O=C(O)c1ccccc1",                        # Benzoic acid
+        "c1ccc2[nH]ccc2c1",                      # Indole
+        "C1CCCCC1",                              # Cyclohexane
+        "c1ccc(cc1)c2ccccc2",                    # Biphenyl
+        "O=C1NC(=O)C(N2C(=O)c3ccccc3C2=O)CC1",   # Thalidomide
+        "CN1CCCC1C2=CN=CC=C2",                   # Nicotine
+        "CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C",   # Testosterone
+        "CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O",  # Penicillin G
+        "CC1(C)SC2C(NC(=O)C(O)Cc3ccc(O)cc3)C(=O)N2C1C(=O)O",  # Amoxicillin
+        "OC(=O)C1CCN(C2=C(C(=O)C=C(C2)F)N2CCNCC2)C1",  # Ciprofloxacin
+        "CC(C)Cc1ccc(cc1)[C@@H](C)C(=O)O",       # Naproxen
+        "O=C(O)Cc1ccccc1Nc1c(Cl)cccc1Cl",        # Diclofenac
+        "CC(=O)CC(c1ccccc1)C(=O)C1(C)C(=O)OC(c2ccccc2)C1=O",  # Warfarin
+        "CC(C)(C)c1ccc(cc1)C(C)C(=O)N1CC[C@@H](C1)c2ccccc2",  # Atorvastatin
+        "CN(C)C(=N)NC(N)=N",                     # Metformin
+        "O=C(O)c1ccccc1O",                       # Salicylic acid
+        "NCCc1ccc(O)c(O)c1",                     # Dopamine
+        "NCCc1c[nH]c2ccc(O)cc12",                # Serotonin
+        "NCCNc1cnc[nH]c1",                       # Histamine
+        "COc1ccc2c(c1)CC1(O)CC(C2)NCC1",         # Morphine
+        "NC(C)CCN(CC)CCc1ccnc2cc(Cl)ccc12",      # Chloroquine
+        "CC1=NOC(=N1)C(=O)CO",                   # Metronidazole
+        "CCCC1=NN(C)C2=C1NC(=NC2=O)c1ccccc1S(=O)(=O)N1CCN(CC1)C",  # Sildenafil
+        "CNCCCOc1ccc(cc1)C(F)(F)F",              # Fluoxetine
+        "CCOC(=O)C1C2=C(NC3=C(C=CC=C3C)C2C(=C(N1)C)C(=O)OC)COCCN",  # Amlodipine
+        "N1(CCCC1)C(=O)NC(Cc1ccccc1)C(=O)O",     # Lisinopril
+        "CCOc1ccc(cc1)c2nnc(n2)CCc3ccccc3N",     # Losartan
+        "N1(CCCC1)C(=O)CC(C)C(=O)O",             # Gabapentin
+        "c1ccc(cc1)O",                           # Phenol
+        "Nc1ccccc1",                             # Aniline
+        "CC(=O)O",                               # Acetic acid
+        "NC(N)=O",                               # Urea
+        "NCC(=O)O",                              # Glycine
+        "OCC(O)C(O)C(O)C(O)C(=O)O",              # Glucose (open chain)
+        "c1ccncc1",                              # Pyridine
+        "c1cncnc1",                              # Pyrimidine
+        "c1c[nH]cn1",                            # Imidazole
+        "c1c[nH]n1",                             # Pyrazole
+        "c1ccoc1",                              # Furan
+        "c1ccsc1",                              # Thiophene
+        "c1cc[nH]c1",                            # Pyrrole
+        "c1nc2c(n1)ncnc2",                       # Purine
+        "c1ccc2ncccc2c1",                        # Quinoline
+        "c1ccc2c(c1)cncc2",                      # Isoquinoline
+        "c1ccc2ccccc2c1",                        # Naphthalene
+        "c1ccc2cc3ccccc3cc2c1",                  # Anthracene
+        "c1ccc2c(c1)ccc3ccccc23",                # Phenanthrene
+        "c1cc[n+](=O)cc1",                       # Pyridine N-oxide
+        "O=Cc1ccccc1",                           # Benzaldehyde
+        "CC(=O)C",                               # Acetone
+        "CC=O",                                   # Acetaldehyde
+        "CO",                                    # Methanol
+        "ClC(Cl)Cl",                             # Chloroform
+        "ClCCl",                                 # Dichloromethane
+        "Clc1ccccc1",                            # Chlorobenzene
+        "O=[N+]([O-])c1ccccc1",                  # Nitrobenzene
+        "COc1ccccc1",                            # Anisole
+        "C=Cc1ccccc1",                           # Styrene
+        "CCc1ccccc1",                            # Ethylbenzene
+        "Cc1cccc(C)c1",                          # Xylene
+        "Oc1ccccc1O",                            # Catechol
+        "Oc1cccc(O)c1",                          # Resorcinol
+        "Oc1ccc(O)cc1",                          # Hydroquinone
+        "O=[N+]([O-])c1ccc(O)cc1",               # 4-nitrophenol
+        "CC(=O)Nc1ccccc1",                       # Acetanilide
+        "NC(=O)c1ccccc1",                        # Benzamide
+        "N#Cc1ccccc1",                           # Benzonitrile
+        "OCc1ccccc1",                            # Benzyl alcohol
+        "NCc1ccccc1",                            # Benzylamine
+        "Cn1c(=O)n(C)c2ncn(C)c2c1=O",            # Theophylline
+        "Nc1ncnc2ncnc12",                        # Adenine
+        "Nc1nc2c(n1)ncnc2O",                     # Guanine
+        "Nc1cc(=O)[nH]cn1",                      # Cytosine
+        "Cc1c[nH]c(=O)[nH]c1=O",                 # Thymine
+        "O=c1ccnc[nH]1",                         # Uracil
+        "O=C1CC(=O)NC(=O)N1",                    # Barbituric acid
+        "CCC(C)C1C(=O)NC(=O)NC1=O",              # Phenobarbital
+        "O=C1N=C(C(=O)Nc2ccccc2)C3=CC=CC=C3N1C", # Diazepam
+        "NC(C)C(O)c1ccc(O)c(O)c1",               # Epinephrine
+        "CCOC(=O)CC(=O)N1CCN(CC1)C(=O)C",        # Lidocaine
+        "CCOC(=O)C1=CC=C(C=C1)NCCN(CC)CC",       # Procaine
+        "CN1CC2CCC1CC(c1ccc(F)cc1)C2",           # Citalopram
+        "O=S(=O)(N)Nc1ccc(cc1)S(=O)(=O)c1ccc(cc1)N",  # Furosemide
+        "c1ccc2c(c1)CC(O)N2",                     # Indoline
+        "O=C(O)Cc1ccccc1",                       # Phenylacetic acid
+        "Cc1ccncc1C",                             # Methylpyridine
+    ]
 
-        Used only when no explicit training fingerprints are supplied. The
-        reference molecules cover common scaffolds so Tanimoto distances are
-        meaningful for typical queries.
+    def _build_reference_set(self):
+        """Build a diverse drug-like reference set.
+
+        Used only when no explicit training fingerprints / reference file are
+        supplied. The reference molecules cover a wide range of common scaffolds
+        so Tanimoto + latent distances are meaningful for typical queries.
         """
-        ref_smiles = [
-            "CC(=O)OC1=CC=CC=C1C(=O)O",          # Aspirin
-            "CC(=O)NC1=CC=C(C=C1)O",             # Acetaminophen
-            "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",     # Ibuprofen
-            "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",      # Caffeine
-            "CCO",                                # Ethanol
-            "C1=CC=CC=C1",                        # Benzene
-            "CC1=CC=CC=C1",                       # Toluene
-            "O=C(O)c1ccccc1",                     # Benzoic acid
-            "c1ccc2[nH]ccc2c1",                   # Indole
-            "C1CCCCC1",                           # Cyclohexane
-            "CC(=O)Nc1ccc(O)cc1",                 # Paracetamol alt
-            "c1ccc(cc1)c2ccccc2",                 # Biphenyl
-            "O=C1NC(=O)C(N2C(=O)c3ccccc3C2=O)CC1", # Thalidomide
-            "CN1CCCC1C2=CN=CC=C2",               # Nicotine
-            "CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C" # Testosterone
-        ]
+        ref_smiles = self.DEFAULT_REFERENCE_SMILES
         fps = []
         valid = []
         for smi in ref_smiles:

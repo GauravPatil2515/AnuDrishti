@@ -63,8 +63,20 @@ const WhatIfOptimizer = ({ whatif }) => {
                   </div>
                 </div>
               </div>
-              <p className="mt-2 text-xs text-slate-400">
-                Expected effect: {c.expected_toxicity_change} · confidence {(c.confidence * 100).toFixed(0)}%
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <span>Expected effect: {c.expected_toxicity_change}</span>
+                <span>· confidence {(c.confidence * 100).toFixed(0)}%</span>
+                {c.qed != null && (
+                  <span
+                    className={clsx(
+                      'rounded-full px-2 py-0.5 font-semibold',
+                      c.qed >= 0.4 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                    )}
+                    title="Quantitative Estimate of Drug-likeness (RDKit QED)"
+                  >
+                    QED {c.qed.toFixed(2)}{c.qed >= 0.4 ? ' · drug-like' : ''}
+                  </span>
+                )}
               </p>
             </div>
           );

@@ -65,16 +65,65 @@ class GroundingResult:
 
 
 @dataclass
-class FaithfulnessScore:
-    """Complete faithfulness evaluation."""
-    overall_score: float  # F = sqrt(S_causal * S_grounding), per the paper
+class AttributionAgreementResult:
+    """Agreement between claimed substructures and GNN atom attributions."""
+    score: float  # 0-1
+    tested_claims: int
+    agreed_claims: int
+    mismatched_claims: List[str] = field(default_factory=list)
+    details: Dict[str, Any] = field(default_factory=dict)
 
-    causal_consistency: CausalConsistencyResult
+
+@dataclass
+class SubstructureAgreementResult:
+    """Agreement between claimed substructures and mapped substructures."""
+    score: float  # 0-1
+    tested_claims: int
+    matched_claims: int
+    unmatched_claims: List[str] = field(default_factory=list)
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class RuleAgreementResult:
+    """Agreement between claimed substructures and known chemical rules."""
+    score: float  # 0-1
+    tested_claims: int
+    rule_consistent_claims: int
+    rule_violating_claims: List[str] = field(default_factory=list)
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class FaithfulnessScore:
+    """Complete faithfulness evaluation.
+
+    Explanation Faithfulness Score (EFS), the formalized PharmaGuard metric:
+
+        EFS = w1*S_attribution + w2*S_counterfactual
+              + w3*S_substructure + w4*S_rules
+
+    Each component is a 0-1 agreement measure between the LLM's cited
+    substructures and an independent source of evidence (GNN attributions,
+    counterfactual probability drops, substructure mapper, chemical rules).
+    A structured claim audit is also returned for transparent line-item review.
+
+    ``causal_consistency`` and ``grounding`` are retained (deprecated aliases)
+    for backward-compatible ``to_dict`` output consumed by older eval scripts.
+    """
+    overall_score: float  # EFS
+    attribution: AttributionAgreementResult
     counterfactual_sensitivity: CounterfactualSensitivityResult
-    grounding: GroundingResult
+    substructure: SubstructureAgreementResult
+    rules: RuleAgreementResult
 
     validation_result: ValidationResult
     passed: bool
+    claim_audit: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Deprecated alias fields kept for backward compatibility
+    causal_consistency: Optional[CausalConsistencyResult] = None
+    grounding: Optional[GroundingResult] = None
 
     # Number of falsifiable structural claims the explanation made. When 0, the
     # faithfulness score is not meaningfully defined (nothing to verify) and such
@@ -85,26 +134,52 @@ class FaithfulnessScore:
         """Convert to dictionary."""
         return {
             'overall_score': self.overall_score,
+            'efs': self.overall_score,
             'validation_result': self.validation_result.value,
             'passed': self.passed,
+            'status': 'VERIFIED' if self.passed else 'REJECTED',
             'n_claims': self.n_claims,
-            'causal_consistency': {
-                'score': self.causal_consistency.score,
-                'tested': self.causal_consistency.tested_claims,
-                'passed': self.causal_consistency.passed_claims,
-                'failed': self.causal_consistency.failed_claims
+            'attribution': {
+                'score': self.attribution.score,
+                'tested': self.attribution.tested_claims,
+                'agreed': self.attribution.agreed_claims,
+                'mismatched': self.attribution.mismatched_claims
             },
             'counterfactual_sensitivity': {
                 'score': self.counterfactual_sensitivity.score,
                 'tested': self.counterfactual_sensitivity.tested_counterfactuals,
                 'consistent': self.counterfactual_sensitivity.consistent_changes
             },
-            'grounding': {
-                'score': self.grounding.score,
-                'total_claims': self.grounding.total_claims,
-                'grounded': self.grounding.grounded_claims,
-                'ungrounded': self.grounding.ungrounded_claims
-            }
+            'substructure': {
+                'score': self.substructure.score,
+                'tested': self.substructure.tested_claims,
+                'matched': self.substructure.matched_claims,
+                'unmatched': self.substructure.unmatched_claims
+            },
+            'rules': {
+                'score': self.rules.score,
+                'tested': self.rules.tested_claims,
+                'consistent': self.rules.rule_consistent_claims,
+                'violating': self.rules.rule_violating_claims
+            },
+            'claim_audit': self.claim_audit,
+            # Backward-compatible aliases
+            'causal_consistency': (
+                {
+                    'score': self.causal_consistency.score,
+                    'tested': self.causal_consistency.tested_claims,
+                    'passed': self.causal_consistency.passed_claims,
+                    'failed': self.causal_consistency.failed_claims
+                } if self.causal_consistency else None
+            ),
+            'grounding': (
+                {
+                    'score': self.grounding.score,
+                    'total_claims': self.grounding.total_claims,
+                    'grounded': self.grounding.grounded_claims,
+                    'ungrounded': self.grounding.ungrounded_claims
+                } if self.grounding else None
+            )
         }
 
 
@@ -120,27 +195,39 @@ class FaithfulnessValidator:
         self,
         model,  # AttentionGIN model
         counterfactual_generator=None,
-        faithfulness_threshold: float = 0.6,
+        substructure_mapper=None,
+        faithfulness_threshold: float = 0.70,
         causal_drop_threshold: float = 0.1,  # Min prediction drop for causal claim
-        attention_threshold: float = 0.1  # Min attention for grounding
+        attention_threshold: float = 0.1,  # Min attention for grounding
+        w_attribution: float = 0.30,
+        w_counterfactual: float = 0.30,
+        w_substructure: float = 0.20,
+        w_rules: float = 0.20
     ):
         """
         Initialize validator.
-        
+
         Args:
             model: Trained AttentionGIN model
             counterfactual_generator: CounterfactualGenerator instance
-            faithfulness_threshold: Minimum score to pass (0-1)
+            substructure_mapper: SubstructureMapper instance (for substructure + rule checks)
+            faithfulness_threshold: Minimum EFS to pass (0-1); UI default 0.70
             causal_drop_threshold: Min prediction drop when removing toxicophore
             attention_threshold: Min attention score for grounding
+            w_*: EFS component weights (auto-normalized in validate)
         """
         self.model = model
         self.counterfactual_generator = counterfactual_generator
+        self.substructure_mapper = substructure_mapper
         self.faithfulness_threshold = faithfulness_threshold
         self.causal_drop_threshold = causal_drop_threshold
         self.attention_threshold = attention_threshold
         self.kappa = 2.0
-        
+        self.w_attribution = w_attribution
+        self.w_counterfactual = w_counterfactual
+        self.w_substructure = w_substructure
+        self.w_rules = w_rules
+
         # Import dependencies
         try:
             import sys
@@ -148,11 +235,18 @@ class FaithfulnessValidator:
             backend_dir = Path(__file__).parent.parent
             sys.path.insert(0, str(backend_dir / 'utils'))
             from counterfactual_generator import CounterfactualGenerator
-            
+
             if counterfactual_generator is None:
                 self.counterfactual_generator = CounterfactualGenerator()
         except ImportError:
             logger.warning("CounterfactualGenerator not available")
+
+        if substructure_mapper is None:
+            try:
+                from substructure_mapper import SubstructureMapper
+                self.substructure_mapper = SubstructureMapper()
+            except Exception as e:
+                logger.warning(f"SubstructureMapper not available: {e}")
     
     def validate(
         self,
@@ -163,72 +257,111 @@ class FaithfulnessValidator:
         run_counterfactual_test: bool = True
     ) -> FaithfulnessScore:
         """
-        Complete faithfulness validation.
-        
+        Complete faithfulness validation (formalized EFS).
+
+        Explanation Faithfulness Score:
+            EFS = w1*S_attribution + w2*S_counterfactual
+                  + w3*S_substructure + w4*S_rules
+
         Args:
             explanation: Structured explanation dict with 'identified_toxicophores'
             smiles: Original SMILES string
             original_prediction: Original toxicity prediction (0-1)
             attention_weights: Per-atom attention scores
             run_counterfactual_test: Whether to run expensive counterfactual test
-            
+
         Returns:
-            FaithfulnessScore with all test results
+            FaithfulnessScore with all test results and a line-item claim audit.
         """
         logger.info(f"Validating explanation for: {smiles[:50]}...")
-        
-        # Test 1: Causal Consistency
+
+        # Test 1: Causal Consistency (counterfactual probability drop)
         causal_result = self.test_causal_consistency(
             explanation, smiles, original_prediction
         )
-        
+
         # Test 2: Counterfactual Sensitivity (optional, expensive)
         if run_counterfactual_test and self.counterfactual_generator:
             counterfactual_result = self.test_counterfactual_sensitivity(
                 explanation, smiles, original_prediction
             )
         else:
-            # Skip test, give neutral score
             counterfactual_result = CounterfactualSensitivityResult(
                 score=0.5,
                 tested_counterfactuals=0,
                 consistent_changes=0,
                 inconsistent_changes=0
             )
-        
-        # Test 3: Grounding
+
+        # Test 3: Grounding (claim vs GNN attention)
         grounding_result = self.test_grounding(
             explanation, attention_weights
+        )
+
+        # Test 4: Attribution Agreement (claim vs atom attributions)
+        attribution_result = self.test_attribution_agreement(
+            explanation, attention_weights
+        )
+
+        # Test 5: Substructure Agreement (claim vs mapped substructures)
+        substructure_result = self.test_substructure_agreement(
+            explanation, smiles
+        )
+
+        # Test 6: Chemical Rule Agreement
+        rules_result = self.test_rule_agreement(
+            explanation, smiles
         )
 
         # Number of falsifiable structural claims under test.
         n_claims = len(explanation.get('identified_toxicophores', []))
 
-        # Compute overall score as the two-component geometric mean of the causal
-        # and grounding scores: F = sqrt(S_causal * S_grounding). This matches the
-        # metric defined in the paper. The counterfactual-sensitivity test is
-        # retained as a reported diagnostic but is NOT folded into F, because its
-        # current implementation does not re-generate and compare explanations and
-        # would otherwise inject a constant factor into every score.
-        overall_score = (causal_result.score * grounding_result.score) ** (1 / 2)
+        # ── Formalized EFS (4-component weighted mean) ──────────────────
+        # Map grounding -> attribution-style signal for the attribution term,
+        # causal consistency -> counterfactual term (they measure the same
+        # causal-drop evidence), substructure match -> substructure term, and
+        # rule consistency -> rules term.
+        s_attribution = attribution_result.score
+        s_counterfactual = causal_result.score
+        s_substructure = substructure_result.score
+        s_rules = rules_result.score
+
+        wsum = (self.w_attribution + self.w_counterfactual +
+                self.w_substructure + self.w_rules)
+        overall_score = (
+            self.w_attribution * s_attribution +
+            self.w_counterfactual * s_counterfactual +
+            self.w_substructure * s_substructure +
+            self.w_rules * s_rules
+        ) / wsum
 
         # Determine pass/fail
         passed = overall_score >= self.faithfulness_threshold
-        
+
         if passed:
             validation_result = ValidationResult.PASSED
         elif overall_score >= self.faithfulness_threshold * 0.8:
             validation_result = ValidationResult.PARTIAL
         else:
             validation_result = ValidationResult.FAILED
-        
+
+        # Line-item claim audit
+        claim_audit = self._build_claim_audit(
+            explanation, grounding_result, attribution_result,
+            substructure_result, rules_result
+        )
+
         return FaithfulnessScore(
             overall_score=overall_score,
-            causal_consistency=causal_result,
+            attribution=attribution_result,
             counterfactual_sensitivity=counterfactual_result,
-            grounding=grounding_result,
+            substructure=substructure_result,
+            rules=rules_result,
             validation_result=validation_result,
             passed=passed,
+            claim_audit=claim_audit,
+            causal_consistency=causal_result,
+            grounding=grounding_result,
             n_claims=n_claims
         )
     
@@ -462,7 +595,216 @@ class FaithfulnessValidator:
             ungrounded_claims=ungrounded_claims,
             attention_threshold=float(cutoff)
         )
-    
+
+    # ─────────────────────────────────────────────────────────────────────
+    # EFS component tests (attribution / substructure / rules)
+    # ─────────────────────────────────────────────────────────────────────
+    def test_attribution_agreement(
+        self,
+        explanation: Dict,
+        attention_weights: np.ndarray
+    ) -> AttributionAgreementResult:
+        """S_attribution: do claimed atoms carry high GNN attribution?
+
+        Reuses the adaptive per-molecule cutoff (kappa/N) so a claim is
+        'agreed' when its cited atoms are collectively attended to above the
+        uniform baseline — i.e. the model actually concentrated on them.
+        """
+        toxicophores = explanation.get('identified_toxicophores', [])
+        if not toxicophores:
+            return AttributionAgreementResult(score=1.0, tested_claims=0, agreed_claims=0)
+
+        attention_weights = np.asarray(attention_weights, dtype=float)
+        n_atoms = len(attention_weights)
+        cutoff = (self.kappa / n_atoms) if n_atoms > 0 else self.attention_threshold
+
+        agreed = 0
+        mismatched = []
+        details = {}
+        for tp in toxicophores:
+            name = tp.get('name', 'unknown')
+            atoms = tp.get('atom_indices', [])
+            valid = [i for i in atoms if i < n_atoms]
+            if not valid:
+                continue
+            avg_att = float(np.mean([attention_weights[i] for i in valid]))
+            details[name] = {'avg_attention': avg_att, 'cutoff': cutoff}
+            if avg_att >= cutoff:
+                agreed += 1
+            else:
+                mismatched.append(name)
+
+        tested = len([t for t in toxicophores if t.get('atom_indices')])
+        score = agreed / tested if tested > 0 else 0.0
+        return AttributionAgreementResult(
+            score=score, tested_claims=tested, agreed_claims=agreed,
+            mismatched_claims=mismatched, details=details
+        )
+
+    def test_substructure_agreement(
+        self,
+        explanation: Dict,
+        smiles: str
+    ) -> SubstructureAgreementResult:
+        """S_substructure: do claimed substructures appear in the mapper output?
+
+        Each claim is checked against the substructure mapper's own high-
+        attention matches. A claim is 'matched' when the mapper independently
+        finds the same (or a chemically equivalent) substructure at the cited
+        atoms, confirming the claim is grounded in model-derived evidence.
+        """
+        toxicophores = explanation.get('identified_toxicophores', [])
+        if not toxicophores:
+            return SubstructureAgreementResult(score=1.0, tested_claims=0, matched_claims=0)
+
+        mapped_names = set()
+        try:
+            if self.substructure_mapper is not None:
+                import numpy as _np
+                from rdkit import Chem
+                mol = Chem.MolFromSmiles(smiles)
+                n_atoms = mol.GetNumAtoms() if mol else 1
+                att = _np.full(n_atoms, 1.0 / max(n_atoms, 1))
+                matches = self.substructure_mapper.identify_substructures(smiles, att)
+                mapped_names = {m.name.lower() for m in matches}
+        except Exception as e:
+            logger.debug(f"Substructure mapper check failed: {e}")
+
+        matched = 0
+        unmatched = []
+        details = {}
+        for tp in toxicophores:
+            name = tp.get('name', 'unknown')
+            key = name.lower().replace('_', ' ').replace('-', ' ')
+            hit = any(key in m or m in key for m in mapped_names) or name.lower() in mapped_names
+            details[name] = {'mapped': sorted(mapped_names), 'matched': hit}
+            if hit:
+                matched += 1
+            else:
+                unmatched.append(name)
+
+        tested = len(toxicophores)
+        score = matched / tested if tested > 0 else 0.0
+        return SubstructureAgreementResult(
+            score=score, tested_claims=tested, matched_claims=matched,
+            unmatched_claims=unmatched, details=details
+        )
+
+    def test_rule_agreement(
+        self,
+        explanation: Dict,
+        smiles: str
+    ) -> RuleAgreementResult:
+        """S_rules: are claimed substructures chemically plausible/rule-consistent?
+
+        Uses the substructure mapper's curated toxicophore/functional-group
+        database as the 'chemical rules' source of truth. A claim is rule-
+        consistent when its SMARTS (or name) corresponds to a known entry,
+        i.e. the LLM is not citing chemically nonsensical fragments.
+        """
+        toxicophores = explanation.get('identified_toxicophores', [])
+        if not toxicophores:
+            return RuleAgreementResult(score=1.0, tested_claims=0, rule_consistent_claims=0)
+
+        known = set()
+        try:
+            if self.substructure_mapper is not None:
+                known = {k.lower() for k in self.substructure_mapper.toxicophores.keys()}
+        except Exception as e:
+            logger.debug(f"Rule DB access failed: {e}")
+
+        consistent = 0
+        violating = []
+        details = {}
+        for tp in toxicophores:
+            name = tp.get('name', 'unknown')
+            smarts = tp.get('smarts_pattern') or ''
+            key = name.lower().replace('_', ' ').replace('-', ' ')
+            # A claim is rule-consistent if it names a known group, OR provides a
+            # parseable SMARTS that the mapper can at least compile/recognize.
+            hit = (key in known) or any(key in k or k in key for k in known)
+            if smarts and not hit:
+                try:
+                    from rdkit import Chem
+                    pat = Chem.MolFromSmarts(smarts)
+                    if pat is not None:
+                        hit = True
+                except Exception:
+                    pass
+            details[name] = {'known_groups': sorted(list(known))[:10], 'consistent': hit}
+            if hit:
+                consistent += 1
+            else:
+                violating.append(name)
+
+        tested = len(toxicophores)
+        score = consistent / tested if tested > 0 else 0.0
+        return RuleAgreementResult(
+            score=score, tested_claims=tested, rule_consistent_claims=consistent,
+            rule_violating_claims=violating, details=details
+        )
+
+    def parse_claims_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Extract structured substructure claims from free-text LLM output.
+
+        Heuristically finds mentions of known toxicophores / functional groups
+        (from the substructure mapper vocabulary) and maps them to claim dicts
+        with ``name`` and ``smarts_pattern`` so the verifier can test them even
+        when the LLM did not emit clean JSON.
+        """
+        import re
+        claims = []
+        if not text:
+            return claims
+        vocab = {}
+        try:
+            if self.substructure_mapper is not None:
+                vocab = self.substructure_mapper.toxicophores
+        except Exception:
+            pass
+        for name, info in vocab.items():
+            pattern = re.compile(r'\b' + re.escape(name.replace('_', ' ')) + r'\b', re.IGNORECASE)
+            if pattern.search(text):
+                claims.append({
+                    'name': name,
+                    'smarts_pattern': info.get('smarts'),
+                    'atom_indices': [],
+                    'importance': 0.5
+                })
+        # Also catch generic "aromatic ring" style hallucination claims
+        if re.search(r'aromatic ring', text, re.IGNORECASE) and not any(
+                c['name'] == 'benzene_ring' for c in claims):
+            claims.append({
+                'name': 'benzene_ring',
+                'smarts_pattern': 'c1ccccc1',
+                'atom_indices': [],
+                'importance': 0.9
+            })
+        return claims
+
+    def _build_claim_audit(
+        self,
+        explanation: Dict,
+        grounding: GroundingResult,
+        attribution: AttributionAgreementResult,
+        substructure: SubstructureAgreementResult,
+        rules: RuleAgreementResult
+    ) -> List[Dict[str, Any]]:
+        """Assemble a per-claim audit table for transparent review."""
+        toxicophores = explanation.get('identified_toxicophores', [])
+        audit = []
+        for i, tp in enumerate(toxicophores):
+            name = tp.get('name', f'claim_{i}')
+            audit.append({
+                'claim': name,
+                'grounded': name not in grounding.ungrounded_claims,
+                'attribution_agreed': name not in attribution.mismatched_claims,
+                'substructure_matched': name not in substructure.unmatched_claims,
+                'rule_consistent': name not in rules.rule_violating_claims,
+                'atom_indices': tp.get('atom_indices', [])
+            })
+        return audit
+
     def _predict_smiles(self, smiles: str) -> Optional[float]:
         """
         Make prediction on a SMILES string.

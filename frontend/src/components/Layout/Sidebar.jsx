@@ -6,6 +6,7 @@ import {
   BeakerIcon, 
   DocumentDuplicateIcon,
   ChatBubbleLeftRightIcon,
+  ShieldCheckIcon,
   XMarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
   { name: 'Predictions', href: '/app/predictions', icon: BeakerIcon },
   { name: 'Batch Processing', href: '/app/batch', icon: DocumentDuplicateIcon },
+  { name: 'PharmaGuard AI', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
   { name: 'AI Assistant', href: '/app/chat', icon: ChatBubbleLeftRightIcon },
 ];
 
@@ -69,7 +71,9 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
                     className={clsx(
                       location.pathname === item.href
                         ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-lg shadow-primary-500/30'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5',
+                        : item.highlight
+                          ? 'text-white bg-white/10 ring-1 ring-primary-400/40'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5',
                       'group flex gap-x-3 rounded-xl p-3 text-sm leading-6 font-medium transition-all duration-300 ease-in-out cursor-pointer',
                       collapsed && isDesktop && 'justify-center'
                     )}

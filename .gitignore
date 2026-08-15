@@ -1,117 +1,88 @@
-# DeNovo Ignore Patterns
-# =======================
-
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Virtual Environment
+# Virtual environments
 venv/
-ENV/
 env/
 .venv/
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data & Models (large files)
+data_packages/
+*.pkl
+*.h5
+*.pth
+*.ckpt
+checkpoints/
+test_checkpoints/
+pretrained/
+training_outputs/
+results/
+!results/trained_models/
+!benchmark_results/VALIDATION_LOG.md
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/.cache/
 
 # Environment
 .env
 .env.local
 .env.*.local
 
-# Logs
-*.log
-logs/
+# IDE / Editor
+.cursorrules
+*.code-workspace
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Node.js (frontend)
-frontend/node_modules/
-frontend/build/
-frontend/.env
-
-# Model weights (large files - keep only essential ones)
-# Uncomment to exclude model files from git
-# *.pth
-# *.pkl
-checkpoint_*.pth
-*.ckpt
-
-# Temporary files
-*.tmp
-*.temp
-.cache/
-
-# Docker
-*.log
-
-# Overleaf backups
-overleaf/*.aux
-overleaf/*.bbl
-overleaf/*.blg
-overleaf/*.fdb_latexmk
-overleaf/*.fls
-overleaf/*.synctex.gz
-overleaf/*.out
-
-# Zip files (generated)
+# Large artifacts
 *.zip
+*.pdf
+!README.md
 
-# Model Checkpoints
-checkpoints/
-*.pt
+# Training / Experiments
+experiments/
+finetune_sweep/
+training/
+model-training/
+12_week_plan/
+12_week_run/
+scripts/
+v1-archive/
+v2-foundation-arch/
+data_packages/
+data/
+database/
+uploads/
+paper_drafts/
+claude/
+overleaf/
+elsevier_mlwa_submission/
+benchmark_results/
+!benchmark_results/VALIDATION_LOG.md
 
-# Raw data CSVs (large, kept local only)
-model-training/data/raw/*.csv
+# Test artifacts
+test_library.csv
+*.csv
+!requirements*.txt
 
-# Jupyter notebooks (not part of the reproducible pipeline)
-*.ipynb
-.ipynb_checkpoints/
-
-# Hermes plan scratch
-.hermes/
-!.hermes/plans/
-!.hermes/plans/**
-
-# LaTeX build artifacts
-paper-2/*.aux
-paper-2/*.out
-paper-2/*.log
-paper-2/*.bak*
-paper-2/*.backup*
-*.bak
-*.backup
+# OS
+*.DS_Store

@@ -18,7 +18,7 @@ from enum import Enum
 
 try:
     from rdkit import Chem
-    from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors
+    from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, QED
     from rdkit.Chem import ReplaceSubstructs, DeleteSubstructs
     RDKIT_AVAILABLE = True
 except ImportError:
@@ -37,6 +37,8 @@ class ModificationType(Enum):
     SATURATE_RING = "saturate_ring"
     HALOGENATE = "halogenate"
     DEHALOGENATE = "dehalogenate"
+    BIOISOSTERIC = "bioisosteric"
+    SCAFFOLD_ALTER = "scaffold_alter"
 
 
 class ExpectedEffect(Enum):
@@ -57,6 +59,7 @@ class CounterfactualMolecule:
     expected_toxicity_change: ExpectedEffect
     confidence: float  # How confident we are in the expected effect
     atoms_modified: List[int] = None
+    qed: Optional[float] = None  # Drug-likeness score (0-1) of the modified molecule
 
 
 class CounterfactualGenerator:
@@ -91,7 +94,32 @@ class CounterfactualGenerator:
         'chloro': ('[H]', 'Cl', ExpectedEffect.INCREASE, 0.6),
         'aldehyde': ('[CH3]', 'C=O', ExpectedEffect.INCREASE, 0.7),
     }
-    
+
+    # Bioisosteric replacements — preserve target activity while modulating
+    # toxicity / ADMET. (from_smarts, to_smarts, expected_effect, confidence)
+    # These are the clinically established bioisosteres used for "what-if"
+    # optimization in Mode C.
+    BIOISOSTERES = {
+        'nitro_to_trifluoromethyl': ('[N+](=O)[O-]', 'C(F)(F)F',
+                                      ExpectedEffect.DECREASE, 0.75),
+        'hydroxyl_to_fluorine': ('[OH]', 'F', ExpectedEffect.NEUTRAL, 0.7),
+        'carboxylic_acid_to_tetrazole': ('C(=O)[OH]', 'c1nnnn1',
+                                         ExpectedEffect.NEUTRAL, 0.65),
+        'phenyl_to_pyridyl': ('c1ccccc1', 'c1ccccn1',
+                              ExpectedEffect.NEUTRAL, 0.7),
+        'ester_to_amide': ('C(=O)O[C]', 'C(=O)N',
+                           ExpectedEffect.NEUTRAL, 0.6),
+        'sulfide_to_methylene': ('S', 'C', ExpectedEffect.DECREASE, 0.6),
+    }
+
+    # Scaffold alterations — ring-size / heteroatom swaps that change the core
+    # while keeping the overall pharmacophore. Conservative, validity-checked.
+    SCAFFOLD_ALTERATIONS = {
+        'benzene_to_pyridine': ('c1ccccc1', 'c1ccccn1', ExpectedEffect.NEUTRAL, 0.6),
+        'cyclopentyl_to_cyclohexyl': ('C1CCCC1', 'C1CCCCC1', ExpectedEffect.NEUTRAL, 0.7),
+        'thiophene_to_furan': ('c1ccsc1', 'c1ccoc1', ExpectedEffect.NEUTRAL, 0.6),
+    }
+
     def __init__(self):
         if not RDKIT_AVAILABLE:
             raise ImportError("RDKit is required for counterfactual generation")
@@ -137,6 +165,44 @@ class CounterfactualGenerator:
         unique_counterfactuals = self._deduplicate(counterfactuals)
         return unique_counterfactuals[:n_variants]
     
+    def generate_optimization_candidates(
+        self,
+        smiles: str,
+        n_variants: int = 6
+    ) -> List[CounterfactualMolecule]:
+        """Mode C helper: prioritize toxicity-lowering modifications.
+
+        Tries, in order of expected toxicity reduction: remove toxicophores,
+        bioisosteric swaps (nitro→CF3 etc.), dehalogenation, then scaffold
+        alterations. Returns the unique candidates (caller re-ranks by model
+        prediction)."""
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return []
+        ordered = [
+            ModificationType.REMOVE_TOXICOPHORE,
+            ModificationType.BIOISOSTERIC,
+            ModificationType.DEHALOGENATE,
+            ModificationType.SCAFFOLD_ALTER,
+            ModificationType.SATURATE_RING,
+        ]
+        cfs = []
+        for mt in ordered:
+            if len(cfs) >= n_variants:
+                break
+            cfs.extend(self._apply_modification_type(smiles, mol, mt))
+        cfs = self._deduplicate(cfs)[:n_variants]
+
+        # Attach a drug-likeness (QED) score to each candidate so the UI can
+        # surface only chemically sensible counterfactuals (SIH audit P2 #9).
+        for cf in cfs:
+            try:
+                m = Chem.MolFromSmiles(cf.modified_smiles)
+                cf.qed = round(float(QED.qed(m)), 3) if m is not None else None
+            except Exception:
+                cf.qed = None
+        return cfs
+
     def _apply_modification_type(
         self,
         smiles: str,
@@ -155,6 +221,10 @@ class CounterfactualGenerator:
             return self._saturate_aromatic_rings(smiles, mol)
         elif mod_type == ModificationType.DEHALOGENATE:
             return self._dehalogenate(smiles, mol)
+        elif mod_type == ModificationType.BIOISOSTERIC:
+            return self._bioisosteric_replacement(smiles, mol)
+        elif mod_type == ModificationType.SCAFFOLD_ALTER:
+            return self._scaffold_alteration(smiles, mol)
         else:
             return []
     
@@ -364,6 +434,68 @@ class CounterfactualGenerator:
         
         return counterfactuals
     
+    def _bioisosteric_replacement(
+        self,
+        smiles: str,
+        mol: Chem.Mol
+    ) -> List[CounterfactualMolecule]:
+        """Bioisosteric replacements that preserve activity, modulate safety."""
+        counterfactuals = []
+        for name, (from_smarts, to_smarts, expected_effect, confidence) in self.BIOISOSTERES.items():
+            from_pattern = Chem.MolFromSmarts(from_smarts)
+            to_fragment = Chem.MolFromSmarts(to_smarts)
+            if from_pattern is None or to_fragment is None:
+                continue
+            if mol.HasSubstructMatch(from_pattern):
+                try:
+                    modified_mol = AllChem.ReplaceSubstructs(
+                        mol, from_pattern, to_fragment, replaceAll=False
+                    )[0]
+                    Chem.SanitizeMol(modified_mol)
+                    modified_smiles = Chem.MolToSmiles(modified_mol)
+                    counterfactuals.append(CounterfactualMolecule(
+                        original_smiles=smiles,
+                        modified_smiles=modified_smiles,
+                        modification_type=ModificationType.BIOISOSTERIC,
+                        modification_description=f"Bioisosteric swap: {name}",
+                        expected_toxicity_change=expected_effect,
+                        confidence=confidence
+                    ))
+                except Exception as e:
+                    logger.debug(f"Failed bioisostere {name}: {e}")
+        return counterfactuals
+
+    def _scaffold_alteration(
+        self,
+        smiles: str,
+        mol: Chem.Mol
+    ) -> List[CounterfactualMolecule]:
+        """Conservative scaffold (core ring) alterations."""
+        counterfactuals = []
+        for name, (from_smarts, to_smarts, expected_effect, confidence) in self.SCAFFOLD_ALTERATIONS.items():
+            from_pattern = Chem.MolFromSmarts(from_smarts)
+            to_fragment = Chem.MolFromSmarts(to_smarts)
+            if from_pattern is None or to_fragment is None:
+                continue
+            if mol.HasSubstructMatch(from_pattern):
+                try:
+                    modified_mol = AllChem.ReplaceSubstructs(
+                        mol, from_pattern, to_fragment, replaceAll=False
+                    )[0]
+                    Chem.SanitizeMol(modified_mol)
+                    modified_smiles = Chem.MolToSmiles(modified_mol)
+                    counterfactuals.append(CounterfactualMolecule(
+                        original_smiles=smiles,
+                        modified_smiles=modified_smiles,
+                        modification_type=ModificationType.SCAFFOLD_ALTER,
+                        modification_description=f"Scaffold alteration: {name}",
+                        expected_toxicity_change=expected_effect,
+                        confidence=confidence
+                    ))
+                except Exception as e:
+                    logger.debug(f"Failed scaffold alteration {name}: {e}")
+        return counterfactuals
+
     def _deduplicate(
         self,
         counterfactuals: List[CounterfactualMolecule]

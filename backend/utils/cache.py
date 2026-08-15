@@ -65,7 +65,7 @@ class PredictionCache:
                 return None
             
             self.hits += 1
-            logger.info(f"✅ Cache HIT - SMILES: {smiles[:30]}... | Hit ratio: {self.get_hit_ratio():.1%}")
+            logger.info(f"✅ Cache HIT - SMILES: {smiles[:30]}... | Hit ratio: {self.get_hit_ratio_str()}")
             return result
             
         except Exception as e:
@@ -126,6 +126,15 @@ class PredictionCache:
         except Exception as e:
             logger.error(f"Error clearing cache: {e}")
     
+    def get_hit_ratio(self) -> float:
+        """Get cache hit ratio as a float (0.0 to 1.0)"""
+        total = self.hits + self.misses
+        return self.hits / total if total > 0 else 0.0
+
+    def get_hit_ratio_str(self) -> str:
+        """Get cache hit ratio as formatted string"""
+        return f"{self.get_hit_ratio():.1%}"
+
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
         total_requests = self.hits + self.misses
