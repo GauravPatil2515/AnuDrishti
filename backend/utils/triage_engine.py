@@ -110,12 +110,16 @@ class TriageEngine:
                     failures += 1
         return failures / total if total else 0.0
 
-    def _extract_uncertainty(self, prediction_result: Dict[str, Any],
-                             ood: Optional[Dict[str, Any]]) -> float:
+    def _extract_uncertainty(
+        self,
+        prediction_result: Dict[str, Any],
+        ood: Optional[Dict[str, Any]],
+        uncertainty_info: Optional[Dict[str, Any]] = None
+    ) -> float:
         """Prediction uncertainty proxy (0-1).
 
-        Combines distance-from-decision-boundary (max prob near 0.5 is most
-        uncertain) with OOD risk.
+        Combines distance-from-decision-boundary (aleatoric ambiguity), OOD risk,
+        and MC dropout epistemic uncertainty.
         """
         tox = self._extract_toxicity(prediction_result)
         # Closeness to 0.5 => max aleatoric ambiguity
@@ -124,7 +128,21 @@ class TriageEngine:
         ood_risk = 0.0
         if isinstance(ood, dict):
             ood_risk = float(ood.get('ood_score', 0.0))
-        return float(np.clip(0.5 * boundary_unc + 0.5 * ood_risk, 0.0, 1.0))
+
+        epistemic_score = 0.0
+        if isinstance(uncertainty_info, dict):
+            overall_unc = uncertainty_info.get('overall', {})
+            e_std = overall_unc.get('epistemic_std')
+            if e_std is not None:
+                # 0.20 std is high uncertainty => 1.0 score
+                epistemic_score = float(np.clip(float(e_std) / 0.20, 0.0, 1.0))
+
+        if epistemic_score > 0:
+            combined = 0.35 * boundary_unc + 0.35 * ood_risk + 0.30 * epistemic_score
+        else:
+            combined = 0.5 * boundary_unc + 0.5 * ood_risk
+
+        return float(np.clip(combined, 0.0, 1.0))
 
     def _extract_ood(self, ood: Optional[Dict[str, Any]]) -> float:
         if isinstance(ood, dict):
@@ -150,7 +168,8 @@ class TriageEngine:
         prediction_result: Dict[str, Any],
         ood: Optional[Dict[str, Any]] = None,
         toxicity_override: Optional[float] = None,
-        explanation: Optional[Dict[str, Any]] = None
+        explanation: Optional[Dict[str, Any]] = None,
+        uncertainty_info: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Return a structured triage decision.
 
@@ -161,7 +180,7 @@ class TriageEngine:
                if toxicity_override is not None
                else self._extract_toxicity(prediction_result))
         admet = self._extract_admet_failure(prediction_result)
-        uncertainty = self._extract_uncertainty(prediction_result, ood)
+        uncertainty = self._extract_uncertainty(prediction_result, ood, uncertainty_info)
         ood_risk = self._extract_ood(ood)
         exp_unrel = self._extract_explanation_unreliability(explanation)
 

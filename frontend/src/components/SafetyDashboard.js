@@ -2,7 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import {
   ShieldCheckIcon, ShieldExclamationIcon, ExclamationTriangleIcon,
-  SignalIcon, BeakerIcon,
+  SignalIcon, BeakerIcon, ScaleIcon
 } from '@heroicons/react/24/outline';
 
 const TRIAGE_STYLES = {
@@ -11,27 +11,86 @@ const TRIAGE_STYLES = {
   RED: { banner: 'bg-red-50 border-red-200', text: 'text-red-700', chip: 'bg-red-100 text-red-700', Icon: ShieldExclamationIcon, label: 'HIGH CONCERN' },
 };
 
-// Map model prediction dicts into a flat endpoint list
-const extractEndpoints = (analysis) => {
-  const preds = analysis?.predictions?.predictions || {};
-  return Object.entries(preds).map(([id, v]) => ({
-    id,
-    prob: typeof v?.probability === 'number' ? v.probability : 0,
-    label: v?.prediction || (v?.probability > 0.5 ? 'Toxic' : 'Non-toxic'),
-  }));
+const EPISTEMIC_BADGES = {
+  Low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  Moderate: 'bg-amber-100 text-amber-800 border-amber-300',
+  High: 'bg-red-100 text-red-800 border-red-300',
 };
 
-const RiskMeter = ({ label, prob, color }) => (
-  <div className="rounded-xl border border-slate-100 bg-white p-3">
-    <div className="flex items-center justify-between text-sm">
-      <span className="font-semibold text-slate-700">{label}</span>
-      <span className="font-mono text-slate-500">{(prob * 100).toFixed(0)}%</span>
+// Map model prediction dicts into a flat endpoint list with uncertainty
+const extractEndpoints = (analysis) => {
+  const preds = analysis?.predictions?.predictions || {};
+  const perEndpointUnc = analysis?.uncertainty?.per_endpoint || {};
+
+  return Object.entries(preds).map(([id, v]) => {
+    const prob = typeof v?.probability === 'number' ? v.probability : 0;
+    const unc = perEndpointUnc[id] || {};
+    const ci_low = typeof unc.ci_low === 'number' ? unc.ci_low : Math.max(0, prob - 0.15);
+    const ci_high = typeof unc.ci_high === 'number' ? unc.ci_high : Math.min(1, prob + 0.15);
+    const epistemicLabel = unc.epistemic_uncertainty || (unc.epistemic_std < 0.05 ? 'Low' : unc.epistemic_std > 0.15 ? 'High' : 'Moderate');
+
+    return {
+      id,
+      prob,
+      ci_low,
+      ci_high,
+      epistemic_std: unc.epistemic_std,
+      epistemic_uncertainty: epistemicLabel,
+      label: v?.prediction || (prob > 0.5 ? 'Toxic' : 'Non-toxic'),
+    };
+  });
+};
+
+const RiskMeter = ({ endpoint }) => {
+  const { id, prob, ci_low, ci_high, epistemic_uncertainty, epistemic_std } = endpoint;
+  const color = prob > 0.7 ? 'bg-red-500' : prob > 0.4 ? 'bg-amber-400' : 'bg-emerald-500';
+  const badgeStyle = EPISTEMIC_BADGES[epistemic_uncertainty] || EPISTEMIC_BADGES.Moderate;
+
+  const lowPercent = Math.max(0, Math.min(100, ci_low * 100));
+  const highPercent = Math.max(0, Math.min(100, ci_high * 100));
+  const probPercent = Math.max(0, Math.min(100, prob * 100));
+  const widthPercent = Math.max(2, highPercent - lowPercent);
+
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white p-3.5 shadow-sm space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-700">{id}</span>
+          <span className={clsx('rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase', badgeStyle)}>
+            Uncertainty: {epistemic_uncertainty}
+          </span>
+        </div>
+        <span className="font-mono text-slate-600 font-bold">{(prob * 100).toFixed(0)}%</span>
+      </div>
+
+      {/* Main bar */}
+      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className={clsx('h-full rounded-full transition-all duration-300', color)} style={{ width: `${probPercent}%` }} />
+      </div>
+
+      {/* Interactive 95% Confidence Interval Band */}
+      <div className="mt-1 space-y-1">
+        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+          <span>CI Low: {(ci_low * 100).toFixed(0)}%</span>
+          {epistemic_std != null && <span>std: ±{(epistemic_std * 100).toFixed(1)}%</span>}
+          <span>CI High: {(ci_high * 100).toFixed(0)}%</span>
+        </div>
+        <div className="relative h-2 w-full rounded bg-slate-100">
+          <div
+            className="absolute h-full rounded bg-indigo-200/70 border border-indigo-400/50"
+            style={{ left: `${lowPercent}%`, width: `${widthPercent}%` }}
+            title={`95% CI: [${(ci_low * 100).toFixed(1)}%, ${(ci_high * 100).toFixed(1)}%]`}
+          />
+          <div
+            className="absolute top-0 h-full w-1 -ml-0.5 bg-indigo-600 rounded"
+            style={{ left: `${probPercent}%` }}
+            title={`Point estimate: ${(prob * 100).toFixed(1)}%`}
+          />
+        </div>
+      </div>
     </div>
-    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
-      <div className={clsx('h-full rounded-full', color)} style={{ width: `${Math.min(100, prob * 100)}%` }} />
-    </div>
-  </div>
-);
+  );
+};
 
 const SafetyDashboard = ({ analysis }) => {
   if (!analysis) {
@@ -47,6 +106,7 @@ const SafetyDashboard = ({ analysis }) => {
   const ood = analysis.ood || {};
   const endpoints = extractEndpoints(analysis);
   const toxProb = analysis.toxicity_probability || 0;
+  const overallUnc = analysis.uncertainty?.overall || {};
 
   return (
     <div className="space-y-6">
@@ -90,8 +150,8 @@ const SafetyDashboard = ({ analysis }) => {
         </div>
       )}
 
-      {/* Primary toxicity + OOD / confidence badges */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Primary toxicity + OOD / confidence + Epistemic Uncertainty badges */}
+      <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
             <BeakerIcon className="h-5 w-5 text-indigo-500" /> Predicted Toxicity
@@ -120,21 +180,28 @@ const SafetyDashboard = ({ analysis }) => {
           </p>
           {ood.is_ood && <p className="text-xs text-red-400">Confidence reduced (OOD)</p>}
         </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+            <ScaleIcon className="h-5 w-5 text-indigo-500" /> Epistemic Band
+          </div>
+          <p className="mt-1 text-2xl font-black text-indigo-600">
+            {overallUnc.epistemic_uncertainty || 'Moderate'}
+          </p>
+          {overallUnc.epistemic_std != null && (
+            <p className="text-xs text-slate-500 font-mono">std ±{(overallUnc.epistemic_std * 100).toFixed(1)}%</p>
+          )}
+        </div>
       </div>
 
       {/* Endpoint grid */}
       <div>
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">
-          Multi-Task Endpoints
+          Multi-Task Endpoints (with MC-Dropout 95% CIs)
         </h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {endpoints.map((e) => (
-            <RiskMeter
-              key={e.id}
-              label={e.id}
-              prob={e.prob}
-              color={e.prob > 0.7 ? 'bg-red-500' : e.prob > 0.4 ? 'bg-amber-400' : 'bg-emerald-500'}
-            />
+            <RiskMeter key={e.id} endpoint={e} />
           ))}
           {endpoints.length === 0 && (
             <p className="text-sm text-slate-400">No endpoint predictions available.</p>

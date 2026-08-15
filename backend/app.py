@@ -2360,14 +2360,20 @@ def _validate_smiles(smiles):
     return mol, None
 
 
-def _compute_uncertainty(result):
-    """Estimate a simple prediction uncertainty band from the multi-source ensemble.
+def _compute_uncertainty(result, smiles=None, use_mc=False):
+    """Estimate a prediction uncertainty band from the multi-source ensemble and MC-dropout.
 
     For endpoints predicted by more than one model we use the empirical spread
-    across models; for single-source endpoints we map the model's qualitative
-    confidence label to a half-width. Returns per-endpoint CIs and an overall CI
-    for the mean toxicity probability (SIH audit P1 #7: no uncertainty shown).
+    across models; when use_mc=True and smiles is provided, we fetch MC-dropout
+    epistemic std and 95% CIs from predictor.predict_mc_dropout(smiles).
     """
+    mc_data = {}
+    if use_mc and smiles and predictor and hasattr(predictor, 'predict_mc_dropout'):
+        try:
+            mc_data = predictor.predict_mc_dropout(smiles, n_samples=20) or {}
+        except Exception as e:
+            print(f"⚠️ MC dropout estimation failed in _compute_uncertainty: {e}")
+
     by_endpoint = {}
     preds = result.get('predictions', {}) if isinstance(result, dict) else {}
     for endpoint, r in preds.items():
@@ -2378,32 +2384,67 @@ def _compute_uncertainty(result):
     per_endpoint = {}
     half_widths = []
     endpoint_means = []
+    epistemic_stds = []
     _conf_half = {"Very High": 0.05, "High": 0.10, "Medium": 0.15, "Low": 0.20, "Very Low": 0.25}
     for endpoint, lst in by_endpoint.items():
         probs = [float(x.get('probability', 0.5)) for x in lst]
         mean_p = float(np.mean(probs))
-        if len(lst) > 1:
-            std_p = float(np.std(probs))
-            half = max(0.04, 1.96 * std_p)
+
+        ep_mc = mc_data.get(endpoint, {})
+        if ep_mc and 'std' in ep_mc:
+            e_std = float(ep_mc['std'])
+            ci_low = float(ep_mc.get('ci_low', max(0.0, mean_p - 1.96 * e_std)))
+            ci_high = float(ep_mc.get('ci_upper', min(1.0, mean_p + 1.96 * e_std)))
+            half = (ci_high - ci_low) / 2.0
+        elif len(lst) > 1:
+            e_std = float(np.std(probs))
+            half = max(0.04, 1.96 * e_std)
+            ci_low = max(0.0, mean_p - half)
+            ci_high = min(1.0, mean_p + half)
         else:
+            e_std = 0.08
             half = _conf_half.get(lst[0].get('confidence'), 0.20)
+            ci_low = max(0.0, mean_p - half)
+            ci_high = min(1.0, mean_p + half)
+
         half = min(half, 0.45)
+
+        # Label epistemic uncertainty: Low <0.05 / Moderate 0.05-0.15 / High >0.15
+        if e_std < 0.05:
+            e_label = "Low"
+        elif e_std <= 0.15:
+            e_label = "Moderate"
+        else:
+            e_label = "High"
+
         per_endpoint[endpoint] = {
             'probability': round(mean_p, 4),
-            'ci_low': round(max(0.0, mean_p - half), 4),
-            'ci_high': round(min(1.0, mean_p + half), 4),
+            'ci_low': round(ci_low, 4),
+            'ci_high': round(ci_high, 4),
+            'epistemic_std': round(e_std, 4),
+            'epistemic_uncertainty': e_label,
             'n_models': len(lst),
             'confidence': lst[0].get('confidence', 'Medium')
         }
         half_widths.append(half)
         endpoint_means.append(mean_p)
+        epistemic_stds.append(e_std)
 
     if endpoint_means:
         overall_mean = float(np.mean(endpoint_means))
         overall_half = min(0.45, max(half_widths) if half_widths else 0.20)
+        overall_std = float(np.mean(epistemic_stds)) if epistemic_stds else 0.08
     else:
         overall_mean = 0.5
         overall_half = 0.45
+        overall_std = 0.10
+
+    if overall_std < 0.05:
+        overall_label = "Low"
+    elif overall_std <= 0.15:
+        overall_label = "Moderate"
+    else:
+        overall_label = "High"
 
     return {
         'per_endpoint': per_endpoint,
@@ -2411,6 +2452,8 @@ def _compute_uncertainty(result):
             'mean': round(overall_mean, 4),
             'ci_low': round(max(0.0, overall_mean - overall_half), 4),
             'ci_high': round(min(1.0, overall_mean + overall_half), 4),
+            'epistemic_std': round(overall_std, 4),
+            'epistemic_uncertainty': overall_label,
             'n_endpoints': len(endpoint_means)
         }
     }
@@ -2483,7 +2526,7 @@ def _render_attention_svg(smiles, attention):
         return None
 
 
-def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=True):
+def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=True, use_mc=True):
     """Run the full PharmaGuard AI pipeline for a single SMILES string.
 
     Returns a structured dict with predictions, attributions, OOD, triage,
@@ -2508,6 +2551,13 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
     elif 'predictions' in result:
         probs = [v.get('probability', 0.0) for v in result['predictions'].values() if isinstance(v, dict)]
         tox_prob = max(probs) if probs else 0.0
+
+    analysis = {
+        'smiles': smiles,
+        'predictions': result,
+        'toxicity_probability': tox_prob,
+        'timestamp': datetime.now().isoformat()
+    }
 
     # 3. Attention / attribution weights from the GNN
     attention_weights = np.array([])
@@ -2535,25 +2585,19 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
         print(f"⚠️ Attribution extraction failed: {e}")
         analysis['attention_source'] = 'error'
 
-    analysis = {
-        'smiles': smiles,
-        'predictions': result,
-        'toxicity_probability': tox_prob,
-        'substructures': [
-            {
-                'name': m.name,
-                'smarts': m.smarts,
-                'atoms': m.atoms,
-                'avg_attention': m.avg_attention,
-                'category': m.toxicity_category
-            } for m in substructures[:5]
-        ],
-        'timestamp': datetime.now().isoformat()
-    }
+    analysis['substructures'] = [
+        {
+            'name': m.name,
+            'smarts': m.smarts,
+            'atoms': m.atoms,
+            'avg_attention': m.avg_attention,
+            'category': m.toxicity_category
+        } for m in substructures[:5]
+    ]
 
-    # 3b. Prediction uncertainty band (multi-source ensemble spread)
+    # 3b. Prediction uncertainty band (multi-source ensemble spread + MC dropout)
     try:
-        analysis['uncertainty'] = _compute_uncertainty(result)
+        analysis['uncertainty'] = _compute_uncertainty(result, smiles=smiles, use_mc=use_mc)
     except Exception as e:
         print(f"⚠️ Uncertainty computation failed: {e}")
 
@@ -2568,7 +2612,12 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
     # 5. Risk triage
     if triage_engine is not None:
         try:
-            triage = triage_engine.triage(result, analysis.get('ood'), tox_prob)
+            triage = triage_engine.triage(
+                result,
+                analysis.get('ood'),
+                tox_prob,
+                uncertainty_info=analysis.get('uncertainty')
+            )
             analysis['triage'] = triage
         except Exception as e:
             print(f"⚠️ Triage failed: {e}")
@@ -2739,7 +2788,7 @@ def analyze_batch():
             if smiles_err:
                 return {'smiles': smi, 'error': smiles_err, 'code': 'INVALID_SMILES'}
             try:
-                a = _build_pharmaguard_analysis(smi, include_explanation=include_explanation, include_ood=True)
+                a = _build_pharmaguard_analysis(smi, include_explanation=include_explanation, include_ood=True, use_mc=False)
                 if a and 'error' not in a:
                     return a
                 return {'smiles': smi, 'error': (a or {}).get('error', 'failed')}
