@@ -85,4 +85,4 @@ test_library.csv
 !requirements*.txt
 
 # OS
-*.DS_Store
+*.DS_Storebackend/batch_results/*.json

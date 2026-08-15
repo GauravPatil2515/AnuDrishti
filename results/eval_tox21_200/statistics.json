@@ -1,9 +1,0 @@
-{
-  "n_evaluated": 200,
-  "mean_faithfulness": 0.5039998339999034,
-  "std_faithfulness": 0.3830702477919803,
-  "median_faithfulness": 0.7937005259840998,
-  "rejection_rate": 0.365,
-  "mean_generation_attempts": 1.73,
-  "mean_toxicophores_per_molecule": 0.0
-}
