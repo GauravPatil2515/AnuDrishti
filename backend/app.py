@@ -2416,6 +2416,73 @@ def _compute_uncertainty(result):
     }
 
 
+def _extract_attention(smiles):
+    """Run the attention GNN with ``return_attention=True`` to get real per-atom
+    importance scores (SIH audit Milestone B.2: genuine, model-derived atom
+    attribution for the 2D attention heatmap — not a synthetic proxy).
+    """
+    try:
+        if predictor is None or not predictor.is_loaded:
+            return None
+        gnn_entry = getattr(predictor, 'models', {}).get('attention_gin')
+        if not gnn_entry:
+            return None
+        gnn = gnn_entry.get('model') if isinstance(gnn_entry, dict) else gnn_entry
+        if gnn is None:
+            return None
+        data = predictor._smiles_to_graph_simple(smiles)
+        if data is None:
+            return None
+        from torch_geometric.data import Batch
+        import torch
+        batch = Batch.from_data_list([data]).to(predictor.device)
+        with torch.no_grad():
+            _, _, info = gnn(batch, return_attention=True)
+        aw = info.get('attention_weights') if isinstance(info, dict) else None
+        if aw is None:
+            return None
+        aw = aw.detach().cpu().numpy() if hasattr(aw, 'detach') else np.asarray(aw)
+        return np.asarray(aw, dtype=float).flatten()
+    except Exception as e:
+        print(f"⚠️ Attention extraction failed: {e}")
+        return None
+
+
+def _render_attention_svg(smiles, attention):
+    """Render a 2D molecular structure with atoms coloured by attention weight
+    (blue = low importance → red = high importance). Returns an SVG string."""
+    try:
+        from rdkit import Chem
+        from rdkit.Chem.Draw.rdMolDraw2D import MolDraw2DSVG, PrepareAndDrawMolecule
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        n = mol.GetNumAtoms()
+        att = np.asarray(attention, dtype=float).flatten()[:n]
+        if len(att) == 0:
+            return None
+        lo, hi = float(att.min()), float(att.max())
+        rng = (hi - lo) if hi > lo else 1.0
+        norm = (att - lo) / rng  # 0..1
+        colors = {}
+        for i in range(n):
+            t = float(norm[i])
+            # blue (low) -> red (high)
+            colors[i] = (0.20 + 0.80 * t, 0.45 * (1 - t) + 0.20 * t, 1.0 - 0.80 * t)
+        drawer = MolDraw2DSVG(420, 320)
+        PrepareAndDrawMolecule(
+            drawer, mol,
+            highlightAtoms=list(range(n)),
+            highlightAtomColors=colors,
+            highlightBonds=False,
+        )
+        drawer.FinishDrawing()
+        return drawer.GetDrawingText()
+    except Exception as e:
+        print(f"⚠️ Attention SVG render failed: {e}")
+        return None
+
+
 def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=True):
     """Run the full PharmaGuard AI pipeline for a single SMILES string.
 
@@ -2442,26 +2509,31 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
         probs = [v.get('probability', 0.0) for v in result['predictions'].values() if isinstance(v, dict)]
         tox_prob = max(probs) if probs else 0.0
 
-    # 3. Attention / attribution weights from the GNN (via substructure mapper)
+    # 3. Attention / attribution weights from the GNN
     attention_weights = np.array([])
     substructures = []
     try:
         from utils.substructure_mapper import SubstructureMapper
-        mapper = SubstructureMapper()
-        # Build a synthetic-per-atom proxy when a real forward pass is unavailable
         from rdkit import Chem
+        mapper = SubstructureMapper()
         mol = Chem.MolFromSmiles(smiles)
-        if mol is not None:
-            n_atoms = mol.GetNumAtoms()
-            AttentionGIN = getattr(predictor, 'attention_weights', None)
-            if AttentionGIN is not None and len(AttentionGIN) == n_atoms:
-                attention_weights = np.asarray(AttentionGIN, dtype=float)
-            else:
-                # Uniform fallback (relative adaptive cutoff still works)
-                attention_weights = np.full(n_atoms, 1.0 / max(n_atoms, 1))
+        n_atoms = mol.GetNumAtoms() if mol is not None else 0
+        real_attn = _extract_attention(smiles) if n_atoms else None
+        if real_attn is not None and len(real_attn) == n_atoms:
+            # Real per-atom importance from the attention GNN
+            attention_weights = np.asarray(real_attn, dtype=float)
+            analysis['attention_source'] = 'gnn_attention'
+        elif n_atoms:
+            # Uniform fallback (relative adaptive cutoff still works)
+            attention_weights = np.full(n_atoms, 1.0 / max(n_atoms, 1))
+            analysis['attention_source'] = 'uniform_fallback'
+        else:
+            analysis['attention_source'] = 'none'
+        if attention_weights.size:
             substructures = mapper.identify_substructures(smiles, attention_weights)
     except Exception as e:
         print(f"⚠️ Attribution extraction failed: {e}")
+        analysis['attention_source'] = 'error'
 
     analysis = {
         'smiles': smiles,
@@ -2932,6 +3004,44 @@ def report_export():
         print(f"❌ Report export error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Report export failed: {str(e)}'}), 500
+
+
+@app.route('/api/visualize/attention-heatmap', methods=['POST'])
+def visualize_attention_heatmap():
+    """Render a 2D molecular structure coloured by real GNN atom-attention
+    weights (Milestone B.2 visual differentiator for SIH judges)."""
+    try:
+        if not predictor or not predictor.is_loaded:
+            return jsonify({'error': 'Predictor not initialized'}), 500
+
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        mol, smiles_err = _validate_smiles(smiles)
+        if smiles_err:
+            return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
+
+        att = _extract_attention(smiles)
+        if att is None:
+            return jsonify({'error': 'Attention extraction unavailable'}), 503
+
+        svg = _render_attention_svg(smiles, att)
+        if svg is None:
+            return jsonify({'error': 'Structure rendering failed'}), 500
+
+        return jsonify({
+            'success': True,
+            'smiles': smiles,
+            'attention': [round(float(x), 4) for x in att],
+            'attention_source': 'gnn_attention',
+            'svg': svg
+        })
+    except Exception as e:
+        print(f"❌ Attention heatmap error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Heatmap failed: {str(e)}'}), 500
 
 
 @app.errorhandler(404)

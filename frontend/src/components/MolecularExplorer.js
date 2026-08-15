@@ -1,31 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import { clsx } from 'clsx';
 import { SwatchIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
+import StructureHeatmap from './StructureHeatmap';
 
 /**
- * MolecularExplorer — renders the 2D structure and overlays GNN attention
- * (atom importance) as a heatmap. Falls back to a backend-rendered image when
- * no per-atom weights are available.
+ * MolecularExplorer — renders the 2D structure with a real GNN attention
+ * heatmap (atom importance overlay) and lists risk-associated substructures.
  */
 const MolecularExplorer = ({ analysis }) => {
-  const [svg, setSvg] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [toggle, setToggle] = useState('attention'); // attention | substructure
-
-  const smiles = analysis?.smiles;
-
-  useEffect(() => {
-    if (!smiles) return;
-    setLoading(true);
-    axios
-      .post('/api/visualize/molecule', { smiles, size: 500 })
-      .then((res) => {
-        if (res.data?.success) setSvg(res.data.image);
-      })
-      .catch(() => setSvg(null))
-      .finally(() => setLoading(false));
-  }, [smiles]);
 
   if (!analysis) {
     return (
@@ -35,12 +18,14 @@ const MolecularExplorer = ({ analysis }) => {
     );
   }
 
+  const smiles = analysis.smiles;
   const substructures = analysis.substructures || [];
   const topSub = substructures[0];
+  const attnSource = analysis.attention_source;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {/* Molecule image */}
+      {/* Molecule image + attention heatmap */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Molecular Graph</h3>
@@ -64,14 +49,21 @@ const MolecularExplorer = ({ analysis }) => {
           </div>
         </div>
 
-        <div className="flex min-h-[260px] items-center justify-center rounded-xl bg-slate-50 p-4">
-          {loading ? (
-            <span className="text-sm text-slate-400">Rendering…</span>
-          ) : svg ? (
-            <img src={svg} alt="molecule" className="max-h-72" />
-          ) : (
-            <span className="font-mono text-xs text-slate-400">{smiles}</span>
-          )}
+        {toggle === 'attention' ? (
+          <StructureHeatmap smiles={smiles} />
+        ) : (
+          <div className="flex min-h-[260px] items-center justify-center rounded-xl bg-slate-50 p-4">
+            <span className="font-mono text-sm text-slate-400">{smiles}</span>
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+          <span>
+            Attribution source:{' '}
+            <span className="font-semibold text-slate-600">
+              {attnSource === 'gnn_attention' ? 'GNN attention (real)' : attnSource || 'n/a'}
+            </span>
+          </span>
         </div>
 
         {toggle === 'substructure' && topSub && (
