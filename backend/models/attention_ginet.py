@@ -302,9 +302,39 @@ class AttentionGINet(nn.Module):
         """Get the most recent attention weights after forward pass."""
         return self._last_attention_weights
     
-    def get_node_features(self):
-        """Get the most recent node features after forward pass."""
-        return self._last_node_features
+    def predict_mc_dropout(self, data, n_samples=30):
+        """Run T stochastic forward passes with dropout enabled to estimate epistemic uncertainty.
+        Returns (mean, std, ci_low, ci_upper) as numpy arrays of shape [num_tasks].
+        """
+        try:
+            import torch
+            import numpy as np
+            self.train()  # enable dropout
+            # set all BatchNorm layers to eval mode to use running statistics
+            for module in self.modules():
+                if isinstance(module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+                    module.eval()
+            all_preds = []
+            with torch.no_grad():
+                for _ in range(n_samples):
+                    out = self(data)
+                    if isinstance(out, tuple):
+                        # assume (features, predictions, ...) or (features, predictions)
+                        predictions = out[1] if len(out) >= 2 else out[0]
+                    else:
+                        predictions = out
+                    all_preds.append(predictions.cpu().numpy())
+            if not all_preds:
+                return None
+            all_preds = np.stack(all_preds, axis=0)  # [T, num_tasks]
+            mean = all_preds.mean(axis=0)
+            std = all_preds.std(axis=0)
+            ci_low = np.maximum(0.0, mean - 1.96 * std)
+            ci_upper = np.minimum(1.0, mean + 1.96 * std)
+            return mean, std, ci_low, ci_upper
+        except Exception as e:
+            print(f"⚠️ MC dropout failed: {e}")
+            return None
     
     def load_pretrained_ginet(self, state_dict, strict=False):
         """

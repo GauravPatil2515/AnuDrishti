@@ -402,7 +402,8 @@ class UnifiedADMETPredictor:
         }
         
         return results
-    
+
+
     
     def _predict_attention_gin(self, smiles):
         """Predict using Attention-GIN (Tox21)"""
@@ -439,7 +440,7 @@ class UnifiedADMETPredictor:
             }
         
         return results
-    
+
     def _predict_bbbp(self, smiles):
         """Predict Blood-Brain Barrier Penetration"""
         model_info = self.models['bbbp']
@@ -454,7 +455,7 @@ class UnifiedADMETPredictor:
         with torch.no_grad():
             out = model(batch)
             prob = float(torch.sigmoid(out).cpu().numpy()[0])
-            
+        
         return {
             'BBBP': {
                 'probability': prob,
@@ -478,7 +479,7 @@ class UnifiedADMETPredictor:
         with torch.no_grad():
             out = model(batch)
             probs = torch.sigmoid(out).cpu().numpy()[0]
-            
+        
         return {
             'FDA_APPROVED': {
                 'probability': float(probs[0]),
@@ -509,7 +510,7 @@ class UnifiedADMETPredictor:
             out = model(batch)
             # Inverse log transform: expm1
             pred_val = float(np.expm1(out.cpu().numpy()[0]))
-            
+        
         return {
             'Clearance': {
                 'value': pred_val,
@@ -543,7 +544,7 @@ class UnifiedADMETPredictor:
                 print(f"⚠️ XGBoost endpoint {endpoint} failed: {e}")
         
         return results
-    
+
     def _get_confidence(self, prob):
         distance = abs(prob - 0.5)
         if distance > 0.4: return "Very High"
@@ -551,13 +552,13 @@ class UnifiedADMETPredictor:
         elif distance > 0.2: return "Medium"
         elif distance > 0.1: return "Low"
         else: return "Very Low"
-    
+
     def _get_assessment(self, avg_prob):
         if avg_prob >= 0.7: return "HIGH TOXICITY ⚠️"
         elif avg_prob >= 0.5: return "MODERATE TOXICITY 🟡"
         elif avg_prob >= 0.3: return "LOW TOXICITY 🟢"
         else: return "VERY LOW TOXICITY ✅"
-    
+
     # Alias for backwards compatibility
     def predict_single(self, smiles):
         return self.predict(smiles)
@@ -630,6 +631,66 @@ class SimplifiedAttentionGINet(nn.Module):
         h_graph = self.pool(h, batch)
         out = self.pred(h_graph)
         return out
+    def predict_mc_dropout(self, smiles, n_samples=20):
+        """Return dict endpoint -> {mean, std, ci_low, ci_upper} using MC dropout on applicable GNN models.
+        Skips models without the method."""
+        if not self.is_loaded:
+            return {}
+        result = {}
+        # Helper to process a model key
+        def process_model(key):
+            try:
+                model_info = self.models.get(key)
+                if model_info is None:
+                    return
+                model = model_info.get('model') if isinstance(model_info, dict) else model_info
+                if model is None:
+                    return
+                if not hasattr(model, 'predict_mc_dropout'):
+                    return
+                data = self._smiles_to_graph_simple(smiles)
+                if data is None:
+                    return
+                from torch_geometric.data import Batch
+                import torch
+                batch = Batch.from_data_list([data]).to(self.device)
+                model.train()
+                for module in model.modules():
+                    if isinstance(module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+                        module.eval()
+                all_preds = []
+                with torch.no_grad():
+                    for _ in range(n_samples):
+                        out = model(batch)
+                        if isinstance(out, tuple):
+                            predictions = out[1] if len(out) >= 2 else out[0]
+                        else:
+                            predictions = out
+                    all_preds.append(predictions.cpu().numpy())
+                if all_preds:
+                    all_preds = np.stack(all_preds, axis=0)  # [T, num_tasks]
+                    mean = all_preds.mean(axis=0)
+                    std = all_preds.std(axis=0)
+                    ci_low = np.maximum(0.0, mean - 1.96 * std)
+                    ci_upper = np.minimum(1.0, mean + 1.96 * std)
+                    endpoints = model_info.get('endpoints', [])
+                    for idx, ep in enumerate(endpoints):
+                        if idx < len(mean):
+                            if ep not in result:
+                                result[ep] = {}
+                            result[ep].update({
+                                'mean': float(mean[idx]),
+                                'std': float(std[idx]),
+                                'ci_low': float(ci_low[idx]),
+                                'ci_upper': float(ci_upper[idx]),
+                            })
+            except Exception as e:
+                print(f"⚠️ MC dropout failed for {key}: {e}")
+
+        # Process known GNN model keys
+        for key in ['attention_gin', 'bbbp', 'clintox', 'clearance']:
+            process_model(key)
+        return result
 
 
 if __name__ == "__main__":
