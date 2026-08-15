@@ -8,7 +8,8 @@ import {
   CheckBadgeIcon,
   ArrowRightIcon,
   AdjustmentsHorizontalIcon,
-  SignalIcon
+  SignalIcon,
+  PlayIcon
 } from '@heroicons/react/24/outline';
 
 const Home = () => {
@@ -75,6 +76,13 @@ const Home = () => {
               <BeakerIcon className="h-5 w-5" />
               <span>Open PharmaGuard AI Workbench</span>
               <ArrowRightIcon className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate('/app/pharmaguard', { state: { openDemo: true } })}
+              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-300 bg-white px-6 py-4 text-base font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-50 hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <PlayIcon className="h-5 w-5" />
+              <span>Try Demo (2 free molecules)</span>
             </button>
           </div>
         </div>

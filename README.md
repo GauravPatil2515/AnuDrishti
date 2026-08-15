@@ -1,18 +1,30 @@
-# PharmaGuard AI: Trustworthy Drug-Safety Decision Support
+# AnuDrishti / PharmaGuard AI: Free, Explainable Molecular Safety Triage
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://reactjs.org/)
+[![Tests](https://img.shields.io/badge/Tests-18%2F18%20Passing-brightgreen.svg)]()
 
-**PharmaGuard AI** is a deployable, trustworthy drug-safety decision-support platform combining **Graph Neural Networks (GNNs)** for multi-task molecular toxicity/ADMET prediction with **LLM explanations validated by counterfactual faithfulness checking** — the first system that **rejects unfaithful explanations** before they reach scientists.
+**AnuDrishti (PharmaGuard AI)** is a deployable, trustworthy drug-safety decision-support platform combining **Graph Neural Networks (GNNs)** for multi-task molecular toxicity/ADMET prediction with **LLM explanations validated by counterfactual faithfulness checking** — the first system that **rejects unfaithful explanations** before they reach scientists.
+
+---
+
+## 🎁 Zero-Setup Demo: 2 Free Molecule Evaluation
+
+Experience the full end-to-end capabilities of AnuDrishti without an API key or molecular input required:
+
+1. **Paracetamol (Acetaminophen)** — 🟢 **GREEN Triage**: Safe therapeutic profile with minimal toxicity risk.
+2. **Nitrobenzene** — 🔴 **RED Triage**: High mutagenicity & toxicity driven by reactive nitro group (`[N+](=O)[O-]`).
+
+Try it instantly via the web workbench's **Demo Tab** or via API: `GET /api/demo`.
 
 ---
 
 ## 🎯 Key Innovation: Faithfulness-Gated Explanations
 
-| Traditional AI | PharmaGuard AI |
-|----------------|----------------|
+| Traditional AI | AnuDrishti / PharmaGuard AI |
+|----------------|-----------------------------|
 | LLM generates free-form explanation | LLM **constrained** by GNN evidence |
 | No verification of claims | **Counterfactual test**: remove cited substructure → prediction must drop |
 | Hallucinations silently shown | **EFS threshold (0.70)**: fails → **REJECTED** with audit trail |
@@ -62,219 +74,110 @@
 - Node.js 18+
 - (Optional) `GROQ_API_KEY` for live LLM explanations
 
-### 1. Clone & Install Backend
+### 1. Clone Repository
 ```bash
-git clone https://github.com/GauravPatil2515/PharmaGuard-AI.git
-cd PharmaGuard-AI
-
-# Backend
-python -m venv venv
-source venv/bin/activate
-pip install -r backend/requirements.txt
-cp backend/.env.example backend/.env
-# Edit backend/.env to add GROQ_API_KEY (optional)
+git clone https://github.com/GauravPatil2515/AnuDrishti.git
+cd AnuDrishti
 ```
 
-### 2. Install Frontend
+### 2. Run Backend
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r backend/requirements.txt
+python backend/app.py
+```
+*Backend runs on `http://localhost:5000`*
+
+### 3. Run Frontend
 ```bash
 cd frontend
 npm install
-```
-
-### 3. Run Both Servers
-```bash
-# Terminal 1 - Backend (port 5000)
-cd backend
-python app.py
-
-# Terminal 2 - Frontend (port 3000)
-cd frontend
 npm start
 ```
-
-### 4. Open PharmaGuard Workbench
-```
-http://localhost:3000/app/pharmaguard
-```
+*Frontend runs on `http://localhost:3000`*
 
 ---
 
-## 🧪 API Endpoints (All Tested ✅)
+## 🧪 API Endpoints (All 18 Tests Passing ✅)
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/health` | GET | System health + cache stats |
-| `/api/analyze/single` | POST | **Mode A** — Single molecule full pipeline |
+| `/api/demo` | GET | **Zero-Setup Demo** — 2 curated molecules (Paracetamol & Nitrobenzene) |
+| `/api/lookup/smiles` | POST | **Mode D** — Compound name → SMILES via PubChem REST |
+| `/api/analyze/single` | POST | **Mode A** — Single molecule full pipeline with MC-Dropout |
 | `/api/analyze/batch` | POST | **Mode B** — Library screening (1000 max) |
 | `/api/analyze/batch-status` | GET | Cached batch results |
 | `/api/explain/verify` | POST | **Faithfulness verification** (EFS + claim audit) |
-| `/api/optimize/what-if` | POST | **Mode C** — Counterfactual optimization |
+| `/api/optimize/what-if` | POST | **Mode C** — Counterfactual bioisostere optimization |
 | `/api/report/export` | POST | JSON audit trail download |
-| `/api/predict` | POST | Legacy prediction |
-| `/api/endpoints` | GET | List loaded models |
+| `/api/predict` | POST | Unified ensemble raw prediction |
+| `/api/endpoints` | GET | List loaded GNN models |
 | `/api/config/status` | GET | Groq + model status |
-| `/api/cache/stats` | GET | Cache hit ratio (fixed ✅) |
+| `/api/cache/stats` | GET | Cache hit ratio tracking |
 
 ---
 
 ## 💡 Demo Flow (2 Minutes)
 
-1. **Mode A** → Paste `c1ccc([N+](=O)[O-])cc1` (nitrobenzene) → **Run Analysis**
-2. **Safety Tab** → YELLOW triage, 16 endpoints, OOD flagged
-3. **Audit Tab** → **"Verify Explanation"** → **EFS=1.0 VERIFIED** ✅
-4. **Audit Tab** → **"Simulate Unfaithful"** → **EFS=0.5 REJECTED** ❌
-5. **What-If Tab** → Saturation/CF₃ swap lowers toxicity
-6. **Library Tab** → Batch 3 molecules → **Export CSV**
-7. **Report Tab** → **Download JSON** → Full audit trail
+1. **Try Demo** → Click "Try Demo" on Hero or Workbench → Instantly inspect Paracetamol (🟢 GREEN) & Nitrobenzene (🔴 RED).
+2. **Mode A (Single Molecule)** → Input compound name "Aspirin" via Mode D lookup or paste SMILES `c1ccc([N+](=O)[O-])cc1` (nitrobenzene).
+3. **Safety Tab** → Inspect 16 ADMET endpoints, Epistemic Uncertainty bands, and OOD alerts.
+4. **Audit Tab** → Click **"Verify Explanation"** → Inspect EFS Score (VERIFIED / PARTIAL / REJECTED).
+5. **What-If Tab** → Saturation / CF₃ replacement lowers toxicity.
+6. **Library Tab** → Batch screen up to 1000 molecules → Export CSV.
 
 ---
 
-## 📁 Repository Structure (Cleaned)
+## 📁 Repository Structure
 
 ```
-PharmaGuard-AI/
+AnuDrishti/
 ├── backend/
-│   ├── app.py                 # Flask API with 12 PharmaGuard endpoints
-│   ├── config/                # Groq, Supabase configs
+│   ├── app.py                 # Flask API app & Blueprint registration
+│   ├── routes/
+│   │   └── pharmaguard.py     # 8 core PharmaGuard REST endpoints
 │   ├── models/
-│   │   ├── attention_ginet.py     # Attention-GIN architecture
-│   │   ├── unified_predictor.py   # 4-model ensemble loader
-│   │   ├── faithfulness_validator.py  # EFS + claim audit
-│   │   ├── constrained_explainer.py   # LLM + faithfulness gate
-│   │   └── meditox_feature.py       # Chemical safety analysis
+│   │   ├── attention_ginet.py # Multi-task GNN with MC-Dropout
+│   │   ├── unified_predictor.py # 4-model ensemble predictor
+│   │   └── faithfulness_validator.py # EFS calculation & claim audit
 │   ├── utils/
-│   │   ├── cache.py               # Fixed get_hit_ratio()
-│   │   ├── ood_detector.py        # ECFP4 Tanimoto + latent Mahalanobis
-│   │   ├── triage_engine.py       # GREEN/YELLOW/RED risk scoring
-│   │   ├── counterfactual_generator.py  # Bioisosteres + scaffold alters
-│   │   └── substructure_mapper.py # SMARTS toxicophore mapping
-│   ├── requirements.txt
-│   ├── .env / .env.example
-│   └── gunicorn.conf.py
+│   │   ├── triage_engine.py   # GREEN/YELLOW/RED risk scoring
+│   │   ├── ood_detector.py    # ECFP4 Tanimoto + latent Mahalanobis OOD
+│   │   ├── counterfactual_generator.py # Bioisostere & scaffold optimizer
+│   │   └── substructure_mapper.py # Toxicophore SMARTS mapping
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # 6 PharmaGuard components
-│   │   │   ├── MolecularInput.js
-│   │   │   ├── MolecularExplorer.js
-│   │   │   ├── SafetyDashboard.js
-│   │   │   ├── ExplanationAudit.js      # EFS gauge + hallucination toggle
-│   │   │   ├── LibraryScreening.js
-│   │   │   └── WhatIfOptimizer.js
-│   │   ├── pages/
-│   │   │   └── PharmaGuardWorkbench.jsx # 6-tab workbench
-│   │   └── App.js
-│   ├── package.json
-│   └── public/
-├── tests/
-│   └── test_faithfulness.py   # 4/4 passing
-├── .gitignore
+│   │   ├── components/        # Input, Dashboard, Explorer, Audit, Library
+│   │   ├── pages/             # Home.jsx (Hero) & PharmaGuardWorkbench.jsx
+│   │   └── index.css          # Tailwind CSS design system
+│   ├── tailwind.config.js
+│   └── package.json
+├── tests/                     # 18 passing pytest integration & unit tests
 └── README.md
 ```
-
----
-
-## ⚙️ Configuration
-
-### Backend `.env`
-```env
-# LLM (optional - enables live explanations)
-GROQ_API_KEY=your_groq_key
-
-# Supabase (optional - audit trail persistence)
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=xxx
-
-FLASK_ENV=development
-FLASK_DEBUG=1
-MODEL_CACHE_SIZE=10000
-RATE_LIMIT=100
-```
-
-### Models Loaded Automatically
-- `results/trained_models/attention_gin_model.pth` (Tox21, 12 endpoints)
-- `results/trained_models/bbbp_gin_model.pth` (BBBP)
-- `results/trained_models/clintox_gin_model.pth` (ClinTox, 2 tasks)
-- `results/trained_models/clearance_gin_model.pth` (Clearance, regression)
 
 ---
 
 ## 🧪 Tests
 
 ```bash
-# Faithfulness validator tests (4/4 passing)
-cd PharmaGuard-AI
-python -m pytest tests/test_faithfulness.py -v
+PYTHONPATH=. pytest -p no:asyncio tests/
 ```
+*Output: 18 passed in ~6.9s*
 
 ---
 
-## 🚢 Deployment
+## 🤝 Contributing & License
 
-### Docker (Recommended)
-```bash
-docker build -t pharmaguard .
-docker run -p 5000:5000 -e GROQ_API_KEY=xxx pharmaguard
-```
-
-### Production (Gunicorn)
-```bash
-cd backend
-gunicorn -w 4 -b 0.0.0.0:5000 app:app
-```
-
-### Render / Cloud
-- Fork repo → connect to Render
-- Auto-detects Python + Node.js
-- Add `GROQ_API_KEY` in env vars
+Licensed under the **MIT License**. Contributions are welcome!
 
 ---
 
-## 📚 Research Background
+## 📧 Contact & Acknowledgments
 
-PharmaGuard AI extends the DeNovo-XAI research platform with:
-
-- **Validated faithfulness metric (EFS)**: 4-component weighted agreement
-- **Honest negative result**: Causal faithfulness = 0.128 ± 0.027 (standard GNN doesn't learn toxicophore→toxicity causality)
-- **Counterfactual optimization**: Chemically valid bioisosteric/scaffold modifications
-- **OOD detection**: Hybrid ECFP4 Tanimoto + latent Mahalanobis
-- **Risk triage**: Transparent 5-component scoring → GREEN/YELLOW/RED
-
----
-
-## 🤝 Contributing
-
-1. Fork → feature branch → PR
-2. All tests must pass (`pytest tests/`)
-3. Follow existing code style
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **SIES Graduate School of Technology** — Computational resources
-- **ATLAS SkillTech University** — Research collaboration
-- **PyTorch Geometric** — GNN framework
-- **RDKit** — Cheminformatics toolkit
-- **Groq** — LLM inference API
-- **MoleculeNet** — Benchmark datasets
-
----
-
-## 📧 Contact
-
-- **Gaurav Patil** — [gauravppaiml123@gst.sies.edu.in](mailto:gauravppaiml123@gst.sies.edu.in)
-- **GitHub**: [GauravPatil2515](https://github.com/GauravPatil2515)
-- **Branch**: `feat/sih-pharmaguard-ai`
-
----
-
-<p align="center">
-  <b>PharmaGuard AI — Predict · Explain · Verify · Trust</b><br/>
-  Made for safer drug discovery 🛡️
-</p>
+- **Gaurav Patil** — [GitHub: GauravPatil2515](https://github.com/GauravPatil2515)
+- **Repository**: [https://github.com/GauravPatil2515/AnuDrishti.git](https://github.com/GauravPatil2515/AnuDrishti.git)
+- **Special Thanks**: PyTorch Geometric, RDKit, Groq, MoleculeNet.

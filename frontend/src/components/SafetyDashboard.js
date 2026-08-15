@@ -2,7 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import {
   ShieldCheckIcon, ShieldExclamationIcon, ExclamationTriangleIcon,
-  SignalIcon, BeakerIcon, ScaleIcon
+  SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const TRIAGE_STYLES = {
@@ -15,6 +15,12 @@ const EPISTEMIC_BADGES = {
   Low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
   Moderate: 'bg-amber-100 text-amber-800 border-amber-300',
   High: 'bg-red-100 text-red-800 border-red-300',
+};
+
+const EFS_BADGES = {
+  VERIFIED: { label: 'VERIFIED', className: 'bg-emerald-100 text-emerald-700 border-emerald-300', icon: CheckBadgeIcon },
+  PARTIAL: { label: 'PARTIAL', className: 'bg-amber-100 text-amber-700 border-amber-300', icon: InformationCircleIcon },
+  REJECTED: { label: 'REJECTED', className: 'bg-red-100 text-red-700 border-red-300', icon: ShieldExclamationIcon },
 };
 
 // Map model prediction dicts into a flat endpoint list with uncertainty
@@ -149,6 +155,65 @@ const SafetyDashboard = ({ analysis }) => {
           ))}
         </div>
       )}
+
+      {/* Why trust this? — Explanation Faithfulness Score (EFS) */}
+      {analysis.explanation && (
+        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+              <InformationCircleIcon className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-indigo-700">Why trust this explanation?</p>
+              <p className="text-xs text-indigo-600">
+                Every AI-generated explanation is validated against the GNN's actual decision process using counterfactual testing.
+                Claims not supported by model evidence are rejected — not silently shown.
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <div>
+                <p className="text-xs text-slate-400">Explanation Faithfulness Score</p>
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
+                    const status = analysis.explanation.validation_passed ? 'VERIFIED' : 
+                                   analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
+                    const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
+                    return (
+                      <>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-slate-200">
+                          <span className="text-xl font-black text-indigo-600">
+                            {(efs != null ? Math.round(efs * 100) : '—')}%
+                          </span>
+                        </div>
+                        <span className={clsx('rounded-full border px-2 py-1 text-xs font-bold uppercase', badge.className)}>
+                          {badge.label}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+              <div className="text-xs text-slate-400">
+                EFS = 0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Triage/Screening Disclaimer (Prominently displayed) */}
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+        <div className="flex items-start gap-2">
+          <span aria-hidden className="text-sm">⚠️</span>
+          <span className="text-slate-700">
+            <strong>SCREENING ONLY — NOT A REGULATORY TOOL:</strong> This assessment is for 
+            preliminary triage and compound prioritization. It is explicitly NOT a replacement for 
+            wet-lab testing, regulatory submission, or clinical evaluation. Positive results require 
+            experimental validation. Use for research and educational purposes only.
+          </span>
+        </div>
+      </div>
 
       {/* Primary toxicity + OOD / confidence + Epistemic Uncertainty badges */}
       <div className="grid gap-4 md:grid-cols-4">
