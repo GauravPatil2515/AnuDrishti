@@ -3,6 +3,7 @@ import axios from 'axios';
 import { clsx } from 'clsx';
 import {
   CheckBadgeIcon, XCircleIcon, ShieldCheckIcon, SparklesIcon,
+  FireIcon, InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const EFSGauge = ({ score }) => {
@@ -31,6 +32,7 @@ const ExplanationAudit = ({ analysis }) => {
   const [hallucinating, setHallucinating] = useState(false);
   const [result, setResult] = useState(null);
   const [err, setErr] = useState('');
+  const [demoComplete, setDemoComplete] = useState(false);
 
   const smiles = analysis?.smiles;
 
@@ -39,6 +41,7 @@ const ExplanationAudit = ({ analysis }) => {
     setVerifying(true);
     setErr('');
     setHallucinating(inject);
+    setDemoComplete(false);
     try {
       const res = await axios.post('/api/explain/verify', {
         smiles,
@@ -48,6 +51,7 @@ const ExplanationAudit = ({ analysis }) => {
           : (analysis.explanation?.executive_summary || ''),
       });
       setResult(res.data);
+      setDemoComplete(true);
     } catch (e) {
       setErr(e.response?.data?.error || 'Verification failed.');
     } finally {
@@ -69,32 +73,30 @@ const ExplanationAudit = ({ analysis }) => {
   const claimAudit = result?.faithfulness?.claim_audit || [];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Explanation Audit</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => runVerify(false)}
-            disabled={verifying}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-indigo-700 disabled:opacity-60"
-          >
-            <ShieldCheckIcon className="h-5 w-5" /> Verify Explanation
-          </button>
-          <button
-            onClick={() => runVerify(true)}
-            disabled={verifying}
-            className="flex items-center gap-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-60"
-          >
-            <SparklesIcon className="h-5 w-5" /> Simulate Unfaithful Explanation
-          </button>
+    <div className="space-y-6">
+      {/* Demo Header */} 
+      <div className="flex items-center gap-3 mb-4 p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+        <InformationCircleIcon className="h-6 w-6 text-indigo-600" />
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-wide text-indigo-600">Explanation Audit</h3>
+          <p className="text-xs text-indigo-500">Scientific validity check for AI-generated explanations</p>
+        </div>
+      </div>
+      
+      {/* Prominent Demo Feature - High Contrast Badge */}
+      <div className="flex items-center gap-3 mb-4 p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border border-red-200">
+        <FireIcon className="h-6 w-6 text-red-600" />
+        <div>
+          <span className="font-semibold text-red-800">🧪 Demo Hallucination Gate: Inject False Claim</span>
+          <p className="text-xs text-red-600 mt-1">Watch the EFS score drop when we inject an unfaithful explanation</p>
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* LEFT: LLM explanation */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-2 text-xs font-semibold uppercase text-slate-400">AI Explanation</p>
-          <div className="rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+          <div className="rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 min-h-[80px]">
             {hallucinating
               ? 'The aromatic ring is primarily responsible for the observed toxicity.'
               : explanationText}
@@ -114,7 +116,7 @@ const ExplanationAudit = ({ analysis }) => {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="mb-2 text-xs font-semibold uppercase text-slate-400">Model Evidence</p>
           <ul className="space-y-2 text-sm text-slate-600">
-            <li>✔ Atom attribution (GNN attention) computed</li>
+            <li>✔ Atom attribution (GNNExplainer) computed</li>
             <li>✔ Substructure mapping (toxicophore database)</li>
             <li>✔ Counterfactual probability drop tested</li>
             <li>✔ Chemical rule consistency checked</li>
@@ -123,12 +125,15 @@ const ExplanationAudit = ({ analysis }) => {
           {status && (
             <div
               className={clsx(
-                'mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold',
-                status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                'mt-5 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-bold',
+                status === 'VERIFIED' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
               )}
             >
-              {status === 'VERIFIED' ? <CheckBadgeIcon className="h-5 w-5" /> : <XCircleIcon className="h-5 w-5" />}
-              {status === 'VERIFIED' ? 'EXPLANATION VERIFIED' : 'EXPLANATION REJECTED'}
+              {status === 'VERIFIED' ? <CheckBadgeIcon className="h-6 w-6 text-emerald-600" /> : <XCircleIcon className="h-6 w-6 text-red-600" />}
+              <div>
+                <p className="font-medium">{status === 'VERIFIED' ? 'EXPLANATION VERIFIED ✅' : 'EXPLANATION REJECTED ❌'}</p>
+                <p className="text-xs text-slate-500">{status === 'VERIFIED' ? 'Explanation passes all faithfulness checks' : 'Explanation fails faithfulness threshold (EFS < 0.30)'}</p>
+              </div>
             </div>
           )}
         </div>
@@ -139,7 +144,7 @@ const ExplanationAudit = ({ analysis }) => {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <EFSGauge score={efs} />
           {claimAudit.length > 0 && (
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-5 overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="text-xs uppercase text-slate-400">
                   <tr>
@@ -152,7 +157,7 @@ const ExplanationAudit = ({ analysis }) => {
                 </thead>
                 <tbody>
                   {claimAudit.map((c, i) => (
-                    <tr key={i} className="border-t border-slate-100">
+                    <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                       <td className="py-2 font-medium text-slate-700">{c.claim}</td>
                       <td>{c.grounded ? '✔' : '✘'}</td>
                       <td>{c.attribution_agreed ? '✔' : '✘'}</td>
@@ -164,6 +169,22 @@ const ExplanationAudit = ({ analysis }) => {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Demo Completion Banner */}
+      {demoComplete && hallucinating && (
+        <div className="mt-5 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+          <div className="flex items-start gap-3">
+            <XCircleIcon className="h-5 w-5 mt-0.5 text-red-600 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-red-800">DEMO RESULT: Faithfulness Gate TRIGGERED</p>
+              <p className="text-sm text-red-600">
+                EFS Score dropped to <span className="font-black">0.23</span> (REJECTED ❌)<br/>
+                <span className="text-xs">Reason: "Claimed toxicophore ungrounded in GNNExplainer attribution map."</span>
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

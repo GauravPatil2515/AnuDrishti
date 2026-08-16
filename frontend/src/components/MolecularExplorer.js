@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import { SwatchIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import StructureHeatmap from './StructureHeatmap';

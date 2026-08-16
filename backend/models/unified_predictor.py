@@ -36,7 +36,6 @@ class UnifiedADMETPredictor:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         self._load_all_models()
-        self._load_tdc_models()
     
     def _load_all_models(self):
         """Load all available models"""
@@ -75,57 +74,7 @@ class UnifiedADMETPredictor:
         
         self.is_loaded = models_loaded > 0
         print(f"✅ Unified ADMET Predictor: {models_loaded} model types loaded")
-    def _load_tdc_models(self):
-        """Load TDC models for hERG, DILI, and Ames."
-        """
-        try:
-            from tdc.single_pred import Tox
-            # We will not load the models here because they require training.
-            # Instead, we will use the TDC evaluator to get the data and then use a simple model.
-            # For now, we will set a flag and use a placeholder in prediction.
-            self.tdc_available = True
-            print("✅ TDC package loaded (models will be used on-the-fly)")
-        except Exception as e:
-            print(f"⚠️ TDC not available: {e}")
-            self.tdc_available = False
-
-
     
-    def _predict_tdc(self, smiles):
-        """Predict using TDC models for hERG, DILI, and Ames."
-        """
-        if not getattr(self, "tdc_available", False):
-            return {}
-        try:
-            from tdc.single_pred import Tox
-            # We will use the TDC evaluator to get the data and then use a simple model.
-            # For now, we will return a fixed probability of 0.5 for each endpoint.
-            # In a real implementation, we would use a pre-trained model.
-            return {
-                "hERG": {
-                    "probability": 0.5,
-                    "prediction": "Unknown",
-                    "confidence": "Unknown",
-                    "source": "TDC (placeholder)"
-                },
-                "DILI": {
-                    "probability": 0.5,
-                    "prediction": "Unknown",
-                    "confidence": "Unknown",
-                    "source": "TDC (placeholder)"
-                },
-                "AMES": {
-                    "probability": 0.5,
-                    "prediction": "Unknown",
-                    "confidence": "Unknown",
-                    "source": "TDC (placeholder)"
-                },
-            }
-        except Exception as e:
-            print(f"⚠️ TDC prediction failed: {e}")
-            return {}
-
-
     def _load_bbbp(self):
         """Load BBBP model"""
         model_path = Path(__file__).parent.parent.parent / "results" / "trained_models" / "bbbp_gin_model.pth"
@@ -432,15 +381,6 @@ class UnifiedADMETPredictor:
         results['tox21'] = gin_results
         results['predictions'].update(gin_results)
 
-
-                print(f"⚠️ TDC prediction failed: {e}")
-            except Exception as e:
-                results["predictions"].update(tdc_results)
-                tdc_results = self._predict_tdc(smiles)
-            try:
-        if "tdc" in self.models or getattr(self, "tdc_available", False):
-        # 6. TDC predictions (hERG, DILI, AMES)
-
         # Calculate summary
         all_probs = [r.get('probability', 0.5) for r in results['predictions'].values() 
                      if isinstance(r, dict) and 'probability' in r]
@@ -475,19 +415,13 @@ class UnifiedADMETPredictor:
 
         # Try MC Dropout for uncertainty estimation
         try:
-            # Get the mean probabilities and std from MC dropout
             mean_probs, std_probs, ci_low_probs, ci_high_probs = model.predict_mc_dropout(batch, n_samples=50)
-            # Ensure they are 1D arrays
-            mean_probs = np.array(mean_probs).flatten()
-            std_probs = np.array(std_probs).flatten()
+            # mean_probs, std_probs, etc. are numpy arrays of shape [num_tasks]
+            probabilities = mean_probs
             # Build endpoint results
             results = {}
-            n_endpoints = len(model_info['endpoints'])
             for i, endpoint in enumerate(model_info['endpoints']):
-                if i < len(mean_probs):
-                    prob = float(mean_probs[i])
-                else:
-                    prob = 0.5
+                prob = float(probabilities[i])
                 results[endpoint] = {
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
@@ -495,21 +429,13 @@ class UnifiedADMETPredictor:
                     'source': 'Attention-GIN (Tox21)'
                 }
             # Compute overall toxicity as the mean of the endpoint probabilities
-            if len(mean_probs) > 0 and n_endpoints > 0:
-                n = min(len(mean_probs), n_endpoints)
-                probs_for_mean = mean_probs[:n]
-                overall_mean = float(np.mean(probs_for_mean))
-                # Compute the variance of the overall mean: sum of (std_probs[i]^2) / n^2
-                std_for_var = std_probs[:n]
-                overall_var = np.sum(std_for_var**2) / (n * n)
-                overall_std = float(np.sqrt(overall_var))
-                overall_ci_low = float(np.maximum(0.0, overall_mean - 1.96 * overall_std))
-                overall_ci_high = float(np.minimum(1.0, overall_mean + 1.96 * overall_std))
-            else:
-                overall_mean = 0.5
-                overall_std = 0.0
-                overall_ci_low = 0.5
-                overall_ci_high = 0.5
+            overall_mean = np.mean(probabilities)
+            # Compute the variance of the overall mean: sum of (std_probs[i]^2) / n^2
+            n = len(probabilities)
+            overall_var = np.sum(std_probs**2) / (n * n)
+            overall_std = np.sqrt(overall_var)
+            overall_ci_low = np.maximum(0.0, overall_mean - 1.96 * overall_std)
+            overall_ci_high = np.minimum(1.0, overall_mean + 1.96 * overall_std)
             return results, overall_mean, overall_std, overall_ci_low, overall_ci_high
         except Exception as e:
             print(f"⚠️ MC dropout failed in _predict_attention_gin: {e}")
@@ -522,12 +448,8 @@ class UnifiedADMETPredictor:
                     features, predictions = result
                 probabilities = torch.sigmoid(predictions).cpu().numpy()[0]
             results = {}
-            n_endpoints = len(model_info['endpoints'])
             for i, endpoint in enumerate(model_info['endpoints']):
-                if i < len(probabilities):
-                    prob = float(probabilities[i])
-                else:
-                    prob = 0.5
+                prob = float(probabilities[i])
                 results[endpoint] = {
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
@@ -535,18 +457,10 @@ class UnifiedADMETPredictor:
                     'source': 'Attention-GIN (Tox21)'
                 }
             # For fallback, we don't have uncertainty from MC Dropout, so we'll use a fixed uncertainty of 0.1 (as a placeholder)
-            if len(probabilities) > 0 and n_endpoints > 0:
-                n = min(len(probabilities), n_endpoints)
-                probs_for_mean = probabilities[:n]
-                overall_mean = float(np.mean(probs_for_mean))
-                overall_std = 0.1  # Fixed uncertainty
-                overall_ci_low = float(np.maximum(0.0, overall_mean - 1.96 * overall_std))
-                overall_ci_high = float(np.minimum(1.0, overall_mean + 1.96 * overall_std))
-            else:
-                overall_mean = 0.5
-                overall_std = 0.0
-                overall_ci_low = 0.5
-                overall_ci_high = 0.5
+            overall_mean = np.mean(probabilities)
+            overall_std = 0.1  # Fixed uncertainty
+            overall_ci_low = np.maximum(0.0, overall_mean - 1.96 * overall_std)
+            overall_ci_high = np.minimum(1.0, overall_mean + 1.96 * overall_std)
             return results, overall_mean, overall_std, overall_ci_low, overall_ci_high
     def _predict_bbbp(self, smiles):
         """Predict Blood-Brain Barrier Penetration"""

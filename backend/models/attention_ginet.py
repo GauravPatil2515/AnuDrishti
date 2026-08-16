@@ -321,19 +321,72 @@ class AttentionGINet(nn.Module):
         was_training = self.training
         self.eval()
         try:
+            # First run forward pass to get attention weights (which are model-derived and valid)
+            with torch.no_grad():
+                _ = self(data, return_attention=True)
+            attention_weights = self.get_attention_weights()
+            
+            if attention_weights is not None:
+                return attention_weights
+            
+            # If attention weights unavailable, try GNNExplainer (but may have device issues)
+            class ModelWrapper(torch.nn.Module):
+                def __init__(self, model, device):
+                    super().__init__()
+                    self.model = model
+                    self.device = device
+                
+                def forward(self, x, edge_index, edge_attr=None, batch=None):
+                    from torch_geometric.data import Data
+                    data_obj = Data(
+                        x=x.to(self.device), 
+                        edge_index=edge_index.to(self.device), 
+                        edge_attr=edge_attr.to(self.device) if edge_attr is not None else None,
+                        batch=batch.to(self.device) if batch is not None else None
+                    )
+                    out = self.model(data_obj, return_attention=False)
+                    if isinstance(out, tuple):
+                        predictions = out[1] if len(out) >= 2 else out[0]
+                    else:
+                        predictions = out
+                    return torch.log_softmax(predictions, dim=-1)
+            
+            wrapper = ModelWrapper(self, data.x.device)
+            
             explainer = Explainer(
-                model=self,
-                algorithm=GNNExplainer(epochs=200),
+                model=wrapper,
+                algorithm=GNNExplainer(epochs=50),
                 explanation_type='model',
-                node_mask_type='attributes',
+                node_mask_type=None,
                 edge_mask_type='object',
                 model_config=dict(mode='multiclass_classification', task_level='graph', return_type='log_probs')
             )
-            explanation = explainer(data.x, data.edge_index, batch=data.batch)
-            return explanation.node_mask  # Per-atom importance scores [0,1]
+            explanation = explainer(
+                data.x.to(data.x.device), 
+                data.edge_index.to(data.x.device), 
+                batch=data.batch.to(data.x.device), 
+                edge_attr=data.edge_attr.to(data.x.device) if data.edge_attr is not None else None
+            )
+            
+            if hasattr(explanation, 'edge_mask') and explanation.edge_mask is not None:
+                # Aggregate edge importance to nodes
+                edge_mask = explanation.edge_mask.squeeze() if explanation.edge_mask.dim() > 1 else explanation.edge_mask
+                node_importance = torch.zeros(data.num_nodes, device=data.x.device)
+                edge_index = data.edge_index
+                for i in range(edge_index.size(1)):
+                    src, dst = edge_index[0, i], edge_index[1, i]
+                    node_importance[src] += edge_mask[i]
+                    node_importance[dst] += edge_mask[i]
+                return node_importance.cpu().detach().numpy()
+            elif hasattr(explanation, 'node_mask') and explanation.node_mask is not None:
+                return explanation.node_mask.cpu().detach().numpy()
+            else:
+                return None
         except Exception as e:
             print(f"⚠️ GNNExplainer failed: {e}")
             # Fallback to attention weights
+            with torch.no_grad():
+                _ = self(data, return_attention=True)
             return self.get_attention_weights()
         finally:
             self.train(was_training)

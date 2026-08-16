@@ -260,7 +260,7 @@ const SafetyDashboard = ({ analysis }) => {
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
             <BeakerIcon className="h-5 w-5 text-indigo-500" /> Predicted Toxicity (95% CI)
           </div>
-           <p className="mt-1 text-3xl font-black text-indigo-600">{(toxProb * 100).toFixed(0)}% (${{(overallUnc.ci_low || 0) * 100}.toFixed(0)}-${{(overallUnc.ci_high || 1) * 100}.toFixed(0)}%)</p>
+           <p className="mt-1 text-3xl font-black text-indigo-600">{(toxProb * 100).toFixed(0)}% ({`${((overallUnc.ci_low || 0) * 100).toFixed(0)}-${((overallUnc.ci_high || 1) * 100).toFixed(0)}%`})</p>
         </div>
 
         <div className={clsx('rounded-2xl border bg-white p-4 shadow-sm', ood.is_ood ? 'border-red-200' : 'border-emerald-200')}>
