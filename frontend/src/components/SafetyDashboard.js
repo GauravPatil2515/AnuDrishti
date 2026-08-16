@@ -2,7 +2,8 @@ import React from 'react';
 import { clsx } from 'clsx';
 import {
   ShieldCheckIcon, ShieldExclamationIcon, ExclamationTriangleIcon,
-  SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon
+  SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon,
+  ChartBarIcon, AcademicCapIcon, ShieldCheckIcon as VerifiedIcon
 } from '@heroicons/react/24/outline';
 
 const TRIAGE_STYLES = {
@@ -156,46 +157,81 @@ const SafetyDashboard = ({ analysis }) => {
         </div>
       )}
 
-      {/* Why trust this? — Explanation Faithfulness Score (EFS) */}
+      {/* Why trust this? — Explanation Faithfulness Score (EFS) - PROMINENT */}
       {analysis.explanation && (
-        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
-              <InformationCircleIcon className="h-5 w-5" />
+        <div className="rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-white p-5 shadow-md relative">
+          {/* Verified badge on top-right */}
+          <div className="absolute top-3 right-3 flex flex-col items-end">
+            <div className="flex items-center gap-2">
+              {(() => {
+                const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
+                const status = analysis.explanation.validation_passed ? 'VERIFIED' : 
+                               analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
+                const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
+                const Icon = badge.icon || CheckBadgeIcon;
+                return (
+                  <>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white border-2 border-slate-200 shadow-sm">
+                      <span className="text-2xl font-black text-indigo-600">
+                        {(efs != null ? Math.round(efs * 100) : '—')}%
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className={clsx('rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider shadow', badge.className)}>
+                        <Icon className="h-3 w-3 inline mr-1" /> {badge.label}
+                      </span>
+                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                        Threshold: ≥70%
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-indigo-700">Why trust this explanation?</p>
-              <p className="text-xs text-indigo-600">
+          </div>
+
+          <div className="flex items-start gap-4 pr-48">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex-shrink-0">
+              <VerifiedIcon className="h-6 w-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-indigo-700">Why trust this explanation? <span className="font-normal text-indigo-600 ml-1">— Faithfulness-gated, not black-box</span></p>
+              <p className="text-xs text-indigo-600 mt-1">
                 Every AI-generated explanation is validated against the GNN's actual decision process using counterfactual testing.
                 Claims not supported by model evidence are rejected — not silently shown.
               </p>
-            </div>
-            <div className="flex items-center gap-4 text-right">
-              <div>
-                <p className="text-xs text-slate-400">Explanation Faithfulness Score</p>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
-                    const status = analysis.explanation.validation_passed ? 'VERIFIED' : 
-                                   analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
-                    const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
-                    return (
-                      <>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-slate-200">
-                          <span className="text-xl font-black text-indigo-600">
-                            {(efs != null ? Math.round(efs * 100) : '—')}%
-                          </span>
-                        </div>
-                        <span className={clsx('rounded-full border px-2 py-1 text-xs font-bold uppercase', badge.className)}>
-                          {badge.label}
-                        </span>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-              <div className="text-xs text-slate-400">
-                EFS = 0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules
+              
+              {/* EFS Breakdown - Expandable */}
+              <div className="mt-3 border-t border-indigo-200 pt-3">
+                <details className="group">
+                  <summary className="flex items-center gap-2 cursor-pointer text-xs font-medium text-indigo-700 hover:text-indigo-800 select-none">
+                    <ChartBarIcon className="h-4 w-4" />
+                    <span>Show EFS Breakdown (0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules)</span>
+                    <span className="ml-auto text-indigo-400 group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                    <div className="rounded bg-indigo-50 p-2 text-center">
+                      <p className="font-bold text-indigo-700">Attribution</p>
+                      <p className="text-indigo-600">30%</p>
+                      <p className="text-slate-500">Atom attention alignment</p>
+                    </div>
+                    <div className="rounded bg-indigo-50 p-2 text-center">
+                      <p className="font-bold text-indigo-700">Causal</p>
+                      <p className="text-indigo-600">30%</p>
+                      <p className="text-slate-500">Counterfactual drop test</p>
+                    </div>
+                    <div className="rounded bg-indigo-50 p-2 text-center">
+                      <p className="font-bold text-indigo-700">Substructure</p>
+                      <p className="text-indigo-600">20%</p>
+                      <p className="text-slate-500">SMARTS toxicophore match</p>
+                    </div>
+                    <div className="rounded bg-indigo-50 p-2 text-center">
+                      <p className="font-bold text-indigo-700">Rules</p>
+                      <p className="text-indigo-600">20%</p>
+                      <p className="text-slate-500">Chemical validity checks</p>
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
           </div>

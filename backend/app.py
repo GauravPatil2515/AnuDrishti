@@ -76,10 +76,8 @@ CORS(app, resources={
     }
 })
 
-# Register the PharmaGuard AI blueprint (analyze/optimize/explain/visualize/lookup).
-# Services are injected after initialize_services() runs (see bottom of file).
-if PHARMAGUARD_BP_AVAILABLE:
-    app.register_blueprint(pharmaguard_bp)
+# PharmaGuard AI blueprint will be registered AFTER initialize_services() runs
+# (see bottom of file in __main__ block) so all @route decorators have executed.
 
 # Global instances
 predictor = None
@@ -2378,6 +2376,11 @@ if __name__ == '__main__':
 
     # Initialize predictor
     if initialize_services():
+        # Register the PharmaGuard AI blueprint NOW (after all @route decorators executed)
+        if PHARMAGUARD_BP_AVAILABLE:
+            app.register_blueprint(pharmaguard_bp)
+            print("✅ PharmaGuard AI blueprint registered")
+
         model_count = len(predictor.models) if predictor and getattr(predictor, 'models', None) is not None else 0
         model_status = 'Loaded' if predictor and getattr(predictor, 'is_loaded', False) else 'Mock/Not loaded'
         print(f"📊 Available models: {model_count}")

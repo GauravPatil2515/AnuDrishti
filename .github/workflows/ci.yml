@@ -1,4 +1,4 @@
-name: DeNovo CI Pipeline
+name: AnuDrishti / PharmaGuard AI CI Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,22 @@ jobs:
         python -m pip install --upgrade pip
         pip install numpy pytest python-dotenv
 
+    - name: Install RDKit (required for OOD, triage, faithfulness)
+      run: |
+        pip install rdkit-pypi
+
+    - name: Install PyTorch & PyG (CPU)
+      run: |
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+        pip install torch-geometric torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+
+    - name: Install XGBoost & Scikit-learn
+      run: |
+        pip install xgboost scikit-learn pandas
+
     - name: Run Python Unit & Integration Tests
+      env:
+        PYTHONPATH: .
       run: |
         python -m pytest tests/ -v --tb=short
 
@@ -32,7 +47,7 @@ jobs:
       run: |
         python -m py_compile backend/app.py backend/routes/pharmaguard.py backend/routes/__init__.py
 
-  frontend:
+  test-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -43,13 +58,57 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
 
     - name: Install Frontend Dependencies
       run: |
         cd frontend
-        npm install
+        npm ci
 
-    - name: Build Frontend
+    - name: Build Frontend (Production)
       run: |
         cd frontend
         npm run build
+
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm test -- --watchAll=false --passWithNoTests
+
+  integration-test:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Full Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pytest python-dotenv rdkit-pypi xgboost scikit-learn pandas flask flask-cors gunicorn groq supabase requests
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+        pip install torch-geometric torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+
+    - name: Start Backend Server
+      run: |
+        cd backend
+        python app.py &
+        sleep 10
+        curl -f http://localhost:5000/api/health
+
+    - name: Run Integration Tests
+      env:
+        PYTHONPATH: .
+      run: |
+        python tests/integration_test.py
+
+    - name: Kill Backend Server
+      run: pkill -f "python app.py" || true

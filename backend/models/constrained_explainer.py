@@ -225,11 +225,8 @@ REMEMBER: Only include features with attention > {attention_threshold}. Do not i
         # 4. Final Rejection (if all attempts failed)
         self.total_rejected += 1
         logger.error(f"Failed to generate faithful explanation after {self.max_attempts} attempts")
-        
-        return self._create_rejected_explanation(
-            smiles, prediction, last_faithfulness_result
-        )
-
+        # Fallback to deterministic explanation (will be handled by caller)
+        return None
     def get_rejection_rate(self) -> float:
         """Calculate the percentage of explanations that were rejected."""
         if self.total_generated == 0:

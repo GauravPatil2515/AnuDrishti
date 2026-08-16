@@ -845,18 +845,30 @@ class FaithfulnessValidator:
             import torch
             from torch_geometric.data import Data
             
-            # Import dataset utilities
-            import sys
-            from pathlib import Path
-            project_dir = Path(__file__).parent.parent.parent
-            sys.path.insert(0, str(project_dir / 'data_packages' / 'tox21_model_full_package'))
-            from dataset.dataset_test import ATOM_LIST, CHIRALITY_LIST, BOND_LIST, BONDDIR_LIST
-            
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
                 return None
             
             mol = Chem.AddHs(mol)
+            
+            # Atom and bond type constants (matching training script)
+            ATOM_LIST = list(range(1, 119))
+            CHIRALITY_LIST = [
+                Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
+                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
+                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW
+            ]
+            BOND_LIST = [
+                Chem.rdchem.BondType.SINGLE,
+                Chem.rdchem.BondType.DOUBLE,
+                Chem.rdchem.BondType.TRIPLE,
+                Chem.rdchem.BondType.AROMATIC
+            ]
+            BONDDIR_LIST = [
+                Chem.rdchem.BondDir.NONE,
+                Chem.rdchem.BondDir.ENDDOWNRIGHT,
+                Chem.rdchem.BondDir.ENDUPRIGHT
+            ]
             
             # Node features
             type_idx = []
@@ -864,7 +876,6 @@ class FaithfulnessValidator:
             for atom in mol.GetAtoms():
                 type_idx.append(ATOM_LIST.index(atom.GetAtomicNum()))
                 chirality_idx.append(CHIRALITY_LIST.index(atom.GetChiralTag()))
-            
             x1 = torch.tensor(type_idx, dtype=torch.long).view(-1, 1)
             x2 = torch.tensor(chirality_idx, dtype=torch.long).view(-1, 1)
             x = torch.cat([x1, x2], dim=-1)

@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { Toaster, toast } from 'react-hot-toast';
 import {
   BeakerIcon, SwatchIcon, ShieldCheckIcon, MagnifyingGlassIcon, TableCellsIcon, SparklesIcon, PlayIcon,
+  CheckBadgeIcon, InformationCircleIcon, ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
 import MolecularInput from '../components/MolecularInput';
 import MolecularExplorer from '../components/MolecularExplorer';

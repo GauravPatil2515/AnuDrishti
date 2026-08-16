@@ -1,6 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { ArrowDownTrayIcon, TableCellsIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, TableCellsIcon, CheckBadgeIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline';
 
 const CATEGORY_STYLE = {
   GREEN: 'bg-emerald-100 text-emerald-700',
@@ -19,14 +19,20 @@ const LibraryScreening = ({ batchResult }) => {
 
   const results = batchResult.results || [];
   const exportCsv = () => {
-    const rows = [['SMILES', 'Category', 'RiskScore', 'Toxicity', 'OOD']];
+    const rows = [['SMILES', 'Category', 'RiskScore', 'Toxicity', 'OOD', 'EFS', 'Trust Status']];
     results.forEach((r) => {
+      const efs = r.explanation?.faithfulness_score ?? r.explanation?.efs ?? '';
+      const efsVal = typeof efs === 'number' ? efs.toFixed(2) : efs;
+      const status = r.explanation?.validation_passed === true ? 'VERIFIED' :
+                     r.explanation?.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
       rows.push([
         r.smiles,
         r.triage?.category || '',
         r.triage?.risk_score ?? '',
         r.toxicity_probability ?? '',
         r.ood?.is_ood ?? '',
+        efsVal,
+        status,
       ]);
     });
     const csv = rows.map((x) => x.join(',')).join('\n');
@@ -82,7 +88,7 @@ const LibraryScreening = ({ batchResult }) => {
                 <td className="px-4 py-2 font-mono text-slate-600">
                   {r.triage?.risk_score != null ? (r.triage.risk_score * 100).toFixed(0) : '—'}
                 </td>
-                <td className="px-4 py-2 font-mono text-slate-600">
+                <td className="px-4 py-2">
                   {r.toxicity_probability != null ? (r.toxicity_probability * 100).toFixed(0) + '%' : '—'}
                 </td>
                 <td className="px-4 py-2">
@@ -90,6 +96,28 @@ const LibraryScreening = ({ batchResult }) => {
                     <span className="text-red-600">FLAGGED</span>
                   ) : (
                     <span className="text-emerald-600">in-dist</span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  {(() => {
+                    const efs = r.explanation?.faithfulness_score ?? r.explanation?.efs;
+                    if (typeof efs === 'number') {
+                      return `${(efs * 100).toFixed(0)}%`;
+                    }
+                    return '—';
+                  })()}
+                </td>
+                <td className="px-4 py-2">
+                  {r.explanation?.validation_passed === true ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-700">
+                      <CheckBadgeIcon className="h-3 w-3" /> VERIFIED
+                    </span>
+                  ) : r.explanation?.validation_passed === false ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
+                      <ShieldExclamationIcon className="h-3 w-3" /> REJECTED
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-500">UNCHECKED</span>
                   )}
                 </td>
               </tr>
