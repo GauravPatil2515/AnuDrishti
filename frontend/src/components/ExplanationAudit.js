@@ -1,27 +1,39 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { clsx } from 'clsx';
 import {
   CheckBadgeIcon, XCircleIcon, ShieldCheckIcon, SparklesIcon,
-  FireIcon, InformationCircleIcon
+  FireIcon, InformationCircleIcon, PlayIcon, TableCellsIcon
 } from '@heroicons/react/24/outline';
 
-const EFSGauge = ({ score }) => {
-  const pct = Math.round((score || 0) * 100);
+const EFSGauge = ({ score, ci }) => {
+  const pct = Math.max(0, Math.min(100, Math.round((score || 0) * 100)));
   const color = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+  const clamped = Math.min(100, pct * 3.6);
+
+  // Format CI if provided (e.g., ci=0.12 → "±0.12")
+  const ciText = ci != null ? ` ± ${ci.toFixed(2)}` : '';
+
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3">
       <div
-        className="relative h-24 w-24 rounded-full"
-        style={{ background: `conic-gradient(${color} ${pct * 3.6}deg, #e5e7eb 0deg)` }}
+        className="relative h-16 w-16 rounded-full"
+        style={{
+          background: `conic-gradient(${color} ${clamped}deg, rgba(255,255,255,0.1) 0deg)`,
+        }}
       >
-        <div className="absolute inset-2 flex items-center justify-center rounded-full bg-white">
-          <span className="text-xl font-black" style={{ color }}>{pct}%</span>
+        <div className="absolute inset-1.5 flex items-center justify-center rounded-full bg-canvas border border-border">
+          <span className="text-sm font-black" style={{ color }}>{pct}%</span>
         </div>
       </div>
       <div>
-        <p className="text-xs font-semibold uppercase text-slate-400">Explanation Faithfulness</p>
-        <p className="text-sm text-slate-600">EFS = 0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules</p>
+        <p className="text-xs font-semibold uppercase text-muted">Explanation Faithfulness</p>
+        <p className="text-xs text-secondary mt-0.5">
+          EFS = 0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules
+        </p>
+        <p className="text-[10px] text-muted mt-1" title="Confidence interval derived from MC Dropout sampling across GNN inference passes">
+          Score: {score != null ? score.toFixed(2) : '—'}{ciText}
+        </p>
       </div>
     </div>
   );
@@ -43,7 +55,7 @@ const ExplanationAudit = ({ analysis }) => {
     setHallucinating(inject);
     setDemoComplete(false);
     try {
-      const res = await axios.post('/api/explain/verify', {
+      const res = await api.post('/api/explain/verify', {
         smiles,
         inject_hallucination: inject,
         explanation: inject
@@ -67,44 +79,49 @@ const ExplanationAudit = ({ analysis }) => {
   const faith = analysis?.explanation?.faithfulness_score;
   const verified = analysis?.explanation?.validation_passed;
 
-  // Prefer live-verification result when present
   const status = result?.status || (verified ? 'VERIFIED' : verified === false ? 'REJECTED' : null);
   const efs = result?.faithfulness?.overall_score ?? faith;
   const claimAudit = result?.faithfulness?.claim_audit || [];
 
   return (
-    <div className="space-y-6">
-      {/* Demo Header */} 
-      <div className="flex items-center gap-3 mb-4 p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
-        <InformationCircleIcon className="h-6 w-6 text-indigo-600" />
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-indigo-600">Explanation Audit</h3>
-          <p className="text-xs text-indigo-500">Scientific validity check for AI-generated explanations</p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 rounded-lg border border-border bg-surface-elevated p-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+          <InformationCircleIcon className="h-4 w-4" />
         </div>
-      </div>
-      
-      {/* Prominent Demo Feature - High Contrast Badge */}
-      <div className="flex items-center gap-3 mb-4 p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border border-red-200">
-        <FireIcon className="h-6 w-6 text-red-600" />
         <div>
-          <span className="font-semibold text-red-800">🧪 Demo Hallucination Gate: Inject False Claim</span>
-          <p className="text-xs text-red-600 mt-1">Watch the EFS score drop when we inject an unfaithful explanation</p>
+          <h3 className="text-sm font-bold text-primary">Explanation Audit</h3>
+          <p className="text-xs text-muted">Scientific validity check for AI-generated explanations</p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Demo Feature - Hallucination Gate */}
+      <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+        <div className="flex items-start gap-2.5">
+          <FireIcon className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <span className="font-semibold text-red-400">Demo: Inject False Claim</span>
+            <p className="text-xs text-red-400/80 mt-0.5">
+              Watch the EFS score drop when we inject an unfaithful explanation
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
         {/* LEFT: LLM explanation */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-400">AI Explanation</p>
-          <div className="rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 min-h-[80px]">
+        <div className="surface-elevated rounded-lg p-3.5">
+          <p className="mb-1.5 text-xs font-semibold uppercase text-muted">AI Explanation</p>
+          <div className="rounded-lg bg-surface p-3 text-xs leading-relaxed text-secondary min-h-[60px]">
             {hallucinating
               ? 'The aromatic ring is primarily responsible for the observed toxicity.'
               : explanationText}
           </div>
           {analysis?.explanation?.identified_toxicophores?.length > 0 && !hallucinating && (
-            <div className="mt-3 space-y-1">
+            <div className="mt-2 flex flex-wrap gap-1">
               {analysis.explanation.identified_toxicophores.map((t, i) => (
-                <span key={i} className="mr-2 inline-block rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700">
+                <span key={i} className="pill pill-indigo text-[10px]">
                   {t.name}
                 </span>
               ))}
@@ -113,42 +130,81 @@ const ExplanationAudit = ({ analysis }) => {
         </div>
 
         {/* RIGHT: Evidence */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="mb-2 text-xs font-semibold uppercase text-slate-400">Model Evidence</p>
-          <ul className="space-y-2 text-sm text-slate-600">
-            <li>✔ Atom attribution (GNNExplainer) computed</li>
-            <li>✔ Substructure mapping (toxicophore database)</li>
-            <li>✔ Counterfactual probability drop tested</li>
-            <li>✔ Chemical rule consistency checked</li>
+        <div className="surface-elevated rounded-lg p-3.5">
+          <p className="mb-1.5 text-xs font-semibold uppercase text-muted">Model Evidence</p>
+          <ul className="space-y-1.5 text-xs text-secondary">
+            <li className="flex items-center gap-1.5">
+              <span className="text-emerald">✔</span> Atom attribution (GNNExplainer) computed
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span className="text-emerald">✔</span> Substructure mapping (toxicophore database)
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span className="text-emerald">✔</span> Counterfactual probability drop tested
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span className="text-emerald">✔</span> Chemical rule consistency checked
+            </li>
           </ul>
 
           {status && (
             <div
               className={clsx(
-                'mt-5 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-bold',
-                status === 'VERIFIED' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                'mt-3 flex items-center gap-2.5 rounded-lg px-3.5 py-3 text-xs font-bold',
+                status === 'VERIFIED'
+                  ? 'border border-emerald-500/30 bg-emerald-500/5 text-emerald-400'
+                  : 'border border-red-500/30 bg-red-500/5 text-red-400'
               )}
             >
-              {status === 'VERIFIED' ? <CheckBadgeIcon className="h-6 w-6 text-emerald-600" /> : <XCircleIcon className="h-6 w-6 text-red-600" />}
+              {status === 'VERIFIED' ? (
+                <CheckBadgeIcon className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+              ) : (
+                <XCircleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
+              )}
               <div>
-                <p className="font-medium">{status === 'VERIFIED' ? 'EXPLANATION VERIFIED ✅' : 'EXPLANATION REJECTED ❌'}</p>
-                <p className="text-xs text-slate-500">{status === 'VERIFIED' ? 'Explanation passes all faithfulness checks' : 'Explanation fails faithfulness threshold (EFS < 0.30)'}</p>
+                <p>{status === 'VERIFIED' ? 'EXPLANATION VERIFIED' : 'EXPLANATION REJECTED'}</p>
+                <p className="text-[10px] opacity-80 font-normal">
+                  {status === 'VERIFIED'
+                    ? 'Explanation passes all faithfulness checks'
+                    : 'Explanation fails faithfulness threshold (EFS < 0.30)'}
+                </p>
               </div>
             </div>
           )}
         </div>
       </div>
 
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => runVerify(false)}
+          disabled={verifying || !smiles}
+          className="btn btn-secondary text-xs"
+        >
+          <PlayIcon className="h-3 w-3 mr-1" />
+          {verifying ? 'Verifying…' : 'Verify Explanation (GNN evidence)'}
+        </button>
+        <button
+          onClick={() => runVerify(true)}
+          disabled={verifying || !smiles}
+          className="btn btn-danger text-xs"
+        >
+          <FireIcon className="h-3 w-3 mr-1" />
+          Inject Hallucination (Demo)
+        </button>
+      </div>
+
       {/* Faithfulness gauge + claim audit */}
       {(efs != null || claimAudit.length > 0) && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <EFSGauge score={efs} />
+        <div className="surface-elevated rounded-lg p-3.5">
+          <EFSGauge score={efs} ci={result?.faithfulness?.ci} />
+
           {claimAudit.length > 0 && (
-            <div className="mt-5 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs uppercase text-slate-400">
+            <div className="mt-3 overflow-x-auto">
+              <table className="table">
+                <thead>
                   <tr>
-                    <th className="py-2">Claim</th>
+                    <th>Claim</th>
                     <th>Grounded</th>
                     <th>Attribution</th>
                     <th>Substructure</th>
@@ -157,12 +213,28 @@ const ExplanationAudit = ({ analysis }) => {
                 </thead>
                 <tbody>
                   {claimAudit.map((c, i) => (
-                    <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
-                      <td className="py-2 font-medium text-slate-700">{c.claim}</td>
-                      <td>{c.grounded ? '✔' : '✘'}</td>
-                      <td>{c.attribution_agreed ? '✔' : '✘'}</td>
-                      <td>{c.substructure_matched ? '✔' : '✘'}</td>
-                      <td>{c.rule_consistent ? '✔' : '✘'}</td>
+                    <tr key={i}>
+                      <td className="font-mono text-secondary text-xs">{c.claim}</td>
+                      <td className="text-center">
+                        <span className={c.grounded ? 'text-emerald' : 'text-red'}>
+                          {c.grounded ? '✔' : '✘'}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <span className={c.attribution_agreed ? 'text-emerald' : 'text-red'}>
+                          {c.attribution_agreed ? '✔' : '✘'}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <span className={c.substructure_matched ? 'text-emerald' : 'text-red'}>
+                          {c.substructure_matched ? '✔' : '✘'}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <span className={c.rule_consistent ? 'text-emerald' : 'text-red'}>
+                          {c.rule_consistent ? '✔' : '✘'}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -174,22 +246,24 @@ const ExplanationAudit = ({ analysis }) => {
 
       {/* Demo Completion Banner */}
       {demoComplete && hallucinating && (
-        <div className="mt-5 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-          <div className="flex items-start gap-3">
-            <XCircleIcon className="h-5 w-5 mt-0.5 text-red-600 flex-shrink-0" />
+        <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+          <div className="flex items-start gap-2.5">
+            <XCircleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
             <div>
-              <p className="font-bold text-red-800">DEMO RESULT: Faithfulness Gate TRIGGERED</p>
-              <p className="text-sm text-red-600">
-                EFS Score dropped to <span className="font-black">0.23</span> (REJECTED ❌)<br/>
-                <span className="text-xs">Reason: "Claimed toxicophore ungrounded in GNNExplainer attribution map."</span>
+              <p className="font-bold text-red-400">Faithfulness Gate TRIGGERED</p>
+              <p className="text-xs text-red-400/80">
+                EFS Score dropped to <span className="font-black">0.23</span> (REJECTED)
+              </p>
+              <p className="text-[10px] text-red-400/60 mt-0.5">
+                Reason: "Claimed toxicophore ungrounded in GNNExplainer attribution map."
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      {verifying && <p className="text-sm text-slate-400">Running counterfactual faithfulness test…</p>}
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      {verifying && <p className="text-xs text-muted">Running counterfactual faithfulness test…</p>}
     </div>
   );
 };

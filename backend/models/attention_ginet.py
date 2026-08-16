@@ -391,7 +391,7 @@ class AttentionGINet(nn.Module):
         finally:
             self.train(was_training)
 
-    def predict_mc_dropout(self, data, n_samples=30):
+    def predict_mc_dropout(self, data, n_samples=50):
         """Run T stochastic forward passes with dropout enabled to estimate epistemic uncertainty.
         Returns (mean, std, ci_low, ci_upper) as numpy arrays of shape [num_tasks].
         """

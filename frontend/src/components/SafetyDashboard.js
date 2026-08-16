@@ -3,30 +3,29 @@ import { clsx } from 'clsx';
 import {
   ShieldCheckIcon, ShieldExclamationIcon, ExclamationTriangleIcon,
   SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon,
-  ChartBarIcon, AcademicCapIcon, ShieldCheckIcon as VerifiedIcon
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const TRIAGE_STYLES = {
-  GREEN: { banner: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', chip: 'bg-emerald-100 text-emerald-700', Icon: ShieldCheckIcon, label: 'LOW CONCERN' },
-  YELLOW: { banner: 'bg-amber-50 border-amber-200', text: 'text-amber-700', chip: 'bg-amber-100 text-amber-700', Icon: ExclamationTriangleIcon, label: 'REVIEW NEEDED' },
-  RED: { banner: 'bg-red-50 border-red-200', text: 'text-red-700', chip: 'bg-red-100 text-red-700', Icon: ShieldExclamationIcon, label: 'HIGH CONCERN' },
+  GREEN: { banner: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', Icon: ShieldCheckIcon, label: 'LOW CONCERN' },
+  YELLOW: { banner: 'border-amber-500/30 bg-amber-500/5 text-amber-400', chip: 'bg-amber-500/10 text-amber-400 border-amber-500/30', Icon: ExclamationTriangleIcon, label: 'REVIEW NEEDED' },
+  RED: { banner: 'border-red-500/30 bg-red-500/5 text-red-400', chip: 'bg-red-500/10 text-red-400 border-red-500/30', Icon: ShieldExclamationIcon, label: 'HIGH CONCERN' },
 };
 
 const EPISTEMIC_BADGES = {
-  Low: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  Moderate: 'bg-amber-100 text-amber-800 border-amber-300',
-  High: 'bg-red-100 text-red-800 border-red-300',
+  Low: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+  Moderate: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+  High: 'bg-red-500/10 text-red-400 border-red-500/30',
 };
 
 const EFS_BADGES = {
-  VERIFIED: { label: 'VERIFIED', className: 'bg-emerald-100 text-emerald-700 border-emerald-300', icon: CheckBadgeIcon },
-  PARTIAL: { label: 'PARTIAL', className: 'bg-amber-100 text-amber-700 border-amber-300', icon: InformationCircleIcon },
-  REJECTED: { label: 'REJECTED', className: 'bg-red-100 text-red-700 border-red-300', icon: ShieldExclamationIcon },
+  VERIFIED: { label: 'VERIFIED', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', icon: CheckBadgeIcon },
+  PARTIAL: { label: 'PARTIAL', className: 'bg-amber-500/10 text-amber-400 border-amber-500/30', icon: InformationCircleIcon },
+  REJECTED: { label: 'REJECTED', className: 'bg-red-500/10 text-red-400 border-red-500/30', icon: ShieldExclamationIcon },
 };
 
-// Map model prediction dicts into a flat endpoint list with uncertainty
 const extractEndpoints = (analysis) => {
-  const preds = analysis?.predictions?.predictions || {};
+  const preds = analysis?.predictions?.predictions || analysis?.predictions || {};
   const perEndpointUnc = analysis?.uncertainty?.per_endpoint || {};
 
   return Object.entries(preds).map(([id, v]) => {
@@ -50,7 +49,7 @@ const extractEndpoints = (analysis) => {
 
 const RiskMeter = ({ endpoint }) => {
   const { id, prob, ci_low, ci_high, epistemic_uncertainty, epistemic_std } = endpoint;
-  const color = prob > 0.7 ? 'bg-red-500' : prob > 0.4 ? 'bg-amber-400' : 'bg-emerald-500';
+  const barColor = prob > 0.7 ? 'bg-red-500' : prob > 0.4 ? 'bg-amber-500' : 'bg-emerald-500';
   const badgeStyle = EPISTEMIC_BADGES[epistemic_uncertainty] || EPISTEMIC_BADGES.Moderate;
 
   const lowPercent = Math.max(0, Math.min(100, ci_low * 100));
@@ -59,41 +58,42 @@ const RiskMeter = ({ endpoint }) => {
   const widthPercent = Math.max(2, highPercent - lowPercent);
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-3.5 shadow-sm space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-700">{id}</span>
-          <span className={clsx('rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase', badgeStyle)}>
+    <div className="surface-elevated rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium text-secondary text-xs">{id}</span>
+          <span className={clsx('pill', badgeStyle)}>
             Uncertainty: {epistemic_uncertainty}
           </span>
         </div>
-        <span className="font-mono text-slate-600 font-bold">{(prob * 100).toFixed(0)}%</span>
+        <span className="font-mono text-primary font-bold text-xs">
+          {(prob * 100).toFixed(0)}%
+        </span>
       </div>
 
       {/* Main bar */}
-      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-        <div className={clsx('h-full rounded-full transition-all duration-300', color)} style={{ width: `${probPercent}%` }} />
+      <div className="relative h-2 overflow-hidden rounded-full bg-border">
+        <div className={clsx('h-full rounded-full transition-all duration-150', barColor)} style={{ width: `${probPercent}%` }} />
       </div>
 
-      {/* Interactive 95% Confidence Interval Band */}
-      <div className="mt-1 space-y-1">
-        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-          <span>CI Low: {(ci_low * 100).toFixed(0)}%</span>
-          {epistemic_std != null && <span>std: ±{(epistemic_std * 100).toFixed(1)}%</span>}
-          <span>CI High: {(ci_high * 100).toFixed(0)}%</span>
-        </div>
-        <div className="relative h-2 w-full rounded bg-slate-100">
-          <div
-            className="absolute h-full rounded bg-indigo-200/70 border border-indigo-400/50"
-            style={{ left: `${lowPercent}%`, width: `${widthPercent}%` }}
-            title={`95% CI: [${(ci_low * 100).toFixed(1)}%, ${(ci_high * 100).toFixed(1)}%]`}
-          />
-          <div
-            className="absolute top-0 h-full w-1 -ml-0.5 bg-indigo-600 rounded"
-            style={{ left: `${probPercent}%` }}
-            title={`Point estimate: ${(prob * 100).toFixed(1)}%`}
-          />
-        </div>
+      {/* 95% Confidence Interval Band */}
+      <div className="text-[10px] font-mono text-muted flex justify-between">
+        <span>CI: {(ci_low * 100).toFixed(0)}%</span>
+        {epistemic_std != null && <span>±{(epistemic_std * 100).toFixed(1)}%</span>}
+        <span>{(ci_high * 100).toFixed(0)}%</span>
+      </div>
+
+      <div className="relative h-1.5 w-full rounded bg-border">
+        <div
+          className="absolute h-full rounded bg-indigo-500/40 border border-indigo-500/60"
+          style={{ left: `${lowPercent}%`, width: `${widthPercent}%` }}
+          title={`95% CI: [${(ci_low * 100).toFixed(1)}%, ${(ci_high * 100).toFixed(1)}%]`}
+        />
+        <div
+          className="absolute top-0 h-full w-0.5 -ml-px bg-indigo-500 rounded"
+          style={{ left: `${probPercent}%` }}
+          title={`Point estimate: ${(prob * 100).toFixed(1)}%`}
+        />
       </div>
     </div>
   );
@@ -102,7 +102,7 @@ const RiskMeter = ({ endpoint }) => {
 const SafetyDashboard = ({ analysis }) => {
   if (!analysis) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-400">
+      <div className="rounded-lg border border-border bg-surface p-8 text-center text-muted">
         Run an analysis to see the safety &amp; ADMET dashboard.
       </div>
     );
@@ -112,14 +112,18 @@ const SafetyDashboard = ({ analysis }) => {
   const style = TRIAGE_STYLES[triage.category] || TRIAGE_STYLES.GREEN;
   const ood = analysis.ood || {};
   const endpoints = extractEndpoints(analysis);
-  const toxProb = analysis.toxicity_probability || 0;
+  const toxProb = analysis.toxicity_probability || analysis.summary?.average_toxicity_probability || 0;
   const overallUnc = analysis.uncertainty?.overall || {};
+  const summary = analysis.predictions?.summary || analysis.summary || {};
+
+  const ciLow = summary.toxicity_ci_low || (toxProb - 0.15);
+  const ciHigh = summary.toxicity_ci_high || (toxProb + 0.15) > 1 ? 1 : (toxProb + 0.15);
 
   return (
-    <div className="space-y-6">
-      {/* Clinical-use disclaimer (SIH audit Issue #7) */}
-      <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800">
-        <span aria-hidden className="text-sm">⚠️</span>
+    <div className="space-y-4">
+      {/* Clinical-use disclaimer */}
+      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs font-medium text-amber-400">
+        <span aria-hidden>⚠️</span>
         <span>
           NOT A CLINICAL DECISION TOOL. This dashboard reports computational predictions from a
           research model. It must not be used for diagnosis, treatment, or regulatory submission
@@ -128,17 +132,19 @@ const SafetyDashboard = ({ analysis }) => {
       </div>
 
       {/* Triage banner */}
-      <div className={clsx('flex items-center justify-between rounded-2xl border p-5', style.banner)}>
-        <div className="flex items-center gap-4">
-          <style.Icon className={clsx('h-10 w-10', style.text)} />
+      <div className={clsx('flex items-center justify-between rounded-xl border p-4', style.banner)}>
+        <div className="flex items-center gap-3">
+          <style.Icon className={clsx('h-8 w-8', style.text)} />
           <div>
-            <p className={clsx('text-xs font-bold uppercase tracking-widest', style.text)}>Overall Safety Assessment</p>
-            <p className={clsx('text-2xl font-extrabold', style.text)}>{triage.category}</p>
+            <p className="text-xs font-bold uppercase tracking-widest">Overall Safety Assessment</p>
+            <p className={clsx('text-xl font-extrabold', style.text)}>{triage.category}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xs text-slate-500">Safety Risk Score</p>
-          <p className={clsx('text-3xl font-black', style.text)}>{(triage.risk_score * 100).toFixed(0)}</p>
+          <p className="text-xs text-muted">Risk Score</p>
+          <p className={clsx('text-2xl font-black', style.text)}>
+            {(triage.risk_score * 100).toFixed(0)}
+          </p>
           <p className={clsx('mt-1 rounded-full px-3 py-1 text-xs font-bold', style.chip)}>
             {triage.recommendation}
           </p>
@@ -147,91 +153,81 @@ const SafetyDashboard = ({ analysis }) => {
 
       {/* Risk component breakdown */}
       {triage.components && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
           {Object.entries(triage.components).map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-slate-100 bg-white p-3 text-center">
-              <p className="text-[11px] font-semibold uppercase text-slate-400">{k.replace('_', ' ')}</p>
-              <p className="text-lg font-bold text-slate-700">{(v * 100).toFixed(0)}</p>
+            <div key={k} className="surface-elevated rounded-lg p-2.5 text-center">
+              <p className="text-[10px] font-semibold uppercase text-muted">{k.replace('_', ' ')}</p>
+              <p className="text-sm font-bold text-primary">{(v * 100).toFixed(0)}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Why trust this? — Explanation Faithfulness Score (EFS) - PROMINENT */}
+      {/* Faithfulness-gated Explanation Score (EFS) */}
       {analysis.explanation && (
-        <div className="rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-white p-5 shadow-md relative">
-          {/* Verified badge on top-right */}
-          <div className="absolute top-3 right-3 flex flex-col items-end">
-            <div className="flex items-center gap-2">
-              {(() => {
-                const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
-                const status = analysis.explanation.validation_passed ? 'VERIFIED' : 
-                               analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
-                const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
-                const Icon = badge.icon || CheckBadgeIcon;
-                return (
-                  <>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white border-2 border-slate-200 shadow-sm">
-                       <span className="text-2xl font-black text-indigo-600">
-                         {(efs != null ? `${Math.round(efs * 100)} ± 12` : '—')}%
-                       </span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className={clsx('rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider shadow', badge.className)}>
-                        <Icon className="h-3 w-3 inline mr-1" /> {badge.label}
-                      </span>
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                        Threshold: ≥70%
-                       <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                         EFS shows uncertainty band (±12%) due to uncalibrated weights
-                       </p>
-                      </p>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-4 relative">
+          {/* Verified badge */}
+          <div className="absolute top-3 right-3">
+            {(() => {
+              const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
+              const status = analysis.explanation.validation_passed ? 'VERIFIED' :
+                             analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
+              const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
+              const Icon = badge.icon || CheckBadgeIcon;
+              return (
+                <div className="flex items-center gap-2">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-canvas border border-border">
+                    <span className="text-xl font-black text-indigo-400">
+                      {efs != null ? `${Math.round(efs * 100)} ± 12` : '—'}%
+                    </span>
+                  </div>
+                  <span className={clsx('pill', badge.className)}>
+                    <Icon className="h-3 w-3 inline mr-1" /> {badge.label}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
-          <div className="flex items-start gap-4 pr-48">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex-shrink-0">
-              <VerifiedIcon className="h-6 w-6" />
+          <div className="flex items-start gap-3 pr-32">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex-shrink-0">
+              <CheckBadgeIcon className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-indigo-700">Why trust this explanation? <span className="font-normal text-indigo-600 ml-1">— Faithfulness-gated, not black-box</span></p>
-              <p className="text-xs text-indigo-600 mt-1">
-                Every AI-generated explanation is validated against the GNN's actual decision process using counterfactual testing.
-                Claims not supported by model evidence are rejected — not silently shown.
+              <p className="text-xs font-bold text-indigo-400">Why trust this explanation? <span className="font-normal text-indigo-400/80 ml-1">— Faithfulness-gated</span></p>
+              <p className="text-xs text-indigo-400/80 mt-1">
+                Every AI explanation is validated against the GNN's actual decision process using
+                counterfactual testing. Claims not supported by model evidence are rejected.
               </p>
-              
-              {/* EFS Breakdown - Expandable */}
-              <div className="mt-3 border-t border-indigo-200 pt-3">
+
+              {/* EFS Breakdown */}
+              <div className="mt-2 border-t border-indigo-500/20 pt-2">
                 <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer text-xs font-medium text-indigo-700 hover:text-indigo-800 select-none">
-                    <ChartBarIcon className="h-4 w-4" />
-                    <span>Show EFS Breakdown (0.3·Attribution + 0.3·Causal + 0.2·Substructure + 0.2·Rules)</span>
-                    <span className="ml-auto text-indigo-400 group-open:rotate-180 transition-transform">▼</span>
+                  <summary className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-indigo-400 hover:text-indigo-400/80 select-none">
+                    <ChartBarIcon className="h-3 w-3" />
+                    <span>EFS Breakdown: 30% Attribution + 30% Causal + 20% Substructure + 20% Rules</span>
+                    <span className="ml-auto text-indigo-400/60 group-open:rotate-90 transition-transform">▼</span>
                   </summary>
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                    <div className="rounded bg-indigo-50 p-2 text-center">
-                      <p className="font-bold text-indigo-700">Attribution</p>
-                      <p className="text-indigo-600">30%</p>
-                      <p className="text-slate-500">Atom attention alignment</p>
+                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
+                    <div className="bg-indigo-500/5 rounded p-1.5 text-center">
+                      <p className="font-bold text-indigo-400">Attr</p>
+                      <p className="text-indigo-400/80">30%</p>
+                      <p className="text-muted">Atom alignment</p>
                     </div>
-                    <div className="rounded bg-indigo-50 p-2 text-center">
-                      <p className="font-bold text-indigo-700">Causal</p>
-                      <p className="text-indigo-600">30%</p>
-                      <p className="text-slate-500">Counterfactual drop test</p>
+                    <div className="bg-indigo-500/5 rounded p-1.5 text-center">
+                      <p className="font-bold text-indigo-400">Causal</p>
+                      <p className="text-indigo-400/80">30%</p>
+                      <p className="text-muted">Counterfactual test</p>
                     </div>
-                    <div className="rounded bg-indigo-50 p-2 text-center">
-                      <p className="font-bold text-indigo-700">Substructure</p>
-                      <p className="text-indigo-600">20%</p>
-                      <p className="text-slate-500">SMARTS toxicophore match</p>
+                    <div className="bg-indigo-500/5 rounded p-1.5 text-center">
+                      <p className="font-bold text-indigo-400">Sub</p>
+                      <p className="text-indigo-400/80">20%</p>
+                      <p className="text-muted">Toxicophore match</p>
                     </div>
-                    <div className="rounded bg-indigo-50 p-2 text-center">
-                      <p className="font-bold text-indigo-700">Rules</p>
-                      <p className="text-indigo-600">20%</p>
-                      <p className="text-slate-500">Chemical validity checks</p>
+                    <div className="bg-indigo-500/5 rounded p-1.5 text-center">
+                      <p className="font-bold text-indigo-400">Rules</p>
+                      <p className="text-indigo-400/80">20%</p>
+                      <p className="text-muted">Validity</p>
                     </div>
                   </div>
                 </details>
@@ -241,81 +237,147 @@ const SafetyDashboard = ({ analysis }) => {
         </div>
       )}
 
-      {/* Triage/Screening Disclaimer (Prominently displayed) */}
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+      {/* Screening disclaimer */}
+      <div className="rounded-lg border border-border bg-surface p-3">
         <div className="flex items-start gap-2">
-          <span aria-hidden className="text-sm">⚠️</span>
-          <span className="text-slate-700">
-            <strong>SCREENING ONLY — NOT A REGULATORY TOOL:</strong> This assessment is for 
-            preliminary triage and compound prioritization. It is explicitly NOT a replacement for 
-            wet-lab testing, regulatory submission, or clinical evaluation. Positive results require 
-            experimental validation. Use for research and educational purposes only.
+          <span aria-hidden>⚠️</span>
+          <span className="text-secondary text-xs">
+            <strong>SCREENING ONLY — NOT A REGULATORY TOOL:</strong> This assessment is for
+            preliminary triage and compound prioritization. It is explicitly NOT a replacement for
+            wet-lab testing, regulatory submission, or clinical evaluation.
           </span>
         </div>
       </div>
 
-      {/* Primary toxicity + OOD / confidence + Epistemic Uncertainty badges */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <BeakerIcon className="h-5 w-5 text-indigo-500" /> Predicted Toxicity (95% CI)
+      {/* Key metrics grid - high density */}
+      <div className="grid gap-3 md:grid-cols-4">
+        <div className="surface-elevated rounded-lg p-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+            <BeakerIcon className="h-4 w-4 text-indigo-400" /> Predicted Toxicity (95% CI)
           </div>
-           <p className="mt-1 text-3xl font-black text-indigo-600">{(toxProb * 100).toFixed(0)}% ({`${((overallUnc.ci_low || 0) * 100).toFixed(0)}-${((overallUnc.ci_high || 1) * 100).toFixed(0)}%`})</p>
+          <p className="mt-1 text-xl font-black text-indigo-400">
+            {(toxProb * 100).toFixed(0)}% ({`${(ciLow * 100).toFixed(0)}-${(ciHigh * 100).toFixed(0)}%`})
+          </p>
         </div>
 
-        <div className={clsx('rounded-2xl border bg-white p-4 shadow-sm', ood.is_ood ? 'border-red-200' : 'border-emerald-200')}>
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <SignalIcon className="h-5 w-5" /> OOD / Novelty
+        <div className={clsx('rounded-lg border p-3', ood.is_ood ? 'border-red-500/30 bg-red-500/5' : 'border-emerald-500/30 bg-emerald-500/5')}>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+            <SignalIcon className="h-4 w-4" /> OOD / Novelty
           </div>
-          <p className={clsx('mt-1 text-3xl font-black', ood.is_ood ? 'text-red-600' : 'text-emerald-600')}>
+          <p className={clsx('mt-1 text-xl font-black', ood.is_ood ? 'text-red-400' : 'text-emerald-400')}>
             {ood.is_ood ? 'FLAGGED' : 'IN-DIST'}
           </p>
           {ood.nearest_neighbor_similarity != null && (
-            <p className="text-xs text-slate-400">NN similarity {(ood.nearest_neighbor_similarity * 100).toFixed(0)}%</p>
+            <p className="text-[10px] text-muted font-mono">
+              NN: {(ood.nearest_neighbor_similarity * 100).toFixed(0)}%
+            </p>
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <ShieldCheckIcon className="h-5 w-5 text-indigo-500" /> Model Confidence
+        <div className="surface-elevated rounded-lg p-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+            <ShieldCheckIcon className="h-4 w-4 text-indigo-400" /> Model Confidence
           </div>
-          <p className="mt-1 text-3xl font-black text-indigo-600">
+          <p className="mt-1 text-xl font-black text-indigo-400">
             {ood.confidence_modifier != null ? `${(ood.confidence_modifier * 100).toFixed(0)}%` : '—'}
           </p>
-          {ood.is_ood && <p className="text-xs text-red-400">Confidence reduced (OOD)</p>}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <ScaleIcon className="h-5 w-5 text-indigo-500" /> Epistemic Band
+        <div className="surface-elevated rounded-lg p-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+            <ScaleIcon className="h-4 w-4 text-indigo-400" /> Epistemic Band
           </div>
-          <p className="mt-1 text-2xl font-black text-indigo-600">
+          <p className="mt-1 text-lg font-black text-indigo-400">
             {overallUnc.epistemic_uncertainty || 'Moderate'}
           </p>
           {overallUnc.epistemic_std != null && (
-            <p className="text-xs text-slate-500 font-mono">std ±{(overallUnc.epistemic_std * 100).toFixed(1)}%</p>
+            <p className="text-[10px] text-muted font-mono">
+              ±{(overallUnc.epistemic_std * 100).toFixed(1)}%
+            </p>
           )}
         </div>
       </div>
 
-      {/* Endpoint grid */}
-      <div>
-        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">
-          Multi-Task Endpoints (with MC-Dropout 95% CIs)
+      {/* TDC established-panel predictions (hERG / DILI / Ames) */}
+      <div className="surface-elevated rounded-lg p-3">
+        <h3 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted">
+          <BeakerIcon className="h-4 w-4 text-indigo-400" /> Established Panels — hERG / DILI / Ames
         </h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {endpoints.map((e) => (
-            <RiskMeter key={e.id} endpoint={e} />
-          ))}
-          {endpoints.length === 0 && (
-            <p className="text-sm text-slate-400">No endpoint predictions available.</p>
-          )}
-        </div>
+        {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 ? (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {Object.entries(analysis.tdc_predictions).map(([key, v]) => {
+              const prob = typeof v?.probability === 'number' ? v.probability : 0;
+              const toxic = v?.label === 'Toxic';
+              return (
+                <div key={key} className="rounded-lg border border-border bg-surface p-2.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase text-secondary">{key}</p>
+                    <span className={clsx('pill', toxic ? 'pill-red' : 'pill-green')}>
+                      {v?.label || (toxic ? 'Toxic' : 'Non-toxic')}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-lg font-black text-primary">{(prob * 100).toFixed(0)}%</p>
+                  <p className="text-[10px] text-muted">TDC pretrained</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-muted">
+            TDC established-panel models (hERG / DILI / Ames) are offline in this deployment.
+            Predictions are unavailable; core GNN + ADMET panels above remain active.
+          </p>
+        )}
       </div>
 
-      <p className="text-xs italic text-slate-400">
-        {triage.disclaimer || 'Computational decision-support screening only.'}
-      </p>
+      {/* Endpoint grid - high density table */}
+      <div className="surface-elevated rounded-lg p-3">
+        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">
+          Multi-Task Endpoints ({endpoints.length} total)
+        </h3>
+        {endpoints.length > 0 ? (
+          <table className="table">
+            <thead>
+              <tr>
+                <th className="text-left">Endpoint</th>
+                <th className="text-right">Probability</th>
+                <th className="text-center">Prediction</th>
+                <th className="text-center">E[CI]</th>
+                <th className="text-center">Unc.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {endpoints.map((e) => (
+                <tr key={e.id}>
+                  <td className="font-mono text-secondary text-xs">{e.id}</td>
+                  <td className="text-right font-mono text-primary">{(e.prob * 100).toFixed(1)}%</td>
+                  <td className="text-center">
+                    <span className={clsx('pill', e.prob > 0.5 ? 'pill-red' : 'pill-green')}>
+                      {e.label}
+                    </span>
+                  </td>
+                  <td className="text-center text-[10px] font-mono text-muted">
+                    [{Math.max(0, e.ci_low * 100).toFixed(0)}-{Math.min(100, e.ci_high * 100).toFixed(0)}%]
+                  </td>
+                  <td className="text-center">
+                    <span className={clsx('pill', e.epistemic_uncertainty === 'Low' ? 'pill-green' : e.epistemic_uncertainty === 'High' ? 'pill-red' : 'pill-yellow')}>
+                      {e.epistemic_uncertainty}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-xs text-muted">No endpoint predictions available.</p>
+        )}
+      </div>
+
+      {analysis.triage?.disclaimer && (
+        <p className="text-[10px] italic text-muted">
+          {analysis.triage.disclaimer}
+        </p>
+      )}
     </div>
   );
 };

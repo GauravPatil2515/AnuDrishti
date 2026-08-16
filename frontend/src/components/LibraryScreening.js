@@ -1,23 +1,27 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { ArrowDownTrayIcon, TableCellsIcon, CheckBadgeIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownTrayIcon, TableCellsIcon, CheckBadgeIcon,
+  ShieldExclamationIcon, InformationCircleIcon
+} from '@heroicons/react/24/outline';
 
 const CATEGORY_STYLE = {
-  GREEN: 'bg-emerald-100 text-emerald-700',
-  YELLOW: 'bg-amber-100 text-amber-700',
-  RED: 'bg-red-100 text-red-700',
+  GREEN: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
+  YELLOW: 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
+  RED: 'bg-red-500/10 text-red-400 border border-red-500/30',
 };
 
 const LibraryScreening = ({ batchResult }) => {
   if (!batchResult || batchResult.total_processed === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-400">
+      <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center text-muted">
         Upload a molecular library in <b>Mode B</b> to screen and rank candidates.
       </div>
     );
   }
 
   const results = batchResult.results || [];
+
   const exportCsv = () => {
     const rows = [['SMILES', 'Category', 'RiskScore', 'Toxicity', 'OOD', 'EFS', 'Trust Status']];
     results.forEach((r) => {
@@ -46,59 +50,75 @@ const LibraryScreening = ({ batchResult }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <TableCellsIcon className="h-5 w-5" />
-          <span className="font-bold text-slate-700">{batchResult.total_processed}</span> molecules screened
+        <div className="flex items-center gap-1.5 text-xs text-secondary">
+          <TableCellsIcon className="h-3 w-3" />
+          <span className="font-bold text-primary">{batchResult.total_processed}</span> molecules screened
         </div>
         <button
           onClick={exportCsv}
-          className="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-indigo-400"
+          className="btn btn-secondary text-xs"
         >
-          <ArrowDownTrayIcon className="h-5 w-5" /> Export CSV
+          <ArrowDownTrayIcon className="h-3 w-3 mr-1" /> Export CSV
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+      {/* Dense data table */}
+      <div className="table-container">
+        <table className="table">
+          <thead>
             <tr>
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">SMILES</th>
-              <th className="px-4 py-3">Triage</th>
-              <th className="px-4 py-3">Risk</th>
-              <th className="px-4 py-3">Toxicity</th>
-              <th className="px-4 py-3">OOD</th>
+              <th className="w-8">#</th>
+              <th>SMILES</th>
+              <th className="w-28">Triage</th>
+              <th className="w-16 text-right">Risk</th>
+              <th className="w-20">Toxicity</th>
+              <th className="w-24">OOD</th>
+              <th className="w-16">EFS</th>
+              <th className="w-28">Trust</th>
             </tr>
           </thead>
           <tbody>
             {results.map((r, i) => (
-              <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 text-slate-400">{i + 1}</td>
-                <td className="max-w-[260px] truncate px-4 py-2 font-mono text-xs text-slate-600">
+              <tr key={i}>
+                <td className="text-muted">{i + 1}</td>
+                <td className="max-w-[240px] truncate font-mono text-xs text-secondary">
                   {r.smiles}
-                  {r.error && <span className="ml-2 text-red-500">{r.error}</span>}
+                  {r.error && <span className="ml-1 text-red">{r.error}</span>}
                 </td>
-                <td className="px-4 py-2">
-                  <span className={clsx('rounded-full px-2 py-1 text-xs font-bold', CATEGORY_STYLE[r.triage?.category] || 'bg-slate-100 text-slate-600')}>
+                <td>
+                  <span className={clsx('pill text-[9px]',
+                    CATEGORY_STYLE[r.triage?.category] || 'pill-gray'
+                  )}>
                     {r.triage?.category || '—'}
                   </span>
                 </td>
-                <td className="px-4 py-2 font-mono text-slate-600">
-                  {r.triage?.risk_score != null ? (r.triage.risk_score * 100).toFixed(0) : '—'}
+                <td className="font-mono text-secondary">
+                  {r.triage?.risk_score != null ? `${(r.triage.risk_score * 100).toFixed(0)}` : '—'}
                 </td>
-                <td className="px-4 py-2">
-                  {r.toxicity_probability != null ? (r.toxicity_probability * 100).toFixed(0) + '%' : '—'}
+                <td>
+                  {r.toxicity_probability != null ? (
+                    <span className={clsx(
+                      'font-mono font-bold text-xs',
+                      r.toxicity_probability > 0.7 ? 'text-red-400' :
+                      r.toxicity_probability > 0.4 ? 'text-amber-400' : 'text-emerald-400'
+                    )}>
+                      {(r.toxicity_probability * 100).toFixed(0)}%
+                    </span>
+                  ) : '—'}
                 </td>
-                <td className="px-4 py-2">
+                <td>
                   {r.ood?.is_ood ? (
-                    <span className="text-red-600">FLAGGED</span>
+                    <span className="flex items-center gap-1 text-xs text-red-400">
+                      <InformationCircleIcon className="h-3 w-3" /> FLAGGED
+                    </span>
                   ) : (
-                    <span className="text-emerald-600">in-dist</span>
+                    <span className="text-xs text-emerald-400">in-dist</span>
                   )}
                 </td>
-                <td className="px-4 py-2">
+                <td className="font-mono text-secondary text-xs">
                   {(() => {
                     const efs = r.explanation?.faithfulness_score ?? r.explanation?.efs;
                     if (typeof efs === 'number') {
@@ -107,17 +127,17 @@ const LibraryScreening = ({ batchResult }) => {
                     return '—';
                   })()}
                 </td>
-                <td className="px-4 py-2">
+                <td>
                   {r.explanation?.validation_passed === true ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-700">
-                      <CheckBadgeIcon className="h-3 w-3" /> VERIFIED
+                    <span className="pill pill-green text-[9px]">
+                      <CheckBadgeIcon className="h-2 w-2 mr-0.5" /> VERIFIED
                     </span>
                   ) : r.explanation?.validation_passed === false ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
-                      <ShieldExclamationIcon className="h-3 w-3" /> REJECTED
+                    <span className="pill pill-red text-[9px]">
+                      <ShieldExclamationIcon className="h-2 w-2 mr-0.5" /> REJECTED
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-500">UNCHECKED</span>
+                    <span className="text-xs text-muted">UNCHECKED</span>
                   )}
                 </td>
               </tr>

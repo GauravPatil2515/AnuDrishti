@@ -36,7 +36,7 @@ faithfulness_validator = None
 def init_pharmaguard(**services):
     """Inject shared service objects after ``initialize_services`` runs."""
     global predictor, predictor_cached, cache, db_service, groq_client
-    global ood_detector, triage_engine, faithfulness_validator
+    global ood_detector, triage_engine, faithfulness_validator, tdc_models
     predictor = services.get('predictor')
     predictor_cached = services.get('predictor_cached')
     cache = services.get('cache')
@@ -45,6 +45,7 @@ def init_pharmaguard(**services):
     ood_detector = services.get('ood_detector')
     triage_engine = services.get('triage_engine')
     faithfulness_validator = services.get('faithfulness_validator')
+    tdc_models = services.get('tdc_models')
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -82,7 +83,7 @@ def _compute_uncertainty(result, smiles=None, use_mc=False):
     mc_data = {}
     if use_mc and smiles and predictor and hasattr(predictor, 'predict_mc_dropout'):
         try:
-            mc_data = predictor.predict_mc_dropout(smiles, n_samples=20) or {}
+            mc_data = predictor.predict_mc_dropout(smiles, n_samples=50) or {}
         except Exception as e:
             print(f"⚠️ MC dropout estimation failed in _compute_uncertainty: {e}")
 
@@ -377,6 +378,32 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
             smiles, tox_prob, substructures, attention_weights
         )
         analysis['explanation']['llm_generated'] = False
+
+    # 7. TDC predictions for hERG, DILI, Ames
+    if tdc_models is not None:
+        try:
+            tdc_preds = {}
+            for name, model in tdc_models.items():
+                # TDC's single_pred model.predict returns a scalar, array, or Series.
+                pred = model.predict(smiles)
+                # Normalize to a single float probability for the positive class.
+                if hasattr(pred, '__len__') and len(pred) > 0:
+                    try:
+                        pred = float(np.asarray(pred).flatten()[0])
+                    except Exception:
+                        pred = float(np.asarray(pred).mean())
+                else:
+                    pred = float(pred)
+                tdc_preds[name] = {
+                    'probability': round(pred, 4),
+                    'label': 'Toxic' if pred >= 0.5 else 'Non-toxic'
+                }
+            analysis['tdc_predictions'] = tdc_preds
+        except Exception as e:
+            print(f"⚠️ TDC prediction failed: {e}")
+            analysis['tdc_predictions'] = {}
+    else:
+        analysis['tdc_predictions'] = {}
 
     return analysis
 

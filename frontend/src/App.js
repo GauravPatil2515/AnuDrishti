@@ -58,11 +58,11 @@ function App() {
           },
           loading: {
             style: {
-              background: '#fdf4ff',
-              border: '1px solid #f0abfc',
+              background: '#0d0e11',
+              border: '1px solid rgba(99, 102, 241, 0.4)',
             },
             iconTheme: {
-              primary: '#ec4899',
+              primary: '#6366f1',
               secondary: '#ffffff',
             },
           },

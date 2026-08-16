@@ -94,7 +94,7 @@ faithfulness_validator = None
 def initialize_services():
     """Initialize all services (ML predictor, database, AI, MedToXAi, OOD, Triage, Faithfulness)"""
     global predictor, predictor_cached, db_service, groq_client, medtoxai_analyzer, cache
-    global ood_detector, triage_engine, faithfulness_validator
+    global ood_detector, triage_engine, faithfulness_validator, tdc_models
     
     # Initialize ML predictor with caching
     # Priority: UnifiedADMETPredictor > GIN > SimpleDrugToxPredictor
@@ -206,7 +206,7 @@ def initialize_services():
                     gnn_model = entry.get('model') if isinstance(entry, dict) else entry
                     if gnn_model is not None:
                         break
-            
+
             if gnn_model:
                 faithfulness_validator = FaithfulnessValidator(
                     model=gnn_model,
@@ -224,6 +224,58 @@ def initialize_services():
         print("⚠️ Faithfulness Validator not available or predictor not loaded")
         faithfulness_validator = None
 
+    # Initialize TDC models for hERG, DILI, Ames.
+    # Installed TDC exposes these as tasks inside the `Tox` group, not as
+    # importable names (`from tdc.single_pred import hERG` raises ImportError).
+    # Loading the task / pretrained weights requires an internet download; if
+    # that is unavailable (offline demo) we degrade gracefully and keep the
+    # backend fully functional with tdc_models = None. The download is wrapped
+    # in a timeout-guarded thread so a hung/slow network call can NEVER block
+    # server startup.
+    def _load_tdc_models():
+        from tdc.single_pred import Tox
+
+        def _build_tdc_predictor(task_name):
+            """Return a TDC Tox task object for the given endpoint.
+
+            Tries to attach a pretrained predictor first; if that is
+            unavailable we keep the task object as a placeholder. `.predict`
+            is only callable once a model is fitted/attached, but the caller
+            (pharmaguard.py) already guards TDC inference in try/except.
+            """
+            task = Tox(name=task_name)  # downloads metafile/dataset
+            model = None
+            try:
+                # TDC >= 0.4 ships pretrained predictors for these tasks.
+                model = task.get_model()
+            except Exception:
+                model = None
+            return model if model is not None else task
+
+        return {
+            'herg': _build_tdc_predictor('hERG'),
+            'dili': _build_tdc_predictor('DILI'),
+            'ames': _build_tdc_predictor('AMES'),
+        }
+
+    tdc_models = None
+    try:
+        import threading
+        _result = {}
+        _loader = threading.Thread(target=lambda: _result.setdefault('m', _load_tdc_models()), daemon=True)
+        _loader.start()
+        _loader.join(timeout=15)  # never block startup longer than 15s
+        if _loader.is_alive():
+            print("⚠️ TDC models initialization timed out (offline?), skipping")
+            tdc_models = None
+        else:
+            tdc_models = _result.get('m')
+            if tdc_models is not None:
+                print("✅ TDC models (hERG, DILI, Ames) initialized successfully")
+    except Exception as e:
+        print(f"⚠️ TDC models initialization failed: {e}")
+        tdc_models = None
+
     # Inject shared services into the PharmaGuard blueprint (refactor)
     if PHARMAGUARD_BP_AVAILABLE:
         init_pharmaguard(
@@ -235,6 +287,7 @@ def initialize_services():
             ood_detector=ood_detector,
             triage_engine=triage_engine,
             faithfulness_validator=faithfulness_validator,
+            tdc_models=tdc_models,
         )
 
     return True

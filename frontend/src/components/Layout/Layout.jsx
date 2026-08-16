@@ -13,6 +13,10 @@ const Layout = () => {
     switch (pathname) {
       case '/':
         return 'Dashboard';
+      case '/app/pharmaguard':
+        return 'PharmaGuard AI';
+      case '/app/chat':
+        return 'AI Assistant';
       case '/predictions':
         return 'Molecular Predictions';
       case '/batch':
@@ -28,7 +32,7 @@ const Layout = () => {
       case '/contact':
         return 'Contact Support';
       default:
-        return 'DeNovo';
+        return 'PharmaGuard AI';
     }
   };
 

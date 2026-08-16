@@ -14,9 +14,6 @@ import {
 import { clsx } from 'clsx';
 
 const navigation = [
-  { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
-  { name: 'Predictions', href: '/app/predictions', icon: BeakerIcon },
-  { name: 'Batch Processing', href: '/app/batch', icon: DocumentDuplicateIcon },
   { name: 'PharmaGuard AI', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
   { name: 'AI Assistant', href: '/app/chat', icon: ChatBubbleLeftRightIcon },
 ];
@@ -25,7 +22,7 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
   const location = useLocation();
 
   const SidebarContent = ({ isDesktop = false }) => (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gradient-to-b from-gray-950 via-gray-900 to-black px-6 pb-4">
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#08090a] border-r border-white/5 px-6 pb-4">
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center justify-between">
         <Link to="/" className={clsx(
@@ -33,14 +30,14 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
           collapsed && isDesktop && "justify-center"
         )}>
           <div className="relative">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-600 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-primary-500/50">
-              <BeakerIcon className="h-6 w-6 text-white" />
+            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+              <BeakerIcon className="h-5 w-5 text-white/80" />
             </div>
           </div>
           {(!collapsed || !isDesktop) && (
             <div>
-              <h1 className="text-lg font-bold text-white">DeNovo Platform</h1>
-              <p className="text-xs text-gray-400">ADMET Prediction</p>
+              <h1 className="text-lg font-bold text-white">PharmaGuard AI</h1>
+              <p className="text-xs text-gray-400">Toxicity Decision Support</p>
             </div>
           )}
         </Link>
@@ -70,11 +67,11 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
                     title={collapsed && isDesktop ? item.name : ''}
                     className={clsx(
                       location.pathname === item.href
-                        ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-lg shadow-primary-500/30'
+                        ? 'bg-white/10 text-white shadow-sm'
                         : item.highlight
-                          ? 'text-white bg-white/10 ring-1 ring-primary-400/40'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5',
-                      'group flex gap-x-3 rounded-xl p-3 text-sm leading-6 font-medium transition-all duration-300 ease-in-out cursor-pointer',
+                          ? 'text-white/80 bg-white/5 ring-1 ring-white/10'
+                          : 'text-white/40 hover:text-white/80 hover:bg-white/5',
+                      'group flex gap-x-3 rounded-md p-2.5 text-sm leading-6 font-medium transition-all duration-150 cursor-pointer',
                       collapsed && isDesktop && 'justify-center'
                     )}
                   >
@@ -100,11 +97,10 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
       </nav>
 
       {/* Platform info */}
-      {(!collapsed || !isDesktop) && (
-        <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-accent-500/10 backdrop-blur-sm border border-primary-500/20">
+        <div className="mt-6 p-4 rounded-lg bg-[#08090a] border border-white/5">
           <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
-              <BeakerIcon className="h-5 w-5 text-white" />
+            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+              <BeakerIcon className="h-4 w-4 text-white/80" />
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-white">5 Models Active</p>
