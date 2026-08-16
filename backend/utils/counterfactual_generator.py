@@ -20,6 +20,7 @@ try:
     from rdkit import Chem
     from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, QED
     from rdkit.Chem import ReplaceSubstructs, DeleteSubstructs
+    from rdkit.Contrib.SA_Score import sascorer
     RDKIT_AVAILABLE = True
 except ImportError:
     RDKIT_AVAILABLE = False
@@ -60,6 +61,7 @@ class CounterfactualMolecule:
     confidence: float  # How confident we are in the expected effect
     atoms_modified: List[int] = None
     qed: Optional[float] = None  # Drug-likeness score (0-1) of the modified molecule
+    sa_score: Optional[float] = None  # Synthetic accessibility score (1-10) of the modified molecule
 
 
 class CounterfactualGenerator:
@@ -165,8 +167,7 @@ class CounterfactualGenerator:
         unique_counterfactuals = self._deduplicate(counterfactuals)
         return unique_counterfactuals[:n_variants]
     
-    def generate_optimization_candidates(
-        self,
+    def generate_optimization_candidates(self,
         smiles: str,
         n_variants: int = 6
     ) -> List[CounterfactualMolecule]:
@@ -191,18 +192,34 @@ class CounterfactualGenerator:
             if len(cfs) >= n_variants:
                 break
             cfs.extend(self._apply_modification_type(smiles, mol, mt))
-        cfs = self._deduplicate(cfs)[:n_variants]
+        cfs = self._deduplicate(cfs)
 
-        # Attach a drug-likeness (QED) score to each candidate so the UI can
-        # surface only chemically sensible counterfactuals (SIH audit P2 #9).
+        # Attach drug-likeness (QED) and synthetic accessibility (SA) scores to each candidate
+        # so the UI can filter for chemically sensible counterfactuals (SIH audit P2 #9).
+        # We filter to only keep those with QED > 0.4 and SA Score < 6.0.
+        filtered_cfs = []
         for cf in cfs:
             try:
                 m = Chem.MolFromSmiles(cf.modified_smiles)
-                cf.qed = round(float(QED.qed(m)), 3) if m is not None else None
+                if m is not None:
+                    cf.qed = round(float(QED.qed(m)), 3)
+                    cf.sa_score = round(float(sascorer.calculateScore(m)), 2)
+                else:
+                    cf.qed = None
+                    cf.sa_score = None
             except Exception:
                 cf.qed = None
-        return cfs
+                cf.sa_score = None
 
+            # Filter: only keep if QED > 0.4 and SA Score < 6.0
+            if cf.qed is not None and cf.sa_score is not None:
+                if cf.qed > 0.4 and cf.sa_score < 6.0:
+                    filtered_cfs.append(cf)
+            # If we cannot compute the scores, we discard the candidate (to be safe).
+            # Alternatively, we could keep it and let the UI decide, but the audit says to filter.
+            # We'll discard if we cannot compute.
+
+        return filtered_cfs[:n_variants]
     def _apply_modification_type(
         self,
         smiles: str,
