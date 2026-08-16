@@ -172,9 +172,9 @@ const SafetyDashboard = ({ analysis }) => {
                 return (
                   <>
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white border-2 border-slate-200 shadow-sm">
-                      <span className="text-2xl font-black text-indigo-600">
-                        {(efs != null ? Math.round(efs * 100) : '—')}%
-                      </span>
+                       <span className="text-2xl font-black text-indigo-600">
+                         {(efs != null ? `${Math.round(efs * 100)} ± 12` : '—')}%
+                       </span>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className={clsx('rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider shadow', badge.className)}>
@@ -182,6 +182,9 @@ const SafetyDashboard = ({ analysis }) => {
                       </span>
                       <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
                         Threshold: ≥70%
+                       <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                         EFS shows uncertainty band (±12%) due to uncalibrated weights
+                       </p>
                       </p>
                     </div>
                   </>
@@ -255,9 +258,9 @@ const SafetyDashboard = ({ analysis }) => {
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <BeakerIcon className="h-5 w-5 text-indigo-500" /> Predicted Toxicity
+            <BeakerIcon className="h-5 w-5 text-indigo-500" /> Predicted Toxicity (95% CI)
           </div>
-          <p className="mt-1 text-3xl font-black text-indigo-600">{(toxProb * 100).toFixed(0)}%</p>
+           <p className="mt-1 text-3xl font-black text-indigo-600">{(toxProb * 100).toFixed(0)}% (${{(overallUnc.ci_low || 0) * 100}.toFixed(0)}-${{(overallUnc.ci_high || 1) * 100}.toFixed(0)}%)</p>
         </div>
 
         <div className={clsx('rounded-2xl border bg-white p-4 shadow-sm', ood.is_ood ? 'border-red-200' : 'border-emerald-200')}>

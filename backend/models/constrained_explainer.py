@@ -18,6 +18,8 @@ import logging
 import re
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, asdict, field
+import threading
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('ConstrainedExplainer')
@@ -279,9 +281,10 @@ REMEMBER: Only include features with attention > {attention_threshold}. Do not i
         evidence: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Call LLM to generate the explanation JSON."""
+
         # Format evidence for prompt
         substructure_text = self._format_substructure_evidence(evidence['substructures'])
-        
+
         # Build prompt
         prompt = self.CONSTRAINED_PROMPT.format(
             smiles=smiles,
@@ -289,26 +292,40 @@ REMEMBER: Only include features with attention > {attention_threshold}. Do not i
             substructure_evidence=substructure_text,
             attention_threshold=self.attention_threshold
         )
-        
-        # Generate
-        try:
-            response = self.llm.generate(
-                prompt,
-                max_tokens=800,
-                temperature=0.2  # Low temperature for factual consistency
-            )
-            
-            # Parse and standardize
-            explanation_dict = self._parse_llm_json(response)
-            if explanation_dict:
-                return self._format_llm_output(explanation_dict, evidence)
-            
+
+        # Generate LLM explanation with timeout protection
+        result_container = [None]
+        exception_container = [None]
+
+        def target():
+            try:
+                response = self.llm.generate(
+                    prompt,
+                    max_tokens=800,
+                    temperature=0.2  # Low temperature for factual consistency
+                )
+                # Parse and standardize
+                explanation_dict = self._parse_llm_json(response)
+                if explanation_dict:
+                    result_container[0] = self._format_llm_output(explanation_dict, evidence)
+            except Exception as e:
+                exception_container[0] = e
+
+        thread = threading.Thread(target=target)
+        thread.daemon = True
+        thread.start()
+        thread.join(timeout=30.0)  # 30 second timeout for LLM call
+
+        if thread.is_alive():
+            # Timeout occurred
+            logger.warning(f"LLM generation timed out after 30 seconds for {smiles[:15]}...")
             return None
-            
-        except Exception as e:
-            logger.error(f"LLM generation failed: {e}")
+
+        if exception_container[0] is not None:
+            logger.error(f"LLM generation failed: {exception_container[0]}")
             return None
-    
+
+        return result_container[0]
     def _parse_llm_json(self, response: str) -> Optional[Dict[str, Any]]:
         """Robustly parse JSON from LLM output, handling markdown blocks."""
         try:

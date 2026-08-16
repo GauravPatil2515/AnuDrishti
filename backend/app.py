@@ -12,6 +12,7 @@ import traceback
 from datetime import datetime
 import uuid
 import json
+from rdkit import Chem
 import numpy as np
 from dotenv import load_dotenv
 
@@ -335,8 +336,13 @@ def predict_single():
         smiles = data['smiles'].strip()
         if not smiles:
             return jsonify({'error': 'Empty SMILES string'}), 400
-        
-        # Get prediction with caching enabled
+
+        # Validate SMILES
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return jsonify({'error': 'Invalid SMILES', 'code': 'INVALID_SMILES', 'example': 'CC(=O)Oc1ccccc1C(=O)O'}), 400
+       
+       # Get prediction with caching enabled
         if predictor_cached:
             result = predictor_cached.predict_single(smiles)
         else:
@@ -562,11 +568,19 @@ def predict_batch():
         smiles_list = data['smiles_list']
         if not isinstance(smiles_list, list):
             return jsonify({'error': 'SMILES list must be an array'}), 400
-        
+
         if len(smiles_list) > 100:
             return jsonify({'error': 'Maximum 100 molecules per batch'}), 400
-        
-        # Get predictions
+
+        # Validate each SMILES
+        for i, smi in enumerate(smiles_list):
+            if not isinstance(smi, str):
+                return jsonify({'error': f'SMILES at index {i} is not a string', 'code': 'INVALID_SMILES_TYPE'}), 400
+            mol = Chem.MolFromSmiles(smi.strip())
+            if mol is None:
+                return jsonify({'error': f'Invalid SMILES at index {i}: {smi}', 'code': 'INVALID_SMILES', 'example': 'CC(=O)Oc1ccccc1C(=O)O'}), 400
+       
+       # Get predictions
         results = predictor.predict_batch(smiles_list)
         
         # Format results
