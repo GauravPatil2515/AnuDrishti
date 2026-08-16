@@ -989,7 +989,270 @@ def demo():
         'demo': True,
         'message': 'Zero-setup demonstration records. These are illustrative, not live predictions — run a real SMILES for a live analysis.',
         'results': [paracetamol, nitrobenzene]
-})
+    })
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Phase 3 Routes: PDF Reports, NL Queries, Model Ensemble
+# ═══════════════════════════════════════════════════════════════════════════
 
+@pharmaguard_bp.route('/report/pdf', methods=['POST'])
+def report_pdf():
+    """Generate a PDF safety report (Phase 3 feature).
+    
+    Uses pdfkit (wkhtmltopdf) with fpdf fallback for styled PDF output.
+    Falls back to JSON report if PDF generation fails.
+    """
+    try:
+        if not predictor or not predictor.is_loaded:
+            return jsonify({'error': 'Predictor not initialized'}), 500
+        
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+        
+        smiles = data['smiles'].strip()
+        mol, smiles_err = _validate_smiles(smiles)
+        if smiles_err:
+            return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
+        
+        # Build full analysis
+        analysis = _build_pharmaguard_analysis(smiles, include_explanation=True)
+        if analysis is None or 'error' in analysis:
+            return jsonify({'error': 'Analysis failed'}), 500
+        
+        # Generate PDF
+        from services.report_generator import generate_pdf_report
+        
+        report_data = {
+            'smiles': smiles,
+            'summary': analysis.get('predictions', {}).get('summary', {}),
+            'predictions': analysis.get('predictions', {}).get('predictions', {}),
+            'triage': analysis.get('triage', {}),
+            'ood': analysis.get('ood', {}),
+            'explanation': analysis.get('explanation', {}),
+        }
+        
+        # Merge summary into top-level for template
+        report_data.update(analysis.get('predictions', {}).get('summary', {}))
+        
+        try:
+            pdf_bytes = generate_pdf_report(report_data)
+            from flask import Response
+            return Response(
+                pdf_bytes,
+                mimetype='application/pdf',
+                headers={
+                    'Content-Disposition': f'attachment; filename=pharmaguard_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+                }
+            )
+        except Exception as pdf_err:
+            print(f"⚠️ PDF generation failed, falling back to JSON: {pdf_err}")
+            # Fallback: return JSON report
+            return jsonify({
+                'success': True,
+                'format': 'json',
+                'pdf_note': 'PDF generation failed, returning JSON report',
+                'report': {
+                    'platform': 'PharmaGuard AI',
+                    'disclaimer': 'Computational decision-support assessment. Not a regulatory or clinical approval.',
+                    'generated_at': datetime.now().isoformat(),
+                    'analysis': analysis
+                }
+            })
+        
+    except Exception as e:
+        print(f"❌ PDF report error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Report generation failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/query', methods=['POST'])
+def natural_language_query():
+    """Natural language query endpoint (Phase 3 feature).
+    
+    Allows users to ask questions in plain English about molecular toxicity,
+    e.g., "Is caffeine safe?", "Compare caffeine and aspirin toxicity".
+    
+    Uses local regex-based intent parsing (no external API needed).
+    """
+    try:
+        if not predictor or not predictor.is_loaded:
+            return jsonify({'error': 'Predictor not initialized'}), 500
+        
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({'error': 'Query string required'}), 400
+        
+        query = data['query'].strip()
+        if not query:
+            return jsonify({'error': 'Empty query string'}), 400
+        
+        # Parse and respond to the query
+        from services.nl_query import NaturalLanguageQueryService
+        service = NaturalLanguageQueryService(predictor)
+        result = service.query(query)
+        
+        return jsonify({
+            'success': True,
+            'query': query,
+            'intent': result['parsed_intent']['intent'],
+            'entities': result['parsed_intent']['entities'],
+            'properties': result['parsed_intent']['properties'],
+            'response': result['response'],
+            'suggestions': service.suggest_queries() if result['parsed_intent']['intent'] == 'unknown' else []
+        })
+        
+    except Exception as e:
+        print(f"❌ NL query error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Query failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/models', methods=['GET'])
+def list_models():
+    """List all available models in the ensemble (Phase 3 feature).
+    
+    Returns details about each model including its role, status, and performance.
+    """
+    try:
+        if not predictor:
+            return jsonify({'error': 'Predictor not initialized'}), 500
+        
+        model_info = []
+        
+        # Attention-GIN
+        if 'attention_gin' in predictor.models:
+            m = predictor.models['attention_gin']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'primary',
+                'status': 'active',
+                'num_tasks': m.get('num_tasks', 12),
+                'endpoints': m.get('endpoints', []),
+                'performance': {'roc_auc': 0.8368, 'note': 'Trained on Tox21 12-endpoint benchmark'}
+            })
+        
+        # XGBoost
+        if 'xgboost' in predictor.models:
+            m = predictor.models['xgboost']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'secondary',
+                'status': 'active',
+                'num_tasks': len(m.get('endpoints', [])),
+                'endpoints': m.get('endpoints', []),
+                'performance': {'note': 'Best optimized XGBoost models'}
+            })
+        
+        # BBBP
+        if 'bbbp' in predictor.models:
+            m = predictor.models['bbbp']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'admet',
+                'status': 'active',
+                'endpoints': ['BBBP'],
+                'performance': {'note': 'Blood-brain barrier penetration prediction'}
+            })
+        
+        # ClinTox
+        if 'clintox' in predictor.models:
+            m = predictor.models['clintox']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'admet',
+                'status': 'active',
+                'endpoints': ['FDA_APPROVED', 'CT_TOX'],
+                'performance': {'note': 'Clinical toxicity prediction'}
+            })
+        
+        # Clearance
+        if 'clearance' in predictor.models:
+            m = predictor.models['clearance']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'admet',
+                'status': 'active',
+                'endpoints': ['Clearance'],
+                'performance': {'note': 'Intrinsic clearance prediction (log scale)'}
+            })
+        
+        # ChemBERTa (Phase 3)
+        if 'chemberta_encoder' in predictor.models:
+            m = predictor.models['chemberta_encoder']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'encoder',
+                'status': 'active',
+                'embedding_dim': m.get('embedding_dim', 768),
+                'endpoints': [],
+                'performance': {'note': 'Transformer-based SMILES encoder for ensemble'},
+                'phase': 3
+            })
+        
+        # GPS Graph Transformer (Phase 3)
+        if 'gps' in predictor.models:
+            m = predictor.models['gps']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'ensemble',
+                'status': 'active' if 'results/trained_models/gps_tox21_model.pth' in str(Path(__file__).parent.parent.parent) else 'standby',
+                'num_tasks': m.get('num_tasks', 12),
+                'endpoints': m.get('endpoints', []),
+                'performance': {'note': 'GPS Graph Transformer (Phase 3)'},
+                'phase': 3
+            })
+        
+        # TDC Models (Phase 3)
+        if 'tdc' in predictor.models:
+            m = predictor.models['tdc']
+            model_info.append({
+                'name': m['name'],
+                'type': m['type'],
+                'role': 'supplementary',
+                'status': 'placeholder',
+                'endpoints': m.get('datasets', []),
+                'performance': {'note': 'Datasets available; models need training'},
+                'phase': 3
+            })
+        
+        return jsonify({
+            'success': True,
+            'models': model_info,
+            'total_models': len(model_info),
+            'active_models': sum(1 for m in model_info if m.get('status') == 'active'),
+            'phase3_models': sum(1 for m in model_info if m.get('phase') == 3),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"❌ Model list error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to list models: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/query/suggestions', methods=['GET'])
+def query_suggestions():
+    """Get suggested natural language queries (Phase 3 feature)."""
+    from services.nl_query import NaturalLanguageQueryService
+    service = NaturalLanguageQueryService()
+    
+    return jsonify({
+        'success': True,
+        'suggestions': service.suggest_queries(),
+        'categories': {
+            'safety': ['Is caffeine safe?', 'What is the safety of aspirin?', 'Toxicity check for benzene'],
+            'comparison': ['Compare caffeine and aspirin toxicity', 'Difference between aspirin and ibuprofen'],
+            'explanation': ['Why is benzene toxic?', 'Explain cisplatin toxicity', 'Mechanism of doxorubicin'],
+            'whatif': ['What if I want to make aspirin less toxic?', 'How can I reduce toxicity?'],
+            'trend': ['What is the toxicity trend across these molecules?']
+        }
+    })

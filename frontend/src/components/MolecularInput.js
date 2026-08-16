@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { clsx } from 'clsx';
-import { BeakerIcon, PhotoIcon, ArrowUpTrayIcon, SparklesIcon, MagnifyingGlassIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, PhotoIcon, ArrowUpTrayIcon, SparklesIcon, MagnifyingGlassIcon, ArrowRightIcon, ChatBubbleLeftRightIcon, CpuChipIcon } from '@heroicons/react/24/outline';
 
 const PRESETS = [
   { name: 'Aspirin', smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O', type: 'safe' },
@@ -13,7 +13,7 @@ const PRESETS = [
 ];
 
 const MolecularInput = ({ onAnalyze, isLoading }) => {
-  const [mode, setMode] = useState('single'); // single | batch | whatif | lookup
+  const [mode, setMode] = useState('single'); // single | batch | whatif | lookup | nl
   const [smiles, setSmiles] = useState('');
   const [batchText, setBatchText] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
@@ -22,6 +22,11 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
   const [lookupResult, setLookupResult] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
+  const [nlQuery, setNlQuery] = useState('');
+  const [nlResult, setNlResult] = useState(null);
+  const [nlLoading, setNlLoading] = useState(false);
+  const [modelList, setModelList] = useState(null);
+  const [modelLoading, setModelLoading] = useState(false);
 
   const handlePreset = (preset) => {
     setSmiles(preset.smiles);
@@ -88,8 +93,45 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
     } else if (mode === 'lookup') {
       // Just run the lookup
       handleLookup();
+    } else if (mode === 'nl') {
+      if (!nlQuery.trim()) return setError('Please enter a question.');
+      handleNlQuery();
+    };
+  };
+
+  const handleNlQuery = async () => {
+    setNlLoading(true);
+    setError('');
+    try {
+      const res = await axios.post('/api/query', { query: nlQuery });
+      setNlResult(res.data);
+      if (res.data.entities && res.data.entities.length > 0 && res.data.intent === 'safety') {
+        setSmiles(res.data.entities[0]);
+        setMode('single');
+      }
+    } catch (e) {
+      setError(e.response?.data?.error || 'Query failed.');
+    } finally {
+      setNlLoading(false);
     }
   };
+
+  const fetchModelList = async () => {
+    setModelLoading(true);
+    try {
+      const res = await axios.get('/api/models');
+      setModelList(res.data);
+    } catch (e) {
+      console.error('Model list fetch failed:', e);
+    } finally {
+      setModelLoading(false);
+    }
+  };
+
+  // Auto-fetch models on mount
+  React.useEffect(() => {
+    fetchModelList();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -100,6 +142,7 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
           { id: 'batch', label: 'Mode B · Library Screening', icon: ArrowUpTrayIcon },
           { id: 'whatif', label: 'Mode C · What-If Optimization', icon: SparklesIcon },
           { id: 'lookup', label: 'Mode D · Name → SMILES Lookup', icon: MagnifyingGlassIcon },
+          { id: 'nl', label: 'Mode E · Natural Language Query', icon: ChatBubbleLeftRightIcon },
         ].map((m) => (
           <button
             key={m.id}
@@ -126,7 +169,21 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
               'Molecular Structure (SMILES)'}
           </h3>
 
-          {mode !== 'batch' && mode !== 'lookup' ? (
+          {mode === 'nl' ? (
+            <div className="space-y-3">
+              <textarea
+                value={nlQuery}
+                onChange={(e) => setNlQuery(e.target.value)}
+                rows={3}
+                placeholder="e.g. Is caffeine safe? Compare caffeine and aspirin toxicity. Why is benzene toxic?"
+                className="w-full rounded-xl border border-slate-300 p-3 font-sans text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              />
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                <span>Ask in plain English — no SMILES required</span>
+              </div>
+            </div>
+          ) : mode !== 'batch' && mode !== 'lookup' ? (
             <textarea
               value={smiles}
               onChange={(e) => setSmiles(e.target.value)}
@@ -222,6 +279,63 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
                     ✓ Selected for analysis - switch to Single Molecule mode to run
                   </p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {nlResult && (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <h4 className="mb-2 text-sm font-bold text-emerald-700 flex items-center gap-2">
+                <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                NL Query Response
+              </h4>
+              <div className="space-y-2 text-sm">
+                <p className="font-medium">Intent: <span className="font-mono capitalize">{nlResult.intent}</span></p>
+                <p className="font-medium">Response: <span className="text-slate-700">{nlResult.response}</span></p>
+                {nlResult.entities && nlResult.entities.length > 0 && (
+                  <p className="font-medium">Identified molecules: <span className="font-mono">{nlResult.entities.join(', ')}</span></p>
+                )}
+                {nlResult.properties && nlResult.properties.length > 0 && (
+                  <p className="font-medium">Properties: <span className="font-mono">{nlResult.properties.join(', ')}</span></p>
+                )}
+                {nlResult.intent === 'unknown' && nlResult.suggestions && (
+                  <div className="mt-2">
+                    <p className="font-medium text-xs text-emerald-600">Try these:</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {nlResult.suggestions.slice(0, 5).map((s, i) => (
+                        <button key={i} onClick={() => { setNlQuery(s); handleNlQuery(); }}
+                          className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition">
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {modelList && (
+            <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50 p-4">
+              <h4 className="mb-2 text-sm font-bold text-violet-700 flex items-center gap-2">
+                <CpuChipIcon className="h-4 w-4" />
+                Model Ensemble ({modelList.active_models}/{modelList.total_models} active)
+              </h4>
+              <div className="space-y-1 text-xs">
+                {modelList.models.map((m, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 rounded bg-white border">
+                    <div className="flex items-center gap-2">
+                      <span className={m.status === 'active' ? 'text-emerald-600' : m.status === 'placeholder' ? 'text-amber-600' : 'text-slate-400'}>
+                        {m.status === 'active' && '●'}
+                        {m.status === 'placeholder' && '◐'}
+                        {m.status === 'standby' && '○'}
+                      </span>
+                      <span className="font-medium">{m.name}</span>
+                      {m.phase && <span className="px-1.5 py-0.5 rounded text-[10px] bg-violet-100 text-violet-700">Phase {m.phase}</span>}
+                    </div>
+                    <span className="text-slate-500">{m.role}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}

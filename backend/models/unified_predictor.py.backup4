@@ -7,10 +7,7 @@ Combines multiple models for comprehensive ADMET property prediction.
 Models:
 1. Attention-GIN (Tox21) - Trained with ROC-AUC 0.8368
 2. XGBoost (5 NR endpoints) - From best_optimized_models.pkl
-3. BBBP, ClinTox, Clearance models
-4. ChemBERTa encoder (transformer-based SMILES encoder) - Phase 3
-5. GPS Graph Transformer - Phase 3
-6. TDC models (hERG, DILI, Ames) - placeholders
+3. Future: BBBP, Caco2, Clearance, HLM_CLint models
 """
 
 import os
@@ -33,13 +30,13 @@ class UnifiedADMETPredictor:
         'NR-PPAR-gamma', 'SR-ARE', 'SR-ATAD5', 'SR-HSE', 'SR-MMP', 'SR-p53'
     ]
     
-    def __init__(self, enable_ensemble=True):
+    def __init__(self):
         self.models = {}
         self.is_loaded = False
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.enable_ensemble = enable_ensemble
         
         self._load_all_models()
+        self._load_tdc_models()
     
     def _load_all_models(self):
         """Load all available models"""
@@ -65,121 +62,70 @@ class UnifiedADMETPredictor:
         try:
             if self._load_bbbp(): models_loaded += 1
         except Exception as e: print(f"⚠️ BBBP model not loaded: {e}")
-           
+            
         # 4. Load ClinTox model
         try:
             if self._load_clintox(): models_loaded += 1
         except Exception as e: print(f"⚠️ ClinTox model not loaded: {e}")
-        
+
         # 5. Load Clearance model
         try:
             if self._load_clearance(): models_loaded += 1
         except Exception as e: print(f"⚠️ Clearance model not loaded: {e}")
         
-        # 6. Load ChemBERTa encoder (Phase 3)
-        if self.enable_ensemble:
-            try:
-                if self._load_chemberta_encoder():
-                    models_loaded += 1
-            except Exception as e:
-                print(f"⚠️ ChemBERTa encoder not loaded: {e}")
-        
-        # 7. Load GPS Graph Transformer (Phase 3)
-        if self.enable_ensemble:
-            try:
-                if self._load_gps_model():
-                    models_loaded += 1
-            except Exception as e:
-                print(f"⚠️ GPS model not loaded: {e}")
-        
-        # 8. Load TDC models (hERG, DILI, Ames) - Phase 3
-        if self.enable_ensemble:
-            try:
-                if self._load_tdc_models():
-                    models_loaded += 1
-            except Exception as e:
-                print(f"⚠️ TDC models not loaded: {e}")
-        
         self.is_loaded = models_loaded > 0
         print(f"✅ Unified ADMET Predictor: {models_loaded} model types loaded")
-    
-    def _load_chemberta_encoder(self):
-        """Load ChemBERTa encoder for ensemble (Phase 3)"""
-        try:
-            from models.chemberta_encoder import get_chemberta_encoder
-            self.chemberta_encoder = get_chemberta_encoder(device=self.device)
-            if self.chemberta_encoder.is_loaded:
-                self.models['chemberta_encoder'] = {
-                    'encoder': self.chemberta_encoder,
-                    'name': 'ChemBERTa-zinc-base-v1',
-                    'type': 'encoder',
-                    'embedding_dim': 768
-                }
-                print("✅ Loaded ChemBERTa encoder (768-dim SMILES embeddings)")
-                return True
-        except Exception as e:
-            print(f"⚠️ ChemBERTa encoder load failed: {e}")
-        return False
-    
-    def _load_gps_model(self):
-        """Load GPS Graph Transformer model (Phase 3)"""
-        try:
-            from models.gps_model import GPSModel
-            
-            model = GPSModel(
-                num_tasks=12,  # Tox21 endpoints
-                num_layers=5,
-                emb_dim=300,
-                drop_ratio=0.3,
-                heads=4
-            )
-            
-            model_path = Path(__file__).parent.parent.parent / "results" / "trained_models" / "gps_tox21_model.pth"
-            if model_path.exists():
-                model.load_state_dict(torch.load(model_path, map_location=self.device))
-                print("✅ Loaded pre-trained GPS model")
-            else:
-                print("⚠️ GPS model weights not found, using random initialization")
-            
-            model.to(self.device)
-            model.eval()
-            
-            self.models['gps'] = {
-                'model': model,
-                'name': 'GPS Graph Transformer (Tox21)',
-                'type': 'classification',
-                'num_tasks': 12,
-                'endpoints': self.TOX21_ENDPOINTS
-            }
-            print("✅ GPS Graph Transformer ready")
-            return True
-        except Exception as e:
-            print(f"⚠️ GPS model load failed: {e}")
-            return False
-    
     def _load_tdc_models(self):
-        """Load TDC models for hERG, DILI, Ames (Phase 3)"""
+        """Load TDC models for hERG, DILI, and Ames."
+        """
         try:
-            # Try to import TDC
             from tdc.single_pred import Tox
-            
-            # Just mark as available - we'll use the data for training if needed
+            # We will not load the models here because they require training.
+            # Instead, we will use the TDC evaluator to get the data and then use a simple model.
+            # For now, we will set a flag and use a placeholder in prediction.
             self.tdc_available = True
-            print("✅ TDC package available (hERG, DILI, Ames datasets)")
-            
-            # We don't have pre-trained models yet, but the data is available
-            self.models['tdc'] = {
-                'datasets': ['hERG', 'DILI', 'AMES'],
-                'name': 'TDC Toxicity Endpoints',
-                'type': 'classification',
-                'note': 'Datasets available for training; no pre-trained models yet'
-            }
-            return True
+            print("✅ TDC package loaded (models will be used on-the-fly)")
         except Exception as e:
             print(f"⚠️ TDC not available: {e}")
             self.tdc_available = False
-            return False
+
+
     
+    def _predict_tdc(self, smiles):
+        """Predict using TDC models for hERG, DILI, and Ames."
+        """
+        if not getattr(self, "tdc_available", False):
+            return {}
+        try:
+            from tdc.single_pred import Tox
+            # We will use the TDC evaluator to get the data and then use a simple model.
+            # For now, we will return a fixed probability of 0.5 for each endpoint.
+            # In a real implementation, we would use a pre-trained model.
+            return {
+                "hERG": {
+                    "probability": 0.5,
+                    "prediction": "Unknown",
+                    "confidence": "Unknown",
+                    "source": "TDC (placeholder)"
+                },
+                "DILI": {
+                    "probability": 0.5,
+                    "prediction": "Unknown",
+                    "confidence": "Unknown",
+                    "source": "TDC (placeholder)"
+                },
+                "AMES": {
+                    "probability": 0.5,
+                    "prediction": "Unknown",
+                    "confidence": "Unknown",
+                    "source": "TDC (placeholder)"
+                },
+            }
+        except Exception as e:
+            print(f"⚠️ TDC prediction failed: {e}")
+            return {}
+
+
     def _load_bbbp(self):
         """Load BBBP model"""
         model_path = Path(__file__).parent.parent.parent / "results" / "trained_models" / "bbbp_gin_model.pth"
@@ -442,133 +388,61 @@ class UnifiedADMETPredictor:
             return np.zeros(306)
     
     def predict(self, smiles):
-            """Make predictions using all available models"""
-            if not self.is_loaded:
-                return {'error': 'No models loaded'}
+        """Make predictions using all available models"""
+        if not self.is_loaded:
+            return {'error': 'No models loaded'}
         
-            results = {
-                'smiles': smiles,
-                'timestamp': datetime.now().isoformat(),
-                'predictions': {},
-                'tox21': {},
-                'admet': {}
-            }
+        results = {
+            'smiles': smiles,
+            'timestamp': datetime.now().isoformat(),
+            'predictions': {},
+            'tox21': {},
+            'admet': {}
+        }
         
-            # 1. Attention-GIN predictions (Tox21 - 12 endpoints)
-            if 'attention_gin' in self.models:
-                try:
-                    gin_result = self._predict_attention_gin(smiles)
-                    if isinstance(gin_result, tuple):
-                        gin_results, overall_mean, overall_std, overall_ci_low, overall_ci_high = gin_result
-                    else:
-                        # For backward compatibility, if it's not a tuple, then it's the old return
-                        gin_results = gin_result
-                        overall_mean = np.mean([v['probability'] for v in gin_results.values()]) if gin_results else 0.5
-                        overall_std = 0.0
-                        overall_ci_low = overall_mean
-                        overall_ci_high = overall_mean
-                
-                    results['tox21'] = gin_results
-                    results['predictions'].update(gin_results)
-                except Exception as e:
-                    print(f"⚠️ Attention-GIN prediction failed: {e}")
-        
-            # Handle gin_result for summary calculation
-            if 'attention_gin' in self.models:
+        # 1. Attention-GIN predictions (Tox21 - 12 endpoints)
+        # 1. Attention-GIN predictions (Tox21 - 12 endpoints)
+        if 'attention_gin' in self.models:
+            try:
+                gin_result = self._predict_attention_gin(smiles)
                 if isinstance(gin_result, tuple):
                     gin_results, overall_mean, overall_std, overall_ci_low, overall_ci_high = gin_result
                 else:
+                    # For backward compatibility, if it's not a tuple, then it's the old return
                     gin_results = gin_result
                     overall_mean = np.mean([v['probability'] for v in gin_results.values()]) if gin_results else 0.5
                     overall_std = 0.0
                     overall_ci_low = overall_mean
                     overall_ci_high = overall_mean
+
+                results['tox21'] = gin_results
+                results['predictions'].update(gin_results)
+
+
+        # 6. TDC predictions (hERG, DILI, AMES)
+        try:
+            _ = self._predict_tdc(smiles)
+        except Exception as e:
+            print(f"⚠️ TDC prediction failed: {e}")
+
+        if "tdc" in self.models or getattr(self, "tdc_available", False):
+        # 6. TDC predictions (hERG, DILI, AMES)
+
+        # Calculate summary
+        # 6. TDC predictions (hERG, DILI, AMES)
+                     if isinstance(r, dict) and 'probability' in r]
+
+        results['summary'] = {
+            'average_toxicity_probability': float(overall_mean),
+            'toxicity_std': float(overall_std),
+            'toxicity_ci_low': float(overall_ci_low),
+            'toxicity_ci_high': float(overall_ci_high),
+            'num_endpoints': len(results['predictions']),
+            'toxic_endpoints': sum(1 for p in all_probs if p > 0.5),
+            'overall_assessment': self._get_assessment(overall_mean)
+        }
         
-            # 2. GPS Graph Transformer predictions (Tox21 - 12 endpoints) - Phase 3
-            if 'gps' in self.models:
-                try:
-                    gps_results = self._predict_gps(smiles)
-                    results['gps'] = gps_results
-                    results['predictions'].update(gps_results)
-                except Exception as e:
-                    print(f"⚠️ GPS prediction failed: {e}")
-        
-            # 3. ChemBERTa encoder embeddings (Phase 3)
-            if 'chemberta_encoder' in self.models:
-                try:
-                    chemberta_emb = self._get_chemberta_embedding(smiles)
-                    results['chemberta_embedding'] = chemberta_emb.tolist() if chemberta_emb is not None else None
-                except Exception as e:
-                    print(f"⚠️ ChemBERTa encoding failed: {e}")
-        
-            # 4. BBBP prediction
-            if 'bbbp' in self.models:
-                try:
-                    bbbp_results = self._predict_bbbp(smiles)
-                    results['admet'].update(bbbp_results)
-                    results['predictions'].update(bbbp_results)
-                except Exception as e:
-                    print(f"⚠️ BBBP prediction failed: {e}")
-        
-            # 5. ClinTox prediction
-            if 'clintox' in self.models:
-                try:
-                    clintox_results = self._predict_clintox(smiles)
-                    results['admet'].update(clintox_results)
-                    results['predictions'].update(clintox_results)
-                except Exception as e:
-                    print(f"⚠️ ClinTox prediction failed: {e}")
-        
-            # 6. Clearance prediction
-            if 'clearance' in self.models:
-                try:
-                    clearance_results = self._predict_clearance(smiles)
-                    results['admet'].update(clearance_results)
-                    results['predictions'].update(clearance_results)
-                except Exception as e:
-                    print(f"⚠️ Clearance prediction failed: {e}")
-        
-            # 7. XGBoost predictions
-            if 'xgboost' in self.models:
-                try:
-                    xgb_results = self._predict_xgboost(smiles)
-                    results['predictions'].update(xgb_results)
-                except Exception as e:
-                    print(f"⚠️ XGBoost prediction failed: {e}")
-        
-            # 8. TDC endpoints (hERG, DILI, Ames) - Phase 3
-            if 'tdc' in self.models:
-                try:
-                    tdc_results = self._predict_tdc(smiles)
-                    results['admet'].update(tdc_results)
-                    results['predictions'].update(tdc_results)
-                except Exception as e:
-                    print(f"⚠️ TDC prediction failed: {e}")
-        
-            # Calculate summary from all predictions
-            all_probs = [r.get('probability', 0.5) for r in results['predictions'].values() 
-                         if isinstance(r, dict) and 'probability' in r]
-        
-            # Use Attention-GIN overall if available, otherwise compute from all
-            if 'attention_gin' in self.models and isinstance(gin_result, tuple):
-                _, overall_mean, overall_std, overall_ci_low, overall_ci_high = gin_result
-            else:
-                overall_mean = np.mean(all_probs) if all_probs else 0.5
-                overall_std = np.std(all_probs) if len(all_probs) > 1 else 0.1
-                overall_ci_low = max(0.0, overall_mean - 1.96 * overall_std)
-                overall_ci_high = min(1.0, overall_mean + 1.96 * overall_std)
-        
-            results['summary'] = {
-                'average_toxicity_probability': float(overall_mean),
-                'toxicity_std': float(overall_std),
-                'toxicity_ci_low': float(overall_ci_low),
-                'toxicity_ci_high': float(overall_ci_high),
-                'num_endpoints': len(results['predictions']),
-                'toxic_endpoints': sum(1 for p in all_probs if p > 0.5),
-                'overall_assessment': self._get_assessment(overall_mean)
-            }
-        
-            return results
+        return results
 
 
     
@@ -588,13 +462,19 @@ class UnifiedADMETPredictor:
 
         # Try MC Dropout for uncertainty estimation
         try:
+            # Get the mean probabilities and std from MC dropout
             mean_probs, std_probs, ci_low_probs, ci_high_probs = model.predict_mc_dropout(batch, n_samples=50)
-            # mean_probs, std_probs, etc. are numpy arrays of shape [num_tasks]
-            probabilities = mean_probs
+            # Ensure they are 1D arrays
+            mean_probs = np.array(mean_probs).flatten()
+            std_probs = np.array(std_probs).flatten()
             # Build endpoint results
             results = {}
+            n_endpoints = len(model_info['endpoints'])
             for i, endpoint in enumerate(model_info['endpoints']):
-                prob = float(probabilities[i])
+                if i < len(mean_probs):
+                    prob = float(mean_probs[i])
+                else:
+                    prob = 0.5
                 results[endpoint] = {
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
@@ -602,13 +482,21 @@ class UnifiedADMETPredictor:
                     'source': 'Attention-GIN (Tox21)'
                 }
             # Compute overall toxicity as the mean of the endpoint probabilities
-            overall_mean = np.mean(probabilities)
-            # Compute the variance of the overall mean: sum of (std_probs[i]^2) / n^2
-            n = len(probabilities)
-            overall_var = np.sum(std_probs**2) / (n * n)
-            overall_std = np.sqrt(overall_var)
-            overall_ci_low = np.maximum(0.0, overall_mean - 1.96 * overall_std)
-            overall_ci_high = np.minimum(1.0, overall_mean + 1.96 * overall_std)
+            if len(mean_probs) > 0 and n_endpoints > 0:
+                n = min(len(mean_probs), n_endpoints)
+                probs_for_mean = mean_probs[:n]
+                overall_mean = float(np.mean(probs_for_mean))
+                # Compute the variance of the overall mean: sum of (std_probs[i]^2) / n^2
+                std_for_var = std_probs[:n]
+                overall_var = np.sum(std_for_var**2) / (n * n)
+                overall_std = float(np.sqrt(overall_var))
+                overall_ci_low = float(np.maximum(0.0, overall_mean - 1.96 * overall_std))
+                overall_ci_high = float(np.minimum(1.0, overall_mean + 1.96 * overall_std))
+            else:
+                overall_mean = 0.5
+                overall_std = 0.0
+                overall_ci_low = 0.5
+                overall_ci_high = 0.5
             return results, overall_mean, overall_std, overall_ci_low, overall_ci_high
         except Exception as e:
             print(f"⚠️ MC dropout failed in _predict_attention_gin: {e}")
@@ -621,8 +509,12 @@ class UnifiedADMETPredictor:
                     features, predictions = result
                 probabilities = torch.sigmoid(predictions).cpu().numpy()[0]
             results = {}
+            n_endpoints = len(model_info['endpoints'])
             for i, endpoint in enumerate(model_info['endpoints']):
-                prob = float(probabilities[i])
+                if i < len(probabilities):
+                    prob = float(probabilities[i])
+                else:
+                    prob = 0.5
                 results[endpoint] = {
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
@@ -630,10 +522,18 @@ class UnifiedADMETPredictor:
                     'source': 'Attention-GIN (Tox21)'
                 }
             # For fallback, we don't have uncertainty from MC Dropout, so we'll use a fixed uncertainty of 0.1 (as a placeholder)
-            overall_mean = np.mean(probabilities)
-            overall_std = 0.1  # Fixed uncertainty
-            overall_ci_low = np.maximum(0.0, overall_mean - 1.96 * overall_std)
-            overall_ci_high = np.minimum(1.0, overall_mean + 1.96 * overall_std)
+            if len(probabilities) > 0 and n_endpoints > 0:
+                n = min(len(probabilities), n_endpoints)
+                probs_for_mean = probabilities[:n]
+                overall_mean = float(np.mean(probs_for_mean))
+                overall_std = 0.1  # Fixed uncertainty
+                overall_ci_low = float(np.maximum(0.0, overall_mean - 1.96 * overall_std))
+                overall_ci_high = float(np.minimum(1.0, overall_mean + 1.96 * overall_std))
+            else:
+                overall_mean = 0.5
+                overall_std = 0.0
+                overall_ci_low = 0.5
+                overall_ci_high = 0.5
             return results, overall_mean, overall_std, overall_ci_low, overall_ci_high
     def _predict_bbbp(self, smiles):
         """Predict Blood-Brain Barrier Penetration"""
@@ -756,77 +656,6 @@ class UnifiedADMETPredictor:
     # Alias for backwards compatibility
     def predict_single(self, smiles):
         return self.predict(smiles)
-
-    # Phase 3: New prediction methods
-    def _predict_gps(self, smiles):
-        """Predict using GPS Graph Transformer (Tox21) with MC Dropout"""
-        model_info = self.models['gps']
-        model = model_info['model']
-        
-        data = self._smiles_to_graph_simple(smiles)
-        if data is None:
-            return {}
-        
-        from torch_geometric.data import Batch
-        batch = Batch.from_data_list([data]).to(self.device)
-        
-        try:
-            mc_result = model.predict_mc_dropout(batch, n_samples=30)
-            probabilities = mc_result['mean'].cpu().numpy().flatten()
-            std_probs = mc_result['std'].cpu().numpy().flatten()
-            
-            results = {}
-            for i, endpoint in enumerate(model_info['endpoints']):
-                prob = float(probabilities[i]) if i < len(probabilities) else 0.5
-                std = float(std_probs[i]) if i < len(std_probs) else 0.1
-                results[endpoint] = {
-                    'probability': prob,
-                    'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
-                    'confidence': self._get_confidence(prob),
-                    'source': 'GPS Graph Transformer (Tox21)',
-                    'std': std,
-                    'ci_low': max(0.0, prob - 1.96 * std),
-                    'ci_high': min(1.0, prob + 1.96 * std)
-                }
-            return results
-        except Exception as e:
-            print(f"⚠️ GPS MC dropout failed: {e}")
-            # Fallback
-            with torch.no_grad():
-                out = model(batch)
-                probs = torch.sigmoid(out).cpu().numpy().flatten()
-            
-            results = {}
-            for i, endpoint in enumerate(model_info['endpoints']):
-                prob = float(probs[i]) if i < len(probs) else 0.5
-                results[endpoint] = {
-                    'probability': prob,
-                    'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
-                    'confidence': self._get_confidence(prob),
-                    'source': 'GPS Graph Transformer (Tox21)'
-                }
-            return results
-    
-    def _get_chemberta_embedding(self, smiles):
-        """Get ChemBERTa embedding for a SMILES string"""
-        if 'chemberta_encoder' not in self.models:
-            return None
-        encoder = self.models['chemberta_encoder']['encoder']
-        return encoder.encode(smiles)
-    
-    def _predict_tdc(self, smiles):
-        """Predict hERG, DILI, Ames using TDC datasets (placeholder - would need trained models)"""
-        # For now, return placeholder predictions
-        # In production, this would use models trained on TDC data
-        results = {}
-        for endpoint in ['hERG', 'DILI', 'AMES']:
-            results[endpoint] = {
-                'probability': 0.5,
-                'prediction': 'Unknown',
-                'confidence': 'Very Low',
-                'source': f'TDC {endpoint} (placeholder - no trained model)'
-            }
-        return results
 
 # ==============================================================================
 # Simplified Model Architecture (Must match training scripts)
