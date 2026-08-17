@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
   BeakerIcon, 
+  DocumentDuplicateIcon,
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon,
   XMarkIcon,
@@ -13,8 +14,7 @@ import {
 import { clsx } from 'clsx';
 
 const navigation = [
-  { name: 'PharmaGuard Workbench', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
-  { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
+  { name: 'PharmaGuard AI', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
   { name: 'AI Assistant', href: '/app/chat', icon: ChatBubbleLeftRightIcon },
 ];
 
@@ -22,87 +22,89 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
   const location = useLocation();
 
   const SidebarContent = ({ isDesktop = false }) => (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-canvas-elevated border-r border-border px-4 pb-4 transition-colors duration-200">
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#08090a] border-r border-white/5 px-6 pb-4">
       {/* Logo */}
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-border">
+      <div className="flex h-16 shrink-0 items-center justify-between">
         <Link to="/" className={clsx(
-          "flex items-center space-x-3 hover:opacity-90 transition-opacity",
+          "flex items-center space-x-3 hover:scale-105 transition-transform duration-300",
           collapsed && isDesktop && "justify-center"
         )}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-green/10 text-accent-green border border-accent-green/20">
-            <ShieldCheckIcon className="h-5 w-5" />
+          <div className="relative">
+            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+              <BeakerIcon className="h-5 w-5 text-white/80" />
+            </div>
           </div>
           {(!collapsed || !isDesktop) && (
             <div>
-              <h1 className="text-sm font-bold text-text-primary font-display tracking-tight">PharmaGuard AI</h1>
-              <p className="text-[10px] text-text-muted font-medium">Toxicity Decision Support</p>
+              <h1 className="text-lg font-bold text-white">PharmaGuard AI</h1>
+              <p className="text-xs text-gray-400">Toxicity Decision Support</p>
             </div>
           )}
         </Link>
         {isDesktop && (
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface transition-colors"
+            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             {collapsed ? (
-              <ChevronRightIcon className="h-4 w-4" />
+              <ChevronRightIcon className="h-5 w-5 text-gray-400" />
             ) : (
-              <ChevronLeftIcon className="h-4 w-4" />
+              <ChevronLeftIcon className="h-5 w-5 text-gray-400" />
             )}
           </button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col pt-2">
-        <ul role="list" className="flex flex-1 flex-col gap-y-6">
+      <nav className="flex flex-1 flex-col">
+        <ul role="list" className="flex flex-1 flex-col gap-y-7">
           <li>
-            <div className={clsx("text-[10px] font-bold uppercase tracking-wider text-text-muted mb-2 px-2", collapsed && isDesktop && "sr-only")}>
-              Platform Navigation
-            </div>
-            <ul role="list" className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href || (item.href === '/app/pharmaguard' && location.pathname === '/app');
-                return (
-                  <li key={item.name}>
-                    <Link
-                      to={item.href}
-                      title={collapsed && isDesktop ? item.name : ''}
+            <ul role="list" className="-mx-2 space-y-1">
+              {navigation.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    to={item.href}
+                    title={collapsed && isDesktop ? item.name : ''}
+                    className={clsx(
+                      location.pathname === item.href
+                        ? 'bg-white/10 text-white shadow-sm'
+                        : item.highlight
+                          ? 'text-white/80 bg-white/5 ring-1 ring-white/10'
+                          : 'text-white/40 hover:text-white/80 hover:bg-white/5',
+                      'group flex gap-x-3 rounded-md p-2.5 text-sm leading-6 font-medium transition-all duration-150 cursor-pointer',
+                      collapsed && isDesktop && 'justify-center'
+                    )}
+                  >
+                    <item.icon
                       className={clsx(
-                        isActive
-                          ? 'bg-accent-green/10 text-accent-green border-accent-green/30 font-semibold'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-surface border-transparent',
-                        'group flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-xs border transition-all duration-150',
-                        collapsed && isDesktop && 'justify-center'
+                        location.pathname === item.href ? 'text-white' : 'text-gray-400 group-hover:text-white',
+                        'h-5 w-5 shrink-0 transition-all duration-300'
                       )}
-                    >
-                      <item.icon
-                        className={clsx(
-                          isActive ? 'text-accent-green' : 'text-text-muted group-hover:text-text-primary',
-                          'h-4 w-4 shrink-0 transition-colors'
-                        )}
-                        aria-hidden="true"
-                      />
-                      {(!collapsed || !isDesktop) && (
-                        <span className="flex-1 truncate">{item.name}</span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
+                      aria-hidden="true"
+                    />
+                    {(!collapsed || !isDesktop) && (
+                      <span className="flex-1">{item.name}</span>
+                    )}
+                    {location.pathname === item.href && (!collapsed || !isDesktop) && (
+                      <div className="ml-auto h-2 w-2 rounded-full bg-white"></div>
+                    )}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </li>
         </ul>
       </nav>
 
-      {/* Status card */}
-      {(!collapsed || !isDesktop) && (
-        <div className="p-3 rounded-xl bg-surface border border-border mt-auto">
-          <div className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse"></div>
-            <div>
-              <p className="text-xs font-bold text-text-primary">5 Models Active</p>
-              <p className="text-[10px] text-text-muted">Attention-GIN Ensemble</p>
+      {/* Platform info */}
+        <div className="mt-6 p-4 rounded-lg bg-[#08090a] border border-white/5">
+          <div className="flex items-center">
+            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+              <BeakerIcon className="h-4 w-4 text-white/80" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-white">5 Models Active</p>
+              <p className="text-xs text-gray-400">Production Ready</p>
             </div>
           </div>
         </div>
@@ -124,7 +126,7 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-gray-900/80" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
@@ -144,17 +146,17 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
                   enterFrom="opacity-0"
                   enterTo="opacity-100"
                   leave="ease-in-out duration-300"
-                  leaveFrom="opacity-0"
-                  leaveTo="opacity-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
                 >
                   <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
                     <button
                       type="button"
-                      className="-m-2.5 p-2.5 text-text-primary"
+                      className="-m-2.5 p-2.5"
                       onClick={() => setOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
                     </button>
                   </div>
                 </Transition.Child>
@@ -165,7 +167,7 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
         </Dialog>
       </Transition.Root>
 
-      {/* Desktop sidebar */}
+      {/* Static sidebar for desktop */}
       <div className={clsx(
         "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300",
         collapsed ? "lg:w-20" : "lg:w-72"

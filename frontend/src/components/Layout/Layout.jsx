@@ -8,24 +8,28 @@ const Layout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
 
+  // Get page title based on current route
   const getPageTitle = (pathname) => {
     switch (pathname) {
-      case '/app':
-      case '/app/dashboard':
+      case '/':
         return 'Dashboard';
       case '/app/pharmaguard':
-        return 'PharmaGuard AI Workbench';
+        return 'PharmaGuard AI';
       case '/app/chat':
         return 'AI Assistant';
-      case '/app/predictions':
+      case '/predictions':
         return 'Molecular Predictions';
-      case '/app/batch':
+      case '/batch':
         return 'Batch Processing';
-      case '/app/settings':
+      case '/results':
+        return 'Results & Analytics';
+      case '/analytics':
+        return 'Advanced Analytics';
+      case '/settings':
         return 'Settings';
-      case '/app/help':
+      case '/help':
         return 'Help & Documentation';
-      case '/app/contact':
+      case '/contact':
         return 'Contact Support';
       default:
         return 'PharmaGuard AI';
@@ -33,7 +37,7 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-text-primary transition-colors duration-200 flex flex-col">
+    <div className="min-h-screen bg-black">
       {/* Sidebar */}
       <Sidebar 
         open={sidebarOpen} 
@@ -42,8 +46,8 @@ const Layout = () => {
         setCollapsed={setSidebarCollapsed}
       />
       
-      {/* Main content wrapper */}
-      <div className={`flex-1 flex flex-col ${sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"} transition-all duration-300`}>
+      {/* Main content */}
+      <div className={sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"} style={{ transition: 'padding 300ms' }}>
         {/* Top navbar */}
         <TopNavbar 
           setSidebarOpen={setSidebarOpen} 
@@ -51,8 +55,10 @@ const Layout = () => {
         />
         
         {/* Page content */}
-        <main className="flex-1 bg-canvas">
-          <Outlet />
+        <main className="py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
