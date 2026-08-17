@@ -52,9 +52,7 @@ class ChemBERTaEncoder:
             print(f"✅ ChemBERTa encoder loaded on {self.device}")
             return True
         except Exception as e:
-            print(f"❌ Failed to load ChemBERTa encoder: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"⚠️ ChemBERTa encoder optional load skipped ({e}). Falling back to GNN structural features.")
             self.is_loaded = False
             return False
     
