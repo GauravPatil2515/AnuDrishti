@@ -44,10 +44,22 @@ const ThemeProvider = ({ children }) => {
   );
 };
 
-// Placeholder components for pages not yet created
-const Settings = () => <div className="text-2xl font-bold p-8">Settings</div>;
-const Help = () => <div className="text-2xl font-bold p-8">Help & Documentation</div>;
-const Contact = () => <div className="text-2xl font-bold p-8">Contact Support</div>;
+import { SparklesIcon } from '@heroicons/react/24/outline';
+
+const ComingSoon = ({ title, description }) => (
+  <div className="min-h-[70vh] flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+    <div className="h-12 w-12 rounded-2xl bg-accent-green/10 text-accent-green border border-accent-green/20 flex items-center justify-center mb-4 shadow-glow-green">
+      <SparklesIcon className="h-6 w-6" />
+    </div>
+    <h2 className="text-2xl font-bold font-display text-text-primary mb-2">{title}</h2>
+    <p className="text-sm text-text-muted max-w-md mb-6">{description}</p>
+    <span className="pill pill-green text-xs font-mono font-semibold uppercase tracking-wider">SIH 2026 Phase 4 Module</span>
+  </div>
+);
+
+const Settings = () => <ComingSoon title="Platform Settings" description="System configuration, API key management, and model threshold tuning." />;
+const Help = () => <ComingSoon title="Documentation & Help" description="Interactive user guides, GNN model architecture whitepapers, and API specifications." />;
+const Contact = () => <ComingSoon title="Contact & Support" description="Reach out to the PharmaGuard AI research team for institutional partnerships." />;
 
 const AppContent = () => {
   const { theme } = useTheme();

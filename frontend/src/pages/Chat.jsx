@@ -43,7 +43,6 @@ const Chat = () => {
       sender: 'assistant',
       text: "Welcome to **PharmaGuard Agentic Assistant**. I am your ChemBERTa-augmented computational toxicology & drug interaction co-pilot.\n\nAsk me any question, compare two drugs for Drug-Drug Interactions (DDI), or analyze hERG/DILI/Ames endpoints.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      efs: 0.92,
       isInitial: true
     }
   ]);

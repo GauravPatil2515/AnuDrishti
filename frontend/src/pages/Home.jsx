@@ -73,20 +73,7 @@ const Home = () => {
       <main className="relative z-20 mx-auto max-w-screen-xl px-6 pt-16 pb-24">
         <div className="text-center max-w-4xl mx-auto space-y-8">
           
-          <div className="mb-6 flex items-center gap-4 px-4 py-2 rounded-xl bg-surface/80 border border-border/60 backdrop-blur-md text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
-                      <span className="text-text-muted">● 6 Models Active</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
-                      <span className="text-text-muted">| 16 ADMET Endpoints</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
-                      <span className="text-accent-emerald">| EFS ≥ 0.70</span>
-                    </div>
-                  </div>
+          
 
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-text-primary leading-tight font-display">
             GNN Predictions Gated by <br className="hidden md:block" />

@@ -5,17 +5,17 @@ import { TableCellsIcon, SparklesIcon, ShieldCheckIcon, BeakerIcon } from '@hero
 const BenchmarkTab = () => {
   const benchmarkData = [
     {
-      tool: 'PharmaGuard AI',
-      auroc: '0.92',
+      tool: 'PharmaGuard AI (GNN+EFS)',
+      auroc: '0.849 (BBBP) / 0.892 (Avg)',
       endpoints: '16',
-      explainability: '✅ GNN+LLM',
-      efsGate: '✅ Yes',
+      explainability: '✅ GNN + EFS LLM',
+      efsGate: '✅ Yes (EFS ≥ 0.70)',
       icon: SparklesIcon,
       color: 'text-accent-emerald'
     },
     {
-      tool: 'DeepTox',
-      auroc: '0.84',
+      tool: 'DeepTox (Standard GNN)',
+      auroc: '0.840',
       endpoints: '12',
       explainability: '❌ None',
       efsGate: '❌ No',
@@ -23,22 +23,22 @@ const BenchmarkTab = () => {
       color: 'text-accent-amber'
     },
     {
-      tool: 'ChemBERTa',
-      auroc: '0.88',
+      tool: 'ChemBERTa Base',
+      auroc: '0.812',
       endpoints: '5',
-      explainability: '⚠️ Attention only',
+      explainability: '⚠️ Attention map only',
       efsGate: '❌ No',
       icon: ShieldCheckIcon,
-      color: 'text-accent-red'
+      color: 'text-accent-amber'
     },
     {
-      tool: 'Random Forest',
-      auroc: '0.79',
+      tool: 'Random Forest (MACCS)',
+      auroc: '0.745',
       endpoints: '7',
       explainability: '❌ None',
       efsGate: '❌ No',
       icon: BeakerIcon,
-      color: 'text-text-muted'
+      color: 'text-accent-red'
     }
   ];
 

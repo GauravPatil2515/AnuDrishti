@@ -28,11 +28,11 @@ const Dashboard = () => (
           <div className="p-2 rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
             <BeakerIcon className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Analyzed Today</h3>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Dataset Evaluated</h3>
         </div>
         <div className="flex items-end gap-2">
           <p className="text-3xl font-black text-text-primary font-mono">1,247</p>
-          <span className="pill pill-green mb-1">+12%</span>
+          <span className="pill pill-green mb-1">TDC Benchmark</span>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ const Dashboard = () => (
         </div>
         <div className="flex items-end gap-2">
           <p className="text-3xl font-black text-text-primary font-mono">0.82</p>
-          <span className="pill pill-green mb-1">Excellent</span>
+          <span className="pill pill-green mb-1">EFS Verified</span>
         </div>
       </div>
 
@@ -54,24 +54,24 @@ const Dashboard = () => (
           <div className="p-2 rounded-lg bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
             <SignalIcon className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Novel Compounds</h3>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">OOD Compounds</h3>
         </div>
         <div className="flex items-end gap-2">
           <p className="text-3xl font-black text-text-primary font-mono">23</p>
-          <span className="pill pill-yellow mb-1">Flagged</span>
+          <span className="pill pill-yellow mb-1">Novel Scaffolds</span>
         </div>
       </div>
       
       <div className="surface p-5 hover:-translate-y-1 transition-transform hover:shadow-card-hover">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg bg-accent-rose/10 text-accent-rose border border-accent-rose/20">
+          <div className="p-2 rounded-lg bg-accent-red/10 text-accent-red border border-accent-red/20">
             <CheckBadgeIcon className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">High Toxicity</h3>
         </div>
         <div className="flex items-end gap-2">
           <p className="text-3xl font-black text-text-primary font-mono">18</p>
-          <span className="pill pill-red mb-1">Critical</span>
+          <span className="pill pill-red mb-1">Alert Triggered</span>
         </div>
       </div>
     </div>
