@@ -13,6 +13,7 @@ const EFSGauge = ({ score, ci }) => {
 
   // Format CI if provided (e.g., ci=0.12 → "±0.12")
   const ciText = ci != null ? ` ± ${ci.toFixed(2)}` : '';
+  const ciWidth = ci != null ? Math.min(100, ci * 2 * 3.6) : 0; // CI width in degrees (2*ci for full range)
 
   return (
     <div className="flex items-center gap-3">
@@ -22,6 +23,15 @@ const EFSGauge = ({ score, ci }) => {
           background: `conic-gradient(${color} ${clamped}deg, rgba(255,255,255,0.1) 0deg)`,
         }}
       >
+        {/* CI Bar - semi-transparent background bar */}
+        {ci != null && (
+          <div className="absolute inset-0 rounded-full" 
+            style={{
+              background: `conic-gradient(rgba(255,255,255,0.2) ${ciWidth}deg, transparent 0deg)`,
+              transform: `rotate(${90 - (pct * 3.6)}deg)` // Rotate to center the CI bar
+            }}
+          />
+        )}
         <div className="absolute inset-1.5 flex items-center justify-center rounded-full bg-canvas border border-border">
           <span className="text-sm font-black" style={{ color }}>{pct}%</span>
         </div>

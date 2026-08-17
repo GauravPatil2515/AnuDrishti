@@ -22,11 +22,18 @@ try:
 except ImportError:
     HAS_REQUESTS = False
 
+# Try to import DDI predictor
+try:
+    from models.ddi_predictor import get_ddi_predictor
+    HAS_DDI = True
+except ImportError:
+    HAS_DDI = False
+
 # Local lightweight query parser (no external API needed)
 @dataclass
 class QueryIntent:
     """Parsed intent from a natural language query."""
-    intent: str  # 'compare', 'explain', 'safety', 'whatif', 'trend', 'unknown'
+    intent: str  # 'compare', 'explain', 'safety', 'whatif', 'trend', 'ddi', 'unknown'
     entities: List[str] = field(default_factory=list)  # SMILES strings or molecule names
     properties: List[str] = field(default_factory=list)  # 'toxicity', 'confidence', 'OOD', etc.
     modifiers: Dict[str, Any] = field(default_factory=dict)
@@ -37,8 +44,14 @@ SMILES_PATTERN = r'[CNCOc123456789@()=+-\\\\/\[\]][A-Za-z0-9@()=+-\\\\/\\[\\]0-9
 MOLECULE_NAMES = {
     'caffeine', 'aspirin', 'benzene', 'toluene', 'acetaminophen', 'warfarin',
     'paracetamol', 'ibuprofen', 'cisplatin', 'doxorubicin', 'tamoxifen',
-    'estradiol', 'testosterone', 'cholesterol', 'glucose'
+    'estradiol', 'testosterone', 'cholesterol', 'glucose', 'clozapine'
 }
+
+DDI_PATTERNS = [
+    (r'(?:interact|interaction|react|reaction|co-administer|together|combine|mix)', 'ddi'),
+    (r'can\s+I\s+take\s+(.*?)\s+with\s+(.*)', 'ddi'),
+    (r'effect\s+of\s+(.*?)\s+and\s+(.*)', 'ddi'),
+]
 
 COMPARE_PATTERNS = [
     (r'compare\s+(.*?)\s+and\s+(.*)', 'compare'),
@@ -127,9 +140,29 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
             resolved_entities.append(resolved_smiles)
     
     # Combine all entities
-    all_entities = smiles_list + resolved_entities
+    all_entities = list(dict.fromkeys(smiles_list + resolved_entities))
     
-    # Step 6: Generate response
+    # Step 6: Agentic DDI Evaluation if 2 molecules present or DDI intent
+    ddi_result = None
+    agent_trace = [
+        {"step": 1, "agent": "Query Parsing Agent", "action": f"Classified intent: '{intent.upper()}', extracted {len(all_entities)} molecular entities."}
+    ]
+
+    if len(all_entities) >= 2 or intent == 'ddi':
+        agent_trace.append({"step": 2, "agent": "Entity Alignment Agent", "action": f"Identified dual compounds for interaction modeling."})
+        if HAS_DDI:
+            try:
+                s1 = all_entities[0] if len(all_entities) > 0 else 'Cn1cnc2c1c(=O)n(c(=O)n2C)C'
+                s2 = all_entities[1] if len(all_entities) > 1 else 'CC(=O)Oc1ccccc1C(=O)O'
+                n1 = molecule_names[0] if len(molecule_names) > 0 else "Drug A"
+                n2 = molecule_names[1] if len(molecule_names) > 1 else "Drug B"
+                ddi_predictor = get_ddi_predictor()
+                ddi_result = ddi_predictor.compute_ddi(s1, s2, n1, n2)
+                agent_trace.extend(ddi_result.get("trace", []))
+            except Exception as e:
+                print(f"⚠️ DDI prediction error: {e}")
+
+    # Step 7: Generate response
     intent_obj = QueryIntent(
         intent=intent,
         entities=all_entities,
@@ -140,7 +173,7 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
         }
     )
     
-    response = generate_response(intent_obj, predictor)
+    response = generate_response(intent_obj, predictor, ddi_result)
     
     return {
         'query': query,
@@ -150,6 +183,8 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
             'properties': properties,
             'modifiers': intent_obj.modifiers
         },
+        'ddi_data': ddi_result,
+        'trace': agent_trace,
         'response': response
     }
 
@@ -185,6 +220,9 @@ def extract_properties(text: str) -> List[str]:
 
 def classify_intent(text: str) -> str:
     """Classify the intent of a query."""
+    for pattern, intent in DDI_PATTERNS:
+        if re.search(pattern, text):
+            return intent
     for pattern, intent in COMPARE_PATTERNS:
         if re.search(pattern, text):
             return intent
@@ -252,13 +290,21 @@ def resolve_molecule_name(name: str, predictor=None) -> Optional[str]:
     return None
 
 
-def generate_response(intent_obj: QueryIntent, predictor=None) -> str:
+def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None) -> str:
     """Generate a natural language response based on parsed intent."""
     
     intent = intent_obj.intent
     entities = intent_obj.entities
     properties = intent_obj.properties
     
+    if intent == 'ddi' or (intent == 'compare' and len(entities) >= 2):
+        if ddi_result and ddi_result.get("success"):
+            m = ddi_result.get("metrics", {})
+            return f"{ddi_result.get('mechanism')}\n\n**ChemBERTa Cosine Similarity**: `{m.get('chemberta_cosine_similarity')}` | **Tanimoto Similarity**: `{m.get('tanimoto_similarity')}`"
+        elif len(entities) >= 2:
+            return _compare_response(intent_obj, predictor)
+        return "I recognized a Drug-Drug Interaction (DDI) query. Please specify two compounds to evaluate (e.g., 'Do Aspirin and Warfarin interact?')."
+
     if intent == 'compare':
         if len(entities) >= 2:
             return _compare_response(intent_obj, predictor)

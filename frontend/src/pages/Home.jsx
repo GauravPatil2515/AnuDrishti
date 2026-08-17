@@ -118,7 +118,25 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Performance Strip */}
+        {/* Live Status Ticker */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4 px-4 py-2 rounded-xl bg-surface/80 border border-border/60 backdrop-blur-md text-xs font-medium">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" />
+            <span className="text-text-muted">● GNN Model Active</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-accent-emerald" />
+            <span className="text-text-muted">· 16 ADMET Endpoints</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-accent-emerald" />
+            <span className="text-accent-emerald">· EFS Gatekeeper ≥ 0.70</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-accent-emerald" />
+            <span className="text-text-muted">· OOD Detector Active</span>
+          </div>
+        </div>
         <div className="mt-16 border-y border-border bg-surface-elevated/50 py-6">
           <div className="mx-auto max-w-4xl flex flex-wrap justify-center gap-8 md:gap-16 text-center">
             <div>

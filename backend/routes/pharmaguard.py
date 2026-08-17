@@ -31,6 +31,7 @@ groq_client = None
 ood_detector = None
 triage_engine = None
 faithfulness_validator = None
+tdc_models = None
 
 
 def init_pharmaguard(**services):
@@ -1109,6 +1110,8 @@ def natural_language_query():
             'entities': result['parsed_intent']['entities'],
             'properties': result['parsed_intent']['properties'],
             'response': result['response'],
+            'ddi_data': result.get('ddi_data'),
+            'trace': result.get('trace', []),
             'suggestions': service.suggest_queries() if result['parsed_intent']['intent'] == 'unknown' else []
         })
         

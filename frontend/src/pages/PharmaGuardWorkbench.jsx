@@ -13,6 +13,7 @@ import ExplanationAudit from '../components/ExplanationAudit';
 import LibraryScreening from '../components/LibraryScreening';
 import WhatIfOptimizer from '../components/WhatIfOptimizer';
 import PipelineProgress from '../components/PipelineProgress';
+import BenchmarkTab from '../components/BenchmarkTab';
 
 const TABS = [
   { id: 'input', label: 'Input', icon: BeakerIcon },
@@ -22,6 +23,7 @@ const TABS = [
   { id: 'library', label: 'Library', icon: TableCellsIcon },
   { id: 'whatif', label: 'What-If', icon: SparklesIcon },
   { id: 'demo', label: 'Demo Sandbox', icon: PlayIcon },
+  { id: 'benchmark', label: 'Benchmark', icon: SparklesIcon }, // Added for benchmark comparison
 ];
 
 const EmptyState = ({ icon: Icon, title, description }) => (

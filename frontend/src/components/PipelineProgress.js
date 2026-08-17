@@ -3,12 +3,12 @@ import { clsx } from 'clsx';
 
 // Six-stage PharmaGuard pipeline shown while an analysis request is in flight.
 const STAGES = [
-  { key: 'parse', label: 'SMILES Parsing', hint: 'Validating molecular structure' },
-  { key: 'feat', label: 'GNN Featurization', hint: 'Building graph representation' },
-  { key: 'predict', label: 'Multi-Task Prediction', hint: 'Tox21 · BBBP · ClinTox · Clearance' },
-  { key: 'attn', label: 'GNNExplainer Attribution', hint: 'Identifying driving substructures' },
-  { key: 'ood', label: 'OOD + Triage', hint: 'Novelty & safety risk scoring' },
-  { key: 'efs', label: 'Faithfulness Gate', hint: 'Rejecting ungrounded claims' },
+  { key: 'smiles', label: 'SMILES Parsing', hint: 'Validating molecular structure' },
+  { key: 'encode', label: 'GNN Encoding', hint: 'Converting to graph representation' },
+  { key: 'mcinf', label: 'MC Inference', hint: 'Running 50 dropout passes for uncertainty' },
+  { key: 'efsgate', label: 'EFS Gatekeeping', hint: 'Validating explanation faithfulness' },
+  { key: 'llmexp', label: 'LLM Explanation', hint: 'Generating mechanistic interpretation' },
+  { key: 'complete', label: 'Analysis Complete', hint: 'Results ready for review' },
 ];
 
 const PipelineProgress = ({ active }) => {
