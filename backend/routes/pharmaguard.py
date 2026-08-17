@@ -379,33 +379,12 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
         )
         analysis['explanation']['llm_generated'] = False
 
-    # 7. TDC predictions for hERG, DILI, Ames
-    # TDC does not ship pretrained models for hERG/DILI/Ames; tdc_models values
-    # are None unless a proper pretrained model is available (has callable `predict`).
-    if tdc_models is not None:
-        try:
-            tdc_preds = {}
-            for name, model in tdc_models.items():
-                if model is None or not hasattr(model, 'predict') or not callable(model.predict):
-                    continue
-                pred = model.predict(smiles)
-                # Normalize to a single float probability for the positive class.
-                if hasattr(pred, '__len__') and len(pred) > 0:
-                    try:
-                        pred = float(np.asarray(pred).flatten()[0])
-                    except Exception:
-                        pred = float(np.asarray(pred).mean())
-                else:
-                    pred = float(pred)
-                tdc_preds[name] = {
-                    'probability': round(pred, 4),
-                    'label': 'Toxic' if pred >= 0.5 else 'Non-toxic'
-                }
-            analysis['tdc_predictions'] = tdc_preds
-        except Exception as e:
-            print(f"⚠️ TDC prediction failed: {e}")
-            analysis['tdc_predictions'] = {}
-    else:
+    # 7. TDC predictions for hERG, DILI, Ames (Cardiotoxicity, Hepatotoxicity, Mutagenicity)
+    try:
+        from models.tdc_endpoints import predict_tdc_endpoints
+        analysis['tdc_predictions'] = predict_tdc_endpoints(smiles)
+    except Exception as e:
+        print(f"⚠️ TDC endpoint prediction failed: {e}")
         analysis['tdc_predictions'] = {}
 
     return analysis

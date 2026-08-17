@@ -31,6 +31,8 @@ class GroqConfig:
         # Validate API key
         if not self.api_key or self.api_key.startswith('your'):
             logger.warning("GROQ_API_KEY not configured - AI features will be disabled")
+            self._client = None
+            return
             
         # Initialize client
         self._client: Optional[Groq] = None
@@ -39,6 +41,8 @@ class GroqConfig:
     def client(self) -> Groq:
         """Get or create Groq client"""
         if self._client is None:
+            if not self.api_key or self.api_key.startswith('your'):
+                raise RuntimeError("GROQ_API_KEY not configured - AI features disabled")
             try:
                 self._client = Groq(
                     api_key=self.api_key,
@@ -101,5 +105,19 @@ class GroqConfig:
             logger.error(f"Groq generate() failed (fallback will be used): {e}")
             return None
 
-# Global instance
-groq_config = GroqConfig()
+# Global instance (lazy initialization)
+_groq_config = None
+
+def get_groq_config():
+    """Get or create the global GroqConfig instance"""
+    global _groq_config
+    if _groq_config is None:
+        _groq_config = GroqConfig()
+    return _groq_config
+
+# For backward compatibility - create a proxy object
+class _GroqConfigProxy:
+    def __getattr__(self, name):
+        return getattr(get_groq_config(), name)
+
+groq_config = _GroqConfigProxy()

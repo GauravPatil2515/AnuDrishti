@@ -230,11 +230,7 @@ class FaithfulnessValidator:
 
         # Import dependencies
         try:
-            import sys
-            from pathlib import Path
-            backend_dir = Path(__file__).parent.parent
-            sys.path.insert(0, str(backend_dir / 'utils'))
-            from counterfactual_generator import CounterfactualGenerator
+            from utils.counterfactual_generator import CounterfactualGenerator
 
             if counterfactual_generator is None:
                 self.counterfactual_generator = CounterfactualGenerator()
@@ -243,7 +239,7 @@ class FaithfulnessValidator:
 
         if substructure_mapper is None:
             try:
-                from substructure_mapper import SubstructureMapper
+                from utils.substructure_mapper import SubstructureMapper
                 self.substructure_mapper = SubstructureMapper()
             except Exception as e:
                 logger.warning(f"SubstructureMapper not available: {e}")

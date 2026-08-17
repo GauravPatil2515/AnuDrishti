@@ -2472,6 +2472,17 @@ if __name__ == '__main__':
             app.register_blueprint(pharmaguard_bp)
             print("✅ PharmaGuard AI blueprint registered")
 
+            # Apply rate limits to expensive blueprint endpoints
+            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.analyze_single'])
+            limiter.limit("5 per minute")(pharmaguard_bp.view_functions['pharmaguard.analyze_batch'])
+            limiter.limit("5 per minute")(pharmaguard_bp.view_functions['pharmaguard.optimize_what_if'])
+            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.explain_verify'])
+            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.report_export'])
+            limiter.limit("20 per minute")(pharmaguard_bp.view_functions['pharmaguard.visualize_attention_heatmap'])
+            limiter.limit("20 per minute")(pharmaguard_bp.view_functions['pharmaguard.lookup_smiles'])
+            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.report_pdf'])
+            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.natural_language_query'])
+
         model_count = len(predictor.models) if predictor and getattr(predictor, 'models', None) is not None else 0
         model_status = 'Loaded' if predictor and getattr(predictor, 'is_loaded', False) else 'Mock/Not loaded'
         print(f"📊 Available models: {model_count}")

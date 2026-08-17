@@ -184,6 +184,55 @@ const SafetyDashboard = ({ analysis }) => {
         </div>
       </div>
 
+      {/* TDC Core Toxicity Endpoints: hERG, DILI, Ames */}
+      {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 && (
+        <div className="surface p-5 space-y-4 shadow-sm border-l-4 border-l-accent-green">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-text-primary font-display">Key Safety & Regulatory Endpoints</h3>
+              <p className="text-xs text-text-secondary mt-0.5">hERG Cardiotoxicity, DILI Hepatotoxicity, & Ames Genotoxicity Risk Assessment</p>
+            </div>
+            <span className="pill pill-green">TDC Benchmarked</span>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {['herg', 'dili', 'ames'].map((key) => {
+              const item = analysis.tdc_predictions[key];
+              if (!item) return null;
+              const isHigh = item.probability >= 0.5;
+              return (
+                <div key={key} className={clsx('surface-elevated p-4 rounded-xl border transition-all hover:-translate-y-0.5', isHigh ? 'border-accent-rose/40 bg-accent-rose/5' : 'border-accent-emerald/40 bg-accent-emerald/5')}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-primary font-display">{item.name}</span>
+                    <span className={clsx('pill text-[10px]', isHigh ? 'pill-red' : 'pill-green')}>
+                      {item.label}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-2xl font-black font-mono text-text-primary">{(item.probability * 100).toFixed(1)}%</span>
+                    <span className="text-xs font-semibold text-text-muted">{item.risk_level}</span>
+                  </div>
+
+                  {item.alerts && item.alerts.length > 0 && (
+                    <div className="mt-3 pt-2 border-t border-border/50">
+                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-1">Structural Alerts:</p>
+                      <ul className="space-y-1">
+                        {item.alerts.map((alert, idx) => (
+                          <li key={idx} className="text-[11px] text-text-secondary flex items-center gap-1">
+                            <span className="text-accent-amber font-bold">•</span> {alert}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ADMET Table */}
       <div className="surface overflow-hidden">
         <div className="p-4 border-b border-border bg-surface-elevated flex items-center justify-between">
