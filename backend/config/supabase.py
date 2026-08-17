@@ -52,9 +52,8 @@ class SupabaseConfig:
             logger.info("✅ Supabase connection test successful")
             return True
         except Exception as e:
-            logger.warning(f"⚠️ Supabase connection test: {e}")
-            # Return True anyway since the service is optional
-            return True
+            logger.warning(f"⚠️ Supabase connection test failed: {e}")
+            return False
 
 # Global instance
 supabase_config = SupabaseConfig()

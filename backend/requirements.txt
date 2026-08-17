@@ -7,6 +7,7 @@ flask>=2.3.0
 flask-cors>=4.0.0
 gunicorn>=21.2.0
 gevent>=23.9.1
+flask-limiter>=3.5.0
 
 # Data Processing
 numpy>=1.21.0,<2.0.0
@@ -30,10 +31,12 @@ rdkit>=2023.3.1
 # XGBoost
 xgboost>=2.0.0
 
-# PyTorch Geometric (install separately)
+# PyTorch Geometric (install separately with matching PyTorch version)
 # torch-geometric
 # torch-scatter
 # torch-sparse
+# torch-cluster
+# torch-spline-conv
 
 # Utilities
 pyyaml>=6.0.0

@@ -6,6 +6,8 @@ DrugTox-AI Clean Backend API
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import sys
 import traceback
@@ -77,8 +79,18 @@ CORS(app, resources={
     }
 })
 
+# Rate limiting - protect expensive LLM endpoints
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
 # PharmaGuard AI blueprint will be registered AFTER initialize_services() runs
 # (see bottom of file in __main__ block) so all @route decorators have executed.
+limiter.limit("10 per minute")(app.route('/api/report/pdf', methods=['POST']))
+limiter.limit("10 per minute")(app.route('/api/report/export', methods=['POST']))
 
 # Global instances
 predictor = None
@@ -227,30 +239,34 @@ def initialize_services():
     # Initialize TDC models for hERG, DILI, Ames.
     # Installed TDC exposes these as tasks inside the `Tox` group, not as
     # importable names (`from tdc.single_pred import hERG` raises ImportError).
-    # Loading the task / pretrained weights requires an internet download; if
-    # that is unavailable (offline demo) we degrade gracefully and keep the
-    # backend fully functional with tdc_models = None. The download is wrapped
-    # in a timeout-guarded thread so a hung/slow network call can NEVER block
+    # TDC's `Tox` class is a dataset loader; it does NOT ship pretrained models
+    # for hERG/DILI/Ames out of the box. `Tox.get_model()` returns None for
+    # these endpoints. We gracefully degrade to tdc_models = None and the
+    # caller handles the missing predictions. The download is wrapped in a
+    # timeout-guarded thread so a hung/slow network call can NEVER block
     # server startup.
     def _load_tdc_models():
         from tdc.single_pred import Tox
 
         def _build_tdc_predictor(task_name):
-            """Return a TDC Tox task object for the given endpoint.
+            """Return a pretrained predictor for a TDC Tox task, or None.
 
-            Tries to attach a pretrained predictor first; if that is
-            unavailable we keep the task object as a placeholder. `.predict`
-            is only callable once a model is fitted/attached, but the caller
-            (pharmaguard.py) already guards TDC inference in try/except.
+            TDC's `Tox` class is a dataset loader. `Tox.get_model()` returns a
+            pretrained model only if one exists in the TDC model zoo. For
+            hERG/DILI/Ames, no pretrained models are shipped by default, so
+            `get_model()` returns None. We return None instead of the task
+            object (which lacks a `.predict()` method).
             """
             task = Tox(name=task_name)  # downloads metafile/dataset
             model = None
             try:
-                # TDC >= 0.4 ships pretrained predictors for these tasks.
                 model = task.get_model()
             except Exception:
                 model = None
-            return model if model is not None else task
+            # Only return the model if it actually has a callable `predict` method.
+            if model is not None and hasattr(model, 'predict') and callable(model.predict):
+                return model
+            return None
 
         return {
             'herg': _build_tdc_predictor('hERG'),
@@ -293,6 +309,7 @@ def initialize_services():
     return True
 
 @app.route('/api/health', methods=['GET'])
+@limiter.exempt
 def health_check():
     """Health check endpoint"""
     return jsonify({
@@ -692,6 +709,7 @@ def predict_batch():
         return jsonify({'error': f'Batch prediction failed: {str(e)}'}), 500
 
 @app.route('/api/analyze-image-vision', methods=['POST'])
+@limiter.limit("10 per minute")
 def analyze_image_vision():
     """AI-powered vision analysis using Groq Vision + OCR fallback"""
     try:
@@ -799,6 +817,7 @@ Respond in JSON format:
         return jsonify({'error': f'Vision analysis failed: {str(e)}'}), 500
 
 @app.route('/api/analyze-chemical-text', methods=['POST'])
+@limiter.limit("10 per minute")
 def analyze_chemical_text():
     """Enhanced AI-powered analysis of OCR text to identify chemical components and generate AI report"""
     try:
@@ -917,6 +936,8 @@ Be thorough in your analysis and provide educational insights about the chemical
         print(f"❌ Chemical text analysis error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Chemical analysis failed: {str(e)}'}), 500
+@app.route('/api/analyze-image-text', methods=['POST'])
+@limiter.limit("10 per minute")
 def analyze_image_text():
     """Enhanced AI-powered analysis of OCR extracted text to identify ingredients and SMILES"""
     try:
@@ -1132,6 +1153,7 @@ EXAMPLE - OCR text "Drug Facts Active lngredient Faracetamol S00mg" should retur
         return jsonify({'error': f'AI analysis failed: {str(e)}'}), 500
 
 @app.route('/api/ai/analyze', methods=['POST'])
+@limiter.limit("10 per minute")
 def ai_analyze_molecule():
     """Get AI analysis for a molecule and its toxicity results"""
     try:
@@ -1158,6 +1180,7 @@ def ai_analyze_molecule():
         return jsonify({'error': f'AI analysis failed: {str(e)}'}), 500
 
 @app.route('/api/ai/explain/<endpoint_id>', methods=['GET'])
+@limiter.limit("10 per minute")
 def ai_explain_endpoint(endpoint_id):
     """Get AI explanation of a toxicity endpoint"""
     try:
@@ -1177,6 +1200,7 @@ def ai_explain_endpoint(endpoint_id):
         return jsonify({'error': f'AI explanation failed: {str(e)}'}), 500
 
 @app.route('/api/ai/suggest-modifications', methods=['POST'])
+@limiter.limit("5 per minute")
 def ai_suggest_modifications():
     """Get AI suggestions for molecular modifications to reduce toxicity"""
     try:

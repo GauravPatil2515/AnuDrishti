@@ -380,11 +380,14 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
         analysis['explanation']['llm_generated'] = False
 
     # 7. TDC predictions for hERG, DILI, Ames
+    # TDC does not ship pretrained models for hERG/DILI/Ames; tdc_models values
+    # are None unless a proper pretrained model is available (has callable `predict`).
     if tdc_models is not None:
         try:
             tdc_preds = {}
             for name, model in tdc_models.items():
-                # TDC's single_pred model.predict returns a scalar, array, or Series.
+                if model is None or not hasattr(model, 'predict') or not callable(model.predict):
+                    continue
                 pred = model.predict(smiles)
                 # Normalize to a single float probability for the positive class.
                 if hasattr(pred, '__len__') and len(pred) > 0:
