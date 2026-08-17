@@ -1166,6 +1166,10 @@ def ai_analyze_molecule():
         
         smiles = data['smiles'].strip()
         toxicity_results = data['toxicity_results']
+        # Validate SMILES
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return jsonify({'error': 'Invalid SMILES string', 'example': 'CC(=O)Oc1ccccc1C(=O)O'}), 400
         
         analysis = groq_client.analyze_molecule(smiles, toxicity_results)
         
@@ -1174,7 +1178,7 @@ def ai_analyze_molecule():
             'analysis': analysis,
             'timestamp': datetime.now().isoformat()
         })
-        
+    
     except Exception as e:
         print(f"❌ AI analysis error: {e}")
         return jsonify({'error': f'AI analysis failed: {str(e)}'}), 500
@@ -1213,6 +1217,10 @@ def ai_suggest_modifications():
         
         smiles = data['smiles'].strip()
         toxic_endpoints = data['toxic_endpoints']
+        # Validate SMILES
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return jsonify({'error': 'Invalid SMILES string', 'example': 'CC(=O)Oc1ccccc1C(=O)O'}), 400
         
         suggestions = groq_client.suggest_modifications(smiles, toxic_endpoints)
         
@@ -1222,7 +1230,7 @@ def ai_suggest_modifications():
             'suggestions': suggestions,
             'timestamp': datetime.now().isoformat()
         })
-        
+    
     except Exception as e:
         print(f"❌ AI suggestions error: {e}")
         return jsonify({'error': f'AI suggestions failed: {str(e)}'}), 500
@@ -1566,6 +1574,13 @@ def handle_predictions():
             # Validate required fields
             if not data.get('smiles'):
                 return jsonify({'error': 'SMILES string is required'}), 400
+            
+            # Validate SMILES format
+            smiles = data.get('smiles').strip()
+            if smiles:
+                mol = Chem.MolFromSmiles(smiles)
+                if mol is None:
+                    return jsonify({'error': 'Invalid SMILES string', 'example': 'CC(=O)Oc1ccccc1C(=O)O'}), 400
             
             # Insert into database
             result = db_service.client.table('predictions').insert({

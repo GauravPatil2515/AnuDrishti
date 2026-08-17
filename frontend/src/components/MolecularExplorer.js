@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
+import { toast } from 'react-hot-toast';
 import { SwatchIcon, Squares2X2Icon, InformationCircleIcon, CubeIcon } from '@heroicons/react/24/outline';
 import StructureHeatmap from './StructureHeatmap';
 
@@ -100,15 +101,33 @@ const MolecularExplorer = ({ analysis }) => {
             <span className="font-mono text-xs text-muted break-all">{smiles}</span>
           </div>
         ) : (
-          <div className="rounded-lg border border-border bg-canvas p-2 min-h-[180px] flex items-center justify-center">
-            <div ref={structureSvgRef} className="w-full max-h-64 overflow-auto">
-              {rdkitReady ? (
-                ''
-              ) : (
-                <div className="text-center text-muted text-xs">
-                  Loading RDKit.js...
-                </div>
-              )}
+          <div className="rounded-lg border border-border bg-canvas p-2 min-h-[180px] flex flex-col items-center justify-center">
+            {/* SMILES code box with copy button */}
+            <div className="mb-2 flex w-full items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <code className="font-mono text-xs text-text-primary bg-canvas/50 px-2 py-1 rounded border border-border break-all">{smiles}</code>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(smiles);
+                  toast.success('SMILES copied!');
+                }}
+                className="p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text-primary transition-colors"
+                title="Copy SMILES"
+              >
+                <InformationCircleIcon className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* SVG container with dark background */}
+            <div className="relative w-full max-w-xs h-full min-h-[140px] flex items-center justify-center">
+              <div ref={structureSvgRef} className="w-full h-full overflow-auto flex items-center justify-center">
+                {!rdkitReady && (
+                  <div className="text-center text-muted text-xs">
+                    Loading RDKit.js...
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

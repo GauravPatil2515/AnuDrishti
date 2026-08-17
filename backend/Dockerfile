@@ -15,8 +15,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PyTorch CPU first to avoid heavy CUDA wheels
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# Install PyTorch CPU first
+RUN pip install --no-cache-dir torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Install PyTorch Geometric dependencies (matching PyTorch 2.4.0 + CPU)
+RUN pip install --no-cache-dir \
+    torch-scatter==2.1.2 \
+    torch-sparse==0.6.18 \
+    torch-cluster==1.6.3 \
+    torch-spline-conv==1.2.2 \
+    torch-geometric==2.6.1 \
+    --index-url https://data.pyg.org/whl/torch-2.4.0+cpu.html
 
 # Copy requirements and install python dependencies
 COPY requirements.txt .

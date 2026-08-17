@@ -221,6 +221,17 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-border);
 }
 
+/* Accent color utilities */
+.text-accent-emerald { color: var(--color-accent-emerald); }
+.text-accent-amber   { color: var(--color-accent-amber); }
+.text-accent-red     { color: var(--color-accent-red); }
+.border-accent-emerald { border-color: var(--color-accent-emerald); }
+.border-accent-amber   { border-color: var(--color-accent-amber); }
+.border-accent-red     { border-color: var(--color-accent-red); }
+.bg-accent-emerald   { background-color: var(--color-accent-emerald); }
+.bg-accent-amber     { background-color: var(--color-accent-amber); }
+.bg-accent-red       { background-color: var(--color-accent-red); }
+
 /* Data Patterns */
 .bg-canvas { background-color: var(--color-canvas); }
 .border-border { border-color: var(--color-border); }

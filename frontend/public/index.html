@@ -13,12 +13,9 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     
     <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- RDKit.js for 2D Molecular Structure Rendering -->
-    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Tesseract.js Configuration -->
     <script src="%PUBLIC_URL%/tesseract-config.js"></script>
@@ -28,5 +25,13 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <!-- RDKit.js for 2D Molecular Structure Rendering -->
+    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
+    <script>
+      window.initRDKitModule().then(function(RDKit) {
+        window.RDKit = RDKit;
+        console.log("RDKit.js loaded:", RDKit.version());
+      });
+    </script>
   </body>
 </html>

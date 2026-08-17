@@ -6,38 +6,33 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        canvas: {
-          DEFAULT: 'var(--color-canvas)',
-          elevated: 'var(--color-canvas-elevated)',
-          overlay: 'var(--color-canvas-overlay)',
-        },
-        surface: {
-          DEFAULT: 'var(--color-surface)',
-          elevated: 'var(--color-surface-elevated)',
-          hover: 'var(--color-surface-hover)',
-        },
-        border: {
-          DEFAULT: 'var(--color-border)',
-          hover: 'var(--color-border-hover)',
-          strong: 'var(--color-border-strong)',
-        },
-        text: {
-          primary: 'var(--color-text-primary)',
-          secondary: 'var(--color-text-secondary)',
-          muted: 'var(--color-text-muted)',
-          inverse: 'var(--color-text-inverse)',
-        },
-        accent: {
-          green: 'var(--color-accent-green)',
-          greenHover: 'var(--color-accent-green-hover)',
-          greenGlow: 'var(--color-accent-green-glow)',
-          emerald: 'var(--color-accent-emerald)',
-          amber: 'var(--color-accent-amber)',
-          red: 'var(--color-accent-red)',
-          rose: 'var(--color-accent-rose)',
-        },
-      },
+       colors: {
+         canvas: {
+           DEFAULT: 'var(--color-canvas)',
+           elevated: 'var(--color-canvas-elevated)',
+           overlay: 'var(--color-canvas-overlay)',
+         },
+         surface: {
+           DEFAULT: 'var(--color-surface)',
+           elevated: 'var(--color-surface-elevated)',
+           hover: 'var(--color-surface-hover)',
+         },
+         border: {
+           DEFAULT: 'var(--color-border)',
+           hover: 'var(--color-border-hover)',
+           strong: 'var(--color-border-strong)',
+         },
+         text: {
+           primary: 'var(--color-text-primary)',
+           secondary: 'var(--color-text-secondary)',
+           muted: 'var(--color-text-muted)',
+           inverse: 'var(--color-text-inverse)',
+         },
+         'accent-emerald': 'var(--color-accent-emerald)',
+         'accent-amber':   'var(--color-accent-amber)',
+         'accent-red':     'var(--color-accent-red)',
+         'accent-green':   'var(--color-accent-green)',
+       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
@@ -78,4 +73,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+  }

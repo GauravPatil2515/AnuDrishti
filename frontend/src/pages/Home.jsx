@@ -20,16 +20,17 @@ const Home = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-canvas text-primary font-sans selection:bg-accent-green-glow selection:text-primary">
-      {/* Background - Dot grid with subtle radial glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden bg-canvas">
-        <div 
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-          style={{ backgroundImage: 'radial-gradient(var(--color-text-primary) 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
-        />
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accent-green opacity-[0.04] dark:opacity-[0.08] blur-[100px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent-emerald opacity-[0.03] dark:opacity-[0.06] blur-[100px]" />
-      </div>
+      <div className="min-h-screen bg-canvas text-primary font-sans selection:bg-accent-green-glow selection:text-primary">
+        {/* Background - Micro grid with sharp emerald spotlight */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden bg-canvas">
+          <div className="absolute inset-0 opacity-[0.15] dark:opacity-[0.2]" 
+            style={{ backgroundImage: 'radial-gradient(var(--color-accent-green) 1px, transparent 1px)', backgroundSize: '24px 24px' }} 
+          />
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
+            style={{ backgroundImage: 'radial-gradient(var(--color-text-primary) 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
+          />
+          <div className="absolute top-[-10%] left-[-10%] w-[30%] h-[30%] rounded-full bg-accent-emerald/10" />
+        </div>
 
       {/* Navigation Bar */}
       <header className="relative z-20 border-b border-border bg-canvas-overlay backdrop-blur-md">
@@ -72,10 +73,20 @@ const Home = () => {
       <main className="relative z-20 mx-auto max-w-screen-xl px-6 pt-16 pb-24">
         <div className="text-center max-w-4xl mx-auto space-y-8">
           
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold text-text-secondary backdrop-blur shadow-sm">
-            <SparklesIcon className="h-4 w-4 text-accent-green" />
-            <span>Trustworthy Drug-Safety Decision Support</span>
-          </div>
+          <div className="mb-6 flex items-center gap-4 px-4 py-2 rounded-xl bg-surface/80 border border-border/60 backdrop-blur-md text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
+                      <span className="text-text-muted">● 6 Models Active</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
+                      <span className="text-text-muted">| 16 ADMET Endpoints</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-accent-emerald" />
+                      <span className="text-accent-emerald">| EFS ≥ 0.70</span>
+                    </div>
+                  </div>
 
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-text-primary leading-tight font-display">
             GNN Predictions Gated by <br className="hidden md:block" />
@@ -129,45 +140,57 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Feature Highlights Grid */}
+        {/* Feature Highlights Grid - Linear-style bordered metric cards */}
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="surface p-6 transition-all hover:-translate-y-1 hover:shadow-card-hover group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-green/10 text-accent-green border border-accent-green/20 mb-4 group-hover:scale-110 transition-transform">
-              <CpuChipIcon className="h-6 w-6" />
+          <div className="border border-border/60 surface rounded-xl p-6 hover:border-border/80 transition-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary font-display">Multi-Task GNN</h3>
+              <div className="flex items-center gap-2 text-text-muted text-sm">
+                <span className="font-mono">16</span>
+                <span>Endpoints</span>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-text-primary font-display">Multi-Task GNN</h3>
-            <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-              Attention-GIN architecture predicting 16 ADMET & toxicity endpoints simultaneously with uncertainty bounds.
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Attention-GIN architecture predicting toxicity & ADMET endpoints simultaneously with uncertainty bounds.
             </p>
           </div>
-
-          <div className="surface p-6 transition-all hover:-translate-y-1 hover:shadow-card-hover group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20 mb-4 group-hover:scale-110 transition-transform">
-              <CheckBadgeIcon className="h-6 w-6" />
+          
+          <div className="border border-border/60 surface rounded-xl p-6 hover:border-border/80 transition-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary font-display">Faithfulness Gatekeeper</h3>
+              <div className="flex items-center gap-2 text-text-muted text-sm">
+                <span className="font-mono">≥0.70</span>
+                <span>EFS Threshold</span>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-text-primary font-display">Faithfulness Gatekeeper</h3>
-            <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-              Explanation Faithfulness Score (EFS ≥ 0.70) rejects hallucinated LLM claims before presenting to researchers.
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Explanation Faithfulness Score validates LLM explanations against GNN attention weights.
             </p>
           </div>
-
-          <div className="surface p-6 transition-all hover:-translate-y-1 hover:shadow-card-hover group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-rose/10 text-accent-rose border border-accent-rose/20 mb-4 group-hover:scale-110 transition-transform">
-              <SignalIcon className="h-6 w-6" />
+          
+          <div className="border border-border/60 surface rounded-xl p-6 hover:border-border/80 transition-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary font-display">OOD & Epistemic Band</h3>
+              <div className="flex items-center gap-2 text-text-muted text-sm">
+                <span className="font-mono">95%</span>
+                <span>CI Confidence</span>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-text-primary font-display">OOD & Epistemic Band</h3>
-            <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-              Hybrid Morgan Tanimoto distance + MC-Dropout 95% Confidence Intervals flag novel molecules automatically.
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Hybrid Morgan Tanimoto distance + MC-Dropout quantify uncertainty for novel molecules.
             </p>
           </div>
-
-          <div className="surface p-6 transition-all hover:-translate-y-1 hover:shadow-card-hover group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-amber/10 text-accent-amber border border-accent-amber/20 mb-4 group-hover:scale-110 transition-transform">
-              <AdjustmentsHorizontalIcon className="h-6 w-6" />
+          
+          <div className="border border-border/60 surface rounded-xl p-6 hover:border-border/80 transition-border">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary font-display">What-If Bioisosteres</h3>
+              <div className="flex items-center gap-2 text-text-muted text-sm">
+                <span className="font-mono">5</span>
+                <span>Variants</span>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-text-primary font-display">What-If Bioisosteres</h3>
-            <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-              Generate molecular perturbations and bioisosteric edits to lower predicted toxicity while maintaining viability.
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Generate molecular perturbations to lower predicted toxicity while maintaining viability.
             </p>
           </div>
         </div>

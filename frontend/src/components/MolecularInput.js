@@ -6,12 +6,48 @@ import {
 } from '@heroicons/react/24/outline';
 
 const PRESETS = [
-  { name: 'Aspirin', smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O', type: 'safe' },
-  { name: 'Acetaminophen', smiles: 'CC(=O)NC1=CC=C(C=C1)O', type: 'safe' },
-  { name: 'Thalidomide', smiles: 'O=C1NC(=O)C(N2C(=O)c3ccccc3C2=O)CC1', type: 'toxic' },
-  { name: 'Clozapine', smiles: 'CN1CCN(CC1)C1=NC2=CC=CC=C2N1C', type: 'toxic' },
-  { name: 'Nicotine', smiles: 'CN1CCCC1C2=CN=CC=C2', type: 'safe' },
-  { name: 'Benzene', smiles: 'C1=CC=CC=C1', type: 'toxic' },
+  { 
+    name: 'Aspirin', 
+    smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O', 
+    description: 'Pain reliever, anti-inflammatory', 
+    riskLevel: 'Low',
+    safety: 'Safe' 
+  },
+  { 
+    name: 'Acetaminophen', 
+    smiles: 'CC(=O)NC1=CC=C(C=C1)O', 
+    description: 'Pain reliever, fever reducer', 
+    riskLevel: 'Low',
+    safety: 'Safe' 
+  },
+  { 
+    name: 'Thalidomide', 
+    smiles: 'O=C1NC(=O)C(N2C(=O)c3ccccc3C2=O)CC1', 
+    description: 'Sedative (caused birth defects)', 
+    riskLevel: 'High',
+    safety: 'Toxic' 
+  },
+  { 
+    name: 'Clozapine', 
+    smiles: 'CN1CCN(CC1)C1=NC2=CC=CC=C2N1C', 
+    description: 'Antipsychotic (agranulocytosis risk)', 
+    riskLevel: 'Medium',
+    safety: 'Toxic' 
+  },
+  { 
+    name: 'Nicotine', 
+    smiles: 'CN1CCCC1C2=CN=CC=C2', 
+    description: 'Stimulant, addictive', 
+    riskLevel: 'Medium',
+    safety: 'Safe' 
+  },
+  { 
+    name: 'Benzene', 
+    smiles: 'C1=CC=CC=C1', 
+    description: 'Industrial solvent, carcinogenic', 
+    riskLevel: 'High',
+    safety: 'Toxic' 
+  },
 ];
 
 const MolecularInput = ({ onAnalyze, isLoading }) => {
@@ -243,51 +279,37 @@ const MolecularInput = ({ onAnalyze, isLoading }) => {
         </div>
 
         {/* Presets & System Ensemble Column */}
-        <div className="space-y-4">
-          <div className="surface p-4">
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted">Presets Table</h3>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th className="w-8">#</th>
-                    <th>Compound</th>
-                    <th>Class</th>
-                    <th>Risk</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {PRESETS.map((p, i) => (
-                    <tr key={p.name} className="hover:bg-surface-hover transition-colors">
-                      <td className="text-text-muted font-mono text-xs">{i + 1}</td>
-                      <td className="font-mono text-xs text-text-primary font-medium">{p.name}</td>
-                      <td>
-                        <span className={clsx('pill text-[10px]', p.type === 'toxic' ? 'pill-red' : 'pill-green')}>
-                          {p.type === 'toxic' ? 'Toxic' : 'Safe'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={clsx('font-mono font-bold text-xs flex items-center gap-1', p.type === 'toxic' ? 'text-accent-red' : 'text-accent-emerald')}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                          {p.type === 'toxic' ? 'High' : 'Low'}
-                        </span>
-                      </td>
-                      <td className="text-right">
-                        <button
-                          onClick={() => handlePreset(p)}
-                          className="p-1 rounded hover:bg-surface text-text-muted hover:text-text-primary transition-colors text-xs font-bold"
-                          title="Select Preset"
-                        >
-                          →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  <div className="space-y-4">
+                    <div className="surface p-4">
+                      <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted">Presets Table</h3>
+                      <div className="overflow-x-auto">
+                        <table className="table">
+                          <thead>
+                            <tr>
+                              <th className="w-4"></th>
+                              <th className="text-left">Compound</th>
+                              <th className="text-left">SMILES</th>
+                              <th className="text-left">Safety</th>
+                              <th className="text-left">Risk</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {PRESETS.map((p, i) => (
+                              <tr key={p.name} className="hover:bg-surface-hover transition-colors">
+                                <td className="text-text-muted font-mono text-xs flex items-center justify-center">
+                                  <div className="h-2.5 w-2.5 rounded-full" 
+                                       style={{ backgroundColor: p.safety === 'Safe' ? 'var(--color-accent-emerald)' : 'var(--color-accent-red)' }} />
+                                </td>
+                                <td className="font-mono text-xs text-text-primary font-medium">{p.name}</td>
+                                <td className="font-mono text-xs text-text-primary break-all max-w-xs">{p.smiles}</td>
+                                <td className="font-mono text-xs text-text-primary">{p.safety}</td>
+                                <td className="font-mono text-xs text-text-primary">{p.riskLevel}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
 
           {/* Model ensemble info */}
           {modelList && (
