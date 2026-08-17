@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import { clsx } from 'clsx';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import {
   BeakerIcon, SwatchIcon, ShieldCheckIcon, MagnifyingGlassIcon,
-  TableCellsIcon, SparklesIcon, PlayIcon, CommandLineIcon,
-  XMarkIcon, CheckBadgeIcon, InformationCircleIcon
+  TableCellsIcon, SparklesIcon, PlayIcon, InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import MolecularInput from '../components/MolecularInput';
 import MolecularExplorer from '../components/MolecularExplorer';
@@ -17,40 +16,56 @@ import PipelineProgress from '../components/PipelineProgress';
 
 const TABS = [
   { id: 'input', label: 'Input', icon: BeakerIcon },
-  { id: 'explorer', label: 'Graph Explorer', icon: SwatchIcon },
-  { id: 'safety', label: 'Safety & ADMET', icon: ShieldCheckIcon },
-  { id: 'audit', label: 'Explanation Audit', icon: MagnifyingGlassIcon },
-  { id: 'library', label: 'Library Screening', icon: TableCellsIcon },
+  { id: 'explorer', label: 'Explorer', icon: SwatchIcon },
+  { id: 'safety', label: 'Safety', icon: ShieldCheckIcon },
+  { id: 'audit', label: 'Audit', icon: MagnifyingGlassIcon },
+  { id: 'library', label: 'Library', icon: TableCellsIcon },
   { id: 'whatif', label: 'What-If', icon: SparklesIcon },
-  { id: 'demo', label: 'Demo', icon: PlayIcon },
+  { id: 'demo', label: 'Demo Sandbox', icon: PlayIcon },
 ];
+
+const EmptyState = ({ icon: Icon, title, description }) => (
+  <div className="surface p-12 text-center flex flex-col items-center justify-center my-4">
+    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-elevated border border-border mb-4 shadow-sm">
+      <Icon className="h-8 w-8 text-text-muted" />
+    </div>
+    <h3 className="text-base font-bold text-text-primary font-display">{title}</h3>
+    <p className="text-xs text-text-secondary mt-1 max-w-md">{description}</p>
+  </div>
+);
 
 const DemoView = ({ results, loading }) => {
   if (loading) {
     return (
-      <div className="rounded-lg border border-border bg-surface p-10 text-center text-muted animate-fade-in">
-        Loading demo molecules…
+      <div className="surface p-12 text-center text-text-muted animate-fade-in">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-10 w-10 rounded-full border-4 border-border border-t-accent-green animate-spin mb-4"></div>
+          Loading demo molecules…
+        </div>
       </div>
     );
   }
   if (!results || results.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-surface p-10 text-center text-muted">
-        Click “Load Demo” to explore two precomputed examples with zero setup.
-      </div>
+      <EmptyState 
+        icon={PlayIcon} 
+        title="No Demo Loaded" 
+        description="Click 'Load Demo' to explore two precomputed examples with zero setup." 
+      />
     );
   }
   return (
-    <div className="space-y-3">
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-400">
-        These are <strong>illustrative demo records</strong> (a benign drug and a known
-        toxicant) so you can experience the full triage + faithfulness workflow instantly.
-        They are not live model predictions — paste a real SMILES in the Input tab for a
-        live analysis.
+    <div className="space-y-4 animate-fade-in">
+      <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/5 p-4 text-xs text-accent-amber flex items-start gap-3">
+        <InformationCircleIcon className="h-5 w-5 shrink-0" />
+        <p>
+          These are <strong>illustrative demo records</strong> (a benign drug and a known
+          toxicant) so you can experience the full triage + faithfulness workflow instantly.
+        </p>
       </div>
       {results.map((r, i) => (
-        <div key={i} className="rounded-lg border border-border bg-surface p-4 shadow-card hover:shadow-card-hover transition-all duration-150">
-          <p className="mb-3 font-mono text-xs text-muted break-all">{r.smiles}</p>
+        <div key={i} className="surface p-5 hover:shadow-card-hover transition-all duration-200">
+          <p className="mb-4 font-mono text-xs text-text-muted break-all p-2 bg-canvas rounded border border-border">{r.smiles}</p>
           <SafetyDashboard analysis={r} />
         </div>
       ))}
@@ -58,7 +73,7 @@ const DemoView = ({ results, loading }) => {
   );
 };
 
-const CommandPalette = ({ isOpen, onClose, tabs, activeTab, onTabSelect, onQuickAction, searchRef }) => {
+const CommandPalette = ({ isOpen, onClose, activeTab, onTabSelect, onQuickAction, searchRef }) => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -73,7 +88,6 @@ const CommandPalette = ({ isOpen, onClose, tabs, activeTab, onTabSelect, onQuick
 
   const quickActions = [
     { label: 'Load Demo', action: 'demo', shortcut: '↵' },
-    { label: 'Run Analysis', action: 'analyze', shortcut: '⌘⏎' },
     { label: 'Export PDF Report', action: 'export', shortcut: '⌘E' },
     { label: 'Simulate Hallucination', action: 'hallucinate', shortcut: '⌘H' },
   ];
@@ -85,10 +99,10 @@ const CommandPalette = ({ isOpen, onClose, tabs, activeTab, onTabSelect, onQuick
   if (!isOpen) return null;
 
   return (
-    <div className="cmd-palette" onClick={onClose}>
-      <div className="cmd-palette-backdrop" />
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm" />
       <div
-        className="cmd-palette-window"
+        className="relative w-full max-w-lg rounded-xl border border-border bg-surface shadow-dropdown overflow-hidden z-10"
         onClick={e => e.stopPropagation()}
       >
         <div className="px-4 pt-3 pb-2 border-b border-border">
@@ -98,53 +112,55 @@ const CommandPalette = ({ isOpen, onClose, tabs, activeTab, onTabSelect, onQuick
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or search tabs..."
-            className="cmd-palette-input"
+            className="w-full bg-transparent border-0 text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
             autoFocus
           />
         </div>
 
         {filteredActions.length > 0 && (
-          <>
-            <div className="cmd-palette-section">Quick Actions</div>
-            {filteredActions.map((action, i) => (
+          <div className="p-2">
+            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">Quick Actions</div>
+            {filteredActions.map((action) => (
               <div
                 key={action.action}
-                className="cmd-palette-item"
+                className="flex items-center justify-between px-3 py-2 text-xs font-medium text-text-primary rounded-lg hover:bg-surface-hover cursor-pointer"
                 onClick={() => {
                   onQuickAction(action.action);
                   onClose();
                 }}
               >
                 <span>{action.label}</span>
-                <span className="cmd-palette-shortcut">{action.shortcut}</span>
+                <span className="font-mono text-[10px] text-text-muted border border-border px-1.5 py-0.5 rounded">{action.shortcut}</span>
               </div>
             ))}
-          </>
+          </div>
         )}
 
         {filteredTabs.length > 0 && (
-          <>
-            <div className="cmd-palette-section">Navigation</div>
+          <div className="p-2 border-t border-border">
+            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">Navigation</div>
             {filteredTabs.map((t) => (
               <div
                 key={t.id}
                 className={clsx(
-                  'cmd-palette-item',
-                  activeTab === t.id ? 'cmd-palette-item-selected' : ''
+                  'flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg cursor-pointer',
+                  activeTab === t.id ? 'bg-accent-green/10 text-accent-green font-semibold' : 'text-text-secondary hover:bg-surface-hover'
                 )}
                 onClick={() => {
                   onTabSelect(t.id);
                   onClose();
                 }}
               >
+                <t.icon className="h-4 w-4" />
                 <span>{t.label}</span>
               </div>
             ))}
-          </>
+          </div>
         )}
 
-        <div className="px-3 py-2 border-t border-border text-xs text-muted">
-          ESC to close · ↑↓ to navigate · ↵ to select
+        <div className="px-4 py-2 border-t border-border text-[11px] text-text-muted bg-surface-elevated flex justify-between">
+          <span>ESC to close</span>
+          <span>Press ⌘K anytime</span>
         </div>
       </div>
     </div>
@@ -169,7 +185,6 @@ const PharmaGuardWorkbench = () => {
       loadDemo();
     }
 
-    // Listen for Cmd/Ctrl+K
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -261,154 +276,154 @@ const PharmaGuardWorkbench = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-primary">
-        <Toaster position="top-right" />
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      <CommandPalette
+        isOpen={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+        activeTab={activeTab}
+        onTabSelect={setActiveTab}
+        onQuickAction={handleQuickAction}
+        searchRef={cmdInputRef}
+      />
 
-        {/* Command Palette */}
-        <CommandPalette
-          isOpen={cmdPaletteOpen}
-          onClose={() => setCmdPaletteOpen(false)}
-          tabs={TABS}
-          activeTab={activeTab}
-          onTabSelect={setActiveTab}
-          onQuickAction={handleQuickAction}
-          searchRef={cmdInputRef}
-        />
-
-        {/* Header */}
-        <header className="border-b border-border bg-surface-elevated">
-          <div className="container-wide flex items-center justify-between h-12">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-white">
-                <ShieldCheckIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-base font-extrabold text-primary">PharmaGuard AI</h1>
-                <p className="text-xs text-muted">Trustworthy Drug-Safety Decision Support</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">
-                Predict · Explain · Verify · Trust
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Clinical disclaimer — subtle, non-dominant */}
-        <div className="border-b border-border bg-surface">
-          <div className="container-wide flex items-center gap-2 px-3 py-1.5 text-xs text-muted">
-            <span aria-hidden className="text-amber-400">⚠</span>
-            <span>
-              Not for clinical use — PharmaGuard AI is a computational decision-support tool.
-              Predictions are not a regulatory, clinical, or toxicological approval and require
-              experimental validation.
-            </span>
-          </div>
+      {/* Tab Navigation & Info Bar Header */}
+      <div className="surface p-2 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-auto p-1 hide-scrollbar">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={clsx(
+                'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all duration-150 whitespace-nowrap',
+                activeTab === t.id
+                  ? 'bg-accent-green text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+              )}
+            >
+              <t.icon className="h-4 w-4" />
+              <span>{t.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Command palette shortcut hint */}
-        <div className="container-wide px-4 py-2">
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted">
-              Press <kbd className="px-1.5 py-0.5 rounded bg-surface border border-border text-xs">⌘K</kbd> for command palette
-            </div>
-          </div>
+        <div className="hidden md:flex items-center gap-2 text-xs text-text-muted px-2">
+          <span>Press</span>
+          <kbd className="px-1.5 py-0.5 rounded border border-border bg-surface-elevated font-mono text-[10px] font-bold text-text-primary">⌘K</kbd>
+          <span>for commands</span>
         </div>
+      </div>
 
-        {/* Tab navigation - Linear underline style */}
-        <nav className="sticky top-0 z-20 border-b border-border bg-canvas/80 backdrop-blur">
-          <div className="container-wide flex overflow-x-auto px-3 py-1 gap-1">
-            {TABS.map((t) => (
+      {/* Main Content Area */}
+      <div>
+        {loading && (
+          <div className="mb-6">
+            <PipelineProgress active={loading} />
+          </div>
+        )}
+
+        {activeTab === 'input' && (
+          <div className="animate-fade-in">
+            <MolecularInput onAnalyze={handleAnalyze} isLoading={loading} />
+            <div className="mt-6 flex justify-center">
               <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={clsx(
-                  'flex items-center gap-1.5 px-3 py-2 text-sm font-medium whitespace-nowrap',
-                  'transition-all duration-100',
-                  activeTab === t.id
-                    ? 'text-primary border-b-2 border-indigo-500'
-                    : 'text-muted hover:text-secondary hover:bg-surface rounded-md'
-                )}
+                onClick={loadDemo}
+                disabled={demoLoading}
+                className="btn btn-secondary"
               >
-                <t.icon className="h-4 w-4" />
-                {t.label}
+                <PlayIcon className="h-4 w-4 text-accent-green" />
+                {demoLoading ? 'Loading Demo…' : 'Try Demo (No SMILES needed)'}
               </button>
-            ))}
+            </div>
           </div>
-        </nav>
+        )}
 
-        {/* Content */}
-        <main className="container-wide px-4 py-4">
-          {loading && (
-            <div className="mb-4">
-              <PipelineProgress active={loading} />
-            </div>
-          )}
-
-          {activeTab === 'input' && (
-            <>
-              <MolecularInput onAnalyze={handleAnalyze} isLoading={loading} />
-              <div className="mt-4 flex justify-center">
-                <button
-                  onClick={loadDemo}
-                  disabled={demoLoading}
-                  className="btn btn-primary"
-                >
-                  <PlayIcon className="h-4 w-4" />
-                  {demoLoading ? 'Loading…' : 'Try Demo (no SMILES needed)'}
-                </button>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'explorer' && (
-            <div className="animate-fade-in">
+        {activeTab === 'explorer' && (
+          <div className="animate-fade-in">
+            {analysis ? (
               <MolecularExplorer analysis={analysis} />
-            </div>
-          )}
-          {activeTab === 'safety' && analysis && (
-            <div className="animate-fade-in">
+            ) : (
+              <EmptyState 
+                icon={SwatchIcon} 
+                title="No Molecule Loaded" 
+                description="Run an analysis from the Input tab to explore its 2D graph structure and properties." 
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'safety' && (
+          <div className="animate-fade-in">
+            {analysis ? (
               <SafetyDashboard analysis={analysis} />
-            </div>
-          )}
-          {activeTab === 'audit' && analysis && (
-            <div className="animate-fade-in">
+            ) : (
+              <EmptyState 
+                icon={ShieldCheckIcon} 
+                title="No Safety Data" 
+                description="Run an analysis to view ADMET predictions, toxicity risks, and epistemic uncertainty bands." 
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'audit' && (
+          <div className="animate-fade-in">
+            {analysis ? (
               <ExplanationAudit analysis={analysis} />
-            </div>
-          )}
-          {activeTab === 'library' && (
-            <div className="animate-fade-in">
+            ) : (
+              <EmptyState 
+                icon={MagnifyingGlassIcon} 
+                title="No Explanations to Audit" 
+                description="Run an analysis to generate LLM explanations and verify their faithfulness against GNN logic." 
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'library' && (
+          <div className="animate-fade-in">
+            {batchResult ? (
               <LibraryScreening batchResult={batchResult} />
-            </div>
-          )}
-          {activeTab === 'whatif' && (
-            <div className="animate-fade-in">
+            ) : (
+              <EmptyState 
+                icon={TableCellsIcon} 
+                title="No Batch Results" 
+                description="Run a batch analysis from the Input tab to view high-throughput library screening results." 
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'whatif' && (
+          <div className="animate-fade-in">
+            {whatif ? (
               <WhatIfOptimizer whatif={whatif} />
-            </div>
-          )}
-          {activeTab === 'demo' && (
-            <div className="space-y-3">
+            ) : (
+              <EmptyState 
+                icon={SparklesIcon} 
+                title="No Counterfactuals Generated" 
+                description="Run a What-If optimization from the Input tab to explore bioisosteric toxicity reductions." 
+              />
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'demo' && (
+          <div className="animate-fade-in space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold font-display text-text-primary">Demo Sandbox</h2>
               <button
                 onClick={loadDemo}
                 disabled={demoLoading}
                 className="btn btn-primary"
               >
                 <PlayIcon className="h-4 w-4" />
-                {demoLoading ? 'Loading…' : 'Load Demo (2 Free Molecules)'}
+                {demoLoading ? 'Loading…' : 'Reload Demo Data'}
               </button>
-              <DemoView results={demoResults} loading={demoLoading} />
             </div>
-          )}
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-border bg-surface-elevated mt-6">
-          <div className="container-wide py-3 text-center text-xs text-muted">
-            PharmaGuard AI is a computational decision-support tool. It does not constitute regulatory,
-            clinical, or toxicological approval. Predictions require experimental validation.
+            <DemoView results={demoResults} loading={demoLoading} />
           </div>
-        </footer>
+        )}
+      </div>
     </div>
   );
 };
