@@ -8,28 +8,24 @@ const Layout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
 
-  // Get page title based on current route
   const getPageTitle = (pathname) => {
     switch (pathname) {
-      case '/':
+      case '/app':
+      case '/app/dashboard':
         return 'Dashboard';
       case '/app/pharmaguard':
-        return 'PharmaGuard AI';
+        return 'PharmaGuard AI Workbench';
       case '/app/chat':
         return 'AI Assistant';
-      case '/predictions':
+      case '/app/predictions':
         return 'Molecular Predictions';
-      case '/batch':
+      case '/app/batch':
         return 'Batch Processing';
-      case '/results':
-        return 'Results & Analytics';
-      case '/analytics':
-        return 'Advanced Analytics';
-      case '/settings':
+      case '/app/settings':
         return 'Settings';
-      case '/help':
+      case '/app/help':
         return 'Help & Documentation';
-      case '/contact':
+      case '/app/contact':
         return 'Contact Support';
       default:
         return 'PharmaGuard AI';
@@ -37,7 +33,7 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-canvas text-text-primary transition-colors duration-200 flex flex-col">
       {/* Sidebar */}
       <Sidebar 
         open={sidebarOpen} 
@@ -46,8 +42,8 @@ const Layout = () => {
         setCollapsed={setSidebarCollapsed}
       />
       
-      {/* Main content */}
-      <div className={sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"} style={{ transition: 'padding 300ms' }}>
+      {/* Main content wrapper */}
+      <div className={`flex-1 flex flex-col ${sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"} transition-all duration-300`}>
         {/* Top navbar */}
         <TopNavbar 
           setSidebarOpen={setSidebarOpen} 
@@ -55,10 +51,8 @@ const Layout = () => {
         />
         
         {/* Page content */}
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Outlet />
-          </div>
+        <main className="flex-1 bg-canvas">
+          <Outlet />
         </main>
       </div>
     </div>

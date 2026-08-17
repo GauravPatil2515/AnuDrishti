@@ -1,110 +1,171 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BeakerIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, CheckBadgeIcon, SignalIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const Dashboard = () => (
-  <div className="mx-auto max-w-3xl px-6 py-16">
-    <div className="rounded-lg border border-white/5 bg-white/5 p-6 backdrop-blur">
-      <h1 className="text-2xl font-bold text-white mb-4">Dashboard</h1>
-      <p className="text-white/50">
-        Overview panels are being consolidated into the
-        <Link to="/app/pharmaguard" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-          PharmaGuard AI Workbench
-        </Link>
-        .
-      </p>
-      
-      {/* Quick Stats - Linear style dense data tables */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Quick Overview</h2>
-        <div className="overflow-x-auto rounded-lg border border-white/5 bg-white/5">
-          <table className="min-w-full divide-y divide-white/5">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase tracking-wider">
-                  Metric
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase tracking-wider">
-                  Value
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              <tr className="hover:bg-white/5">
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  Molecules Analyzed Today
-                </td>
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  1,247
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
-                    Active
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-white/5">
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  Average EFS Score
-                </td>
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  0.82
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
-                    Excellent
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-white/5">
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  Novel Compounds Detected
-                </td>
-                <td className="px-4 py-3 text-white/70 font-mono">
-                  23
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400">
-                    Review
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+  <div className="container-wide py-12 animate-fade-in">
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div>
+        <h1 className="text-3xl font-display font-bold text-text-primary">Dashboard</h1>
+        <p className="text-text-secondary mt-1">
+          System overview and recent analysis activity.
+        </p>
+      </div>
+      <Link 
+        to="/app/pharmaguard" 
+        className="btn btn-primary"
+      >
+        <SparklesIcon className="h-4 w-4" />
+        PharmaGuard Workbench
+        <ArrowRightIcon className="h-4 w-4" />
+      </Link>
+    </div>
+    
+    {/* KPI Cards */}
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="surface p-5 hover:-translate-y-1 transition-transform hover:shadow-card-hover">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
+            <BeakerIcon className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Analyzed Today</h3>
+        </div>
+        <div className="flex items-end gap-2">
+          <p className="text-3xl font-black text-text-primary font-mono">1,247</p>
+          <span className="pill pill-green mb-1">+12%</span>
+        </div>
+      </div>
+
+      <div className="surface p-5 hover:-translate-y-1 transition-transform hover:shadow-card-hover">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
+            <CheckBadgeIcon className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Avg EFS Score</h3>
+        </div>
+        <div className="flex items-end gap-2">
+          <p className="text-3xl font-black text-text-primary font-mono">0.82</p>
+          <span className="pill pill-green mb-1">Excellent</span>
+        </div>
+      </div>
+
+      <div className="surface p-5 hover:-translate-y-1 transition-transform hover:shadow-card-hover">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
+            <SignalIcon className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Novel Compounds</h3>
+        </div>
+        <div className="flex items-end gap-2">
+          <p className="text-3xl font-black text-text-primary font-mono">23</p>
+          <span className="pill pill-yellow mb-1">Flagged</span>
         </div>
       </div>
       
+      <div className="surface p-5 hover:-translate-y-1 transition-transform hover:shadow-card-hover">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-accent-rose/10 text-accent-rose border border-accent-rose/20">
+            <CheckBadgeIcon className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">High Toxicity</h3>
+        </div>
+        <div className="flex items-end gap-2">
+          <p className="text-3xl font-black text-text-primary font-mono">18</p>
+          <span className="pill pill-red mb-1">Critical</span>
+        </div>
+      </div>
+    </div>
+    
+    <div className="grid md:grid-cols-3 gap-6">
       {/* Recent Activity */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/2 hover:bg-white/5 transition-colors">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600/10 text-indigo-400">
-              <BeakerIcon className="h-4 w-4" />
+      <div className="md:col-span-2">
+        <h2 className="text-lg font-bold text-text-primary mb-4 font-display">Recent Activity</h2>
+        <div className="surface overflow-hidden">
+          <div className="divide-y divide-border">
+            <div className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
+                <BeakerIcon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-text-primary">Aspirin Analysis Completed</h3>
+                <p className="text-xs text-text-secondary truncate mt-0.5">
+                  Safety profile verified with EFS 0.91 - Non-toxic
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="pill pill-green">Verified</span>
+                <p className="text-[10px] text-text-muted mt-1">2 min ago</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-white">Aspirin Analysis Completed</h3>
-              <p className="mt-1 text-xs text-white/50">
-                Safety profile verified with EFS 0.91 - Non-toxic
-              </p>
+            
+            <div className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
+                <CheckBadgeIcon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-text-primary">Batch Processing Finished</h3>
+                <p className="text-xs text-text-secondary truncate mt-0.5">
+                  50 molecules screened - 3 flagged for review
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="pill pill-yellow">Complete</span>
+                <p className="text-[10px] text-text-muted mt-1">15 min ago</p>
+              </div>
             </div>
-            <span className="text-xs text-white/40">2 min ago</span>
+            
+            <div className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-rose/10 text-accent-rose border border-accent-rose/20">
+                <SignalIcon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-text-primary">OOD Detection Alert</h3>
+                <p className="text-xs text-text-secondary truncate mt-0.5">
+                  High epistemic uncertainty detected for novel compound structure.
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="pill pill-red">Review</span>
+                <p className="text-[10px] text-text-muted mt-1">1 hr ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* System Status */}
+      <div>
+        <h2 className="text-lg font-bold text-text-primary mb-4 font-display">System Status</h2>
+        <div className="surface p-4 space-y-4">
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold text-text-secondary">GNN Models</span>
+              <span className="text-xs text-accent-emerald font-bold">Online</span>
+            </div>
+            <div className="h-1.5 w-full bg-surface-elevated rounded-full overflow-hidden">
+              <div className="h-full bg-accent-emerald w-full"></div>
+            </div>
           </div>
           
-          <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/2 hover:bg-white/5 transition-colors">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600/10 text-indigo-400">
-              <CheckBadgeIcon className="h-4 w-4" />
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold text-text-secondary">LLM Generation (Groq)</span>
+              <span className="text-xs text-accent-emerald font-bold">Online</span>
             </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-white">Batch Processing Finished</h3>
-              <p className="mt-1 text-xs text-white/50">
-                50 molecules screened - 3 flagged for review
-              </p>
+            <div className="h-1.5 w-full bg-surface-elevated rounded-full overflow-hidden">
+              <div className="h-full bg-accent-emerald w-full"></div>
             </div>
-            <span className="text-xs text-white/40">15 min ago</span>
+          </div>
+          
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold text-text-secondary">TDC Endpoints</span>
+              <span className="text-xs text-accent-amber font-bold">Offline</span>
+            </div>
+            <div className="h-1.5 w-full bg-surface-elevated rounded-full overflow-hidden">
+              <div className="h-full bg-border w-full"></div>
+            </div>
+            <p className="text-[10px] text-text-muted mt-1">Established panels currently unavailable.</p>
           </div>
         </div>
       </div>
