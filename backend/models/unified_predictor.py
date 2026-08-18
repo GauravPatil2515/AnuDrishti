@@ -482,7 +482,8 @@ class UnifiedADMETPredictor:
             ci_low_probs = mc_result['ci_low']
             ci_high_probs = mc_result['ci_high']
             # mean_probs, std_probs, etc. are numpy arrays of shape [num_tasks]
-            probabilities = mean_probs
+            probabilities = np.asarray(mean_probs, dtype=float).flatten()
+            std_probs = np.asarray(std_probs, dtype=float).flatten()
             # Build endpoint results
             results = {}
             for i, endpoint in enumerate(model_info['endpoints']):

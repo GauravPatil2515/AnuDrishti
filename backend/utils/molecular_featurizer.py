@@ -190,10 +190,13 @@ def mc_dropout_predict(model, data, n_samples: int = 50, device=None):
     all_probs = []
     with torch.no_grad():
         for _ in range(n_samples):
-            logits = model(data.x, data.edge_index, data.edge_attr if hasattr(data, 'edge_attr') else None)
-            if isinstance(logits, tuple):
-                logits = logits[0]  # Handle models returning (logits, attention)
-            probs = torch.sigmoid(logits).cpu().numpy()
+            try:
+                out = model(data)
+            except Exception:
+                out = model(data.x, data.edge_index, data.edge_attr if hasattr(data, 'edge_attr') else None)
+            if isinstance(out, tuple):
+                out = out[1] if len(out) >= 2 else out[0]  # Handle (features, predictions) or (features, predictions, attention)
+            probs = torch.sigmoid(out).cpu().numpy()
             all_probs.append(probs)
     
     model.eval()  # Restore eval mode
