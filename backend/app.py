@@ -143,6 +143,19 @@ def initialize_services():
                 print(f"❌ All predictors failed: {e3}")
                 predictor = None
                 predictor_cached = None
+
+    # Final fallback: rule-based heuristic predictor (no trained weights needed).
+    if predictor is None or not predictor.is_loaded:
+        try:
+            from models.heuristic_predictor import HeuristicFallbackPredictor
+            predictor = HeuristicFallbackPredictor()
+            if predictor.is_loaded:
+                predictor_cached = CachedPredictionWrapper(predictor, cache)
+                print("✅ Heuristic fallback predictor active (rule-based, no weights)")
+        except Exception as e4:
+            print(f"❌ Heuristic fallback failed: {e4}")
+            predictor = None
+            predictor_cached = None
     
     # Initialize Supabase database service
     try:
@@ -382,10 +395,21 @@ def initialize_services():
 @limiter.exempt
 def health_check():
     """Health check endpoint"""
+    loaded_models = []
+    model_source = 'none'
+    if predictor is not None and getattr(predictor, 'is_loaded', False):
+        loaded_models = list(getattr(predictor, 'models', {}).keys())
+        model_source = getattr(predictor, 'model_source', 'trained')
+
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'predictor_loaded': predictor is not None and predictor.is_loaded,
+        'model_source': model_source,
+        'models_loaded': loaded_models,
+        'models_loaded_count': len(loaded_models),
+        'total_models': len(loaded_models) if loaded_models else 0,
+        'chemberta_loaded': bool(getattr(predictor, 'chemberta_loaded', False)),
         'cache_enabled': True,
         'cache_stats': cache.get_stats() if cache else None
     })

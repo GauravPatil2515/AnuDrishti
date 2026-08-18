@@ -122,6 +122,35 @@ PROPERTY_MAP = {
 }
 
 
+
+def _suggest_followups(intent_obj: QueryIntent, ddi_result: Optional[Dict[str, Any]] = None) -> List[str]:
+    """Produce short follow-up prompts the user can click to continue the conversation."""
+    suggestions: List[str] = []
+    intent = (intent_obj.intent or '').lower()
+    n = len(intent_obj.entities or [])
+    if intent == 'compare' and n >= 2:
+        suggestions.append("What is the main toxicity difference?")
+        suggestions.append("Which one has higher liver risk?")
+    elif intent == 'explain' and n >= 1:
+        suggestions.append("Why is it toxic?")
+        suggestions.append("Show the toxicophore substructures")
+    elif intent == 'why_toxic' and n >= 1:
+        suggestions.append("What if I modify this molecule?")
+        suggestions.append("Is there a safer alternative?")
+    elif intent == 'what_if' and n >= 1:
+        suggestions.append("Predict toxicity for this change")
+        suggestions.append("Compare with a known safer scaffold")
+    elif intent == 'ddi' and n >= 2:
+        suggestions.append("Show the mechanism matrix")
+        if ddi_result and ddi_result.get('interaction'):
+            suggestions.append("Which foods does this interact with?")
+    else:
+        suggestions.append("Is aspirin safe?")
+        suggestions.append("Compare caffeine and aspirin")
+        suggestions.append("What if I add a fluorine?")
+    return suggestions[:4]
+
+
 def parse_query(query: str, predictor=None) -> Dict[str, Any]:
     """
     Parse a natural language query and return structured intent.
@@ -196,7 +225,9 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
     
     response = generate_response(intent_obj, predictor, ddi_result)
     
-    # Compute EFS score (empirical weights: Attr=0.3, CF=0.3, Sub=0.2, Rules=0.2)
+    suggestions = _suggest_followups(intent_obj, ddi_result)
+
+        # Compute EFS score (empirical weights: Attr=0.3, CF=0.3, Sub=0.2, Rules=0.2)
     efs_score = 0.5
     if all_entities and predictor and hasattr(predictor, 'predict'):
         try:
@@ -218,7 +249,8 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
         },
         'ddi_data': ddi_result,
         'trace': agent_trace,
-        'response': response
+        'response': response,
+        'suggestions': suggestions
     }
 
 
@@ -437,8 +469,8 @@ def _compare_response(intent_obj: QueryIntent, predictor) -> str:
         f"| **DILI Hepatotoxicity** | {'SAFE 🟢' if p1 < 0.45 else 'ELEVATED RISK ⚠️'} | {'SAFE 🟢' if p2 < 0.45 else 'ELEVATED RISK ⚠️'} |\n\n"
         f"#### 3. Mechanistic & Structural Rationale\n"
         f"The Attention-GINet encoder highlights key structural differences between the molecular scaffolds of {n1} and {n2}. "
-        f"{n1} contains a rigid purine core with methyl substituents that undergo normal hepatic clearance via CYP1A2. "
-        f"In contrast, {n2} contains reactive toxicophores or platinum-complex handles that increase cellular DNA cross-linking and systemic cytotoxic load."
+        f"{n1} and {n2} differ in their dominant chemical scaffolds and functional-group burden. "
+        f"The model flags {n2} with higher predicted toxicity risk, driven by its attention-weighted substructures and structural-alert profile."
     )
 
 
@@ -510,7 +542,7 @@ def _explain_response(intent_obj: QueryIntent, predictor) -> str:
         f"The primary predicted safety profile is anchored by the core chemical scaffold and functional groups. "
         f"{'No reactive toxicophores (such as electrophilic nitro groups or alkylating handles) were detected in the scaffold.' if mean_prob < 0.4 else 'Potential reactive toxicophores (electrophilic handles or quinone precursors) were flagged in the core.'}\n\n"
         f"#### 4. EFS Faithfulness Verification Gate\n"
-        f"✅ **EFS Score: {((mean_prob * 0.7 + 0.3) if mean_prob is not None else 0.5) * 100:.0f}% Verified** — Explanation validated against counterfactual perturbation gates. All asserted claims are anchored strictly to GNN atom attributions. \n"
+        f"· **EFS (proxy estimate): {((mean_prob * 0.7 + 0.3) if mean_prob is not None else 0.5) * 100:.0f}%** - Heuristic proxy from predicted toxicity; not a validated GNN attribution score. \n"
         f"*Note: EFS weights are empirical (Attr=0.3, CF=0.3, Sub=0.2, Rules=0.2), not learned. Mean toxicity probability used as proxy for grounding.*"
     )
 
