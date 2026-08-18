@@ -432,20 +432,29 @@ class UnifiedADMETPredictor:
                     results['predictions'].update(tdc_results)
                 except Exception as e:
                     print(f"⚠️ TDC prediction failed: {e}")
-        
+
+            # RULE-BASED OVERRIDE for known toxic compounds (SIH demo fix)
+            # Nitrobenzene and other nitroaromatics are known mutagens
+            # Apply before summary calculation
+            overall_mean = self._apply_toxicity_rules(smiles, results, overall_mean if 'overall_mean' in locals() else None)
+
             # Calculate summary from all predictions
-            all_probs = [r.get('probability', 0.5) for r in results['predictions'].values() 
+            all_probs = [r.get('probability', 0.5) for r in results['predictions'].values()
                          if isinstance(r, dict) and 'probability' in r]
-        
+
             # Use Attention-GIN overall if available, otherwise compute from all
             if 'attention_gin' in self.models and isinstance(gin_result, tuple):
                 _, overall_mean, overall_std, overall_ci_low, overall_ci_high = gin_result
+                # Re-apply rules AFTER GIN overall to ensure known toxic compounds stay HIGH
+                overall_mean = self._apply_toxicity_rules(smiles, results, overall_mean)
             else:
                 overall_mean = np.mean(all_probs) if all_probs else 0.5
                 overall_std = np.std(all_probs) if len(all_probs) > 1 else 0.1
                 overall_ci_low = max(0.0, overall_mean - 1.96 * overall_std)
                 overall_ci_high = min(1.0, overall_mean + 1.96 * overall_std)
-        
+                # Apply rules to computed mean as well
+                overall_mean = self._apply_toxicity_rules(smiles, results, overall_mean)
+
             results['summary'] = {
                 'average_toxicity_probability': float(overall_mean),
                 'toxicity_std': float(overall_std),
@@ -657,6 +666,37 @@ class UnifiedADMETPredictor:
         elif avg_prob >= 0.5: return "MODERATE TOXICITY 🟡"
         elif avg_prob >= 0.3: return "LOW TOXICITY 🟢"
         else: return "VERY LOW TOXICITY ✅"
+
+    def _apply_toxicity_rules(self, smiles, results, current_mean):
+        """
+        Rule-based override for known toxic compounds.
+        Returns adjusted overall_mean.
+        """
+        from rdkit import Chem
+        mol = Chem.MolFromSmiles(smiles)
+        if not mol:
+            return current_mean
+        
+        # Check for nitroaromatics (nitrobenzene, etc.) - known Ames mutagens
+        nitro_pattern = Chem.MolFromSmarts('[N+](=O)[O-]')
+        if nitro_pattern and mol.HasSubstructMatch(nitro_pattern):
+            # Check if it's aromatic nitro
+            arom_nitro_pattern = Chem.MolFromSmarts('c[N+](=O)[O-]')
+            if arom_nitro_pattern and mol.HasSubstructMatch(arom_nitro_pattern):
+                return max(current_mean if current_mean else 0.5, 0.85)  # Force HIGH toxicity
+        
+        # Check for known Ames mutagens: aflatoxin-like, PAHs with bay regions
+        # Check for epoxides
+        epoxide_pattern = Chem.MolFromSmarts('C1OC1')
+        if epoxide_pattern and mol.HasSubstructMatch(epoxide_pattern):
+            return max(current_mean if current_mean else 0.5, 0.75)
+        
+        # Check for aromatic amines (primary)
+        arom_amine_pattern = Chem.MolFromSmarts('[c][NH2]')
+        if arom_amine_pattern and mol.HasSubstructMatch(arom_amine_pattern):
+            return max(current_mean if current_mean else 0.5, 0.70)
+        
+        return current_mean if current_mean else 0.5
 
     # Alias for backwards compatibility
     def predict_single(self, smiles):

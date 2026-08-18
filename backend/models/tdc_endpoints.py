@@ -31,7 +31,7 @@ DILI_SMARTS = [
 
 # Structural SMARTS alerts for Ames Mutagenicity (Ashby-Tennant genotoxic carcinogens)
 AMES_SMARTS = [
-    (Chem.MolFromSmarts('[N+=0](=O)[O-]'), 'Aromatic Nitro Group (Ames Mutagenic)', 0.50),
+    (Chem.MolFromSmarts('[N+](=O)[O-]'), 'Aromatic Nitro Group (Ames Mutagenic)', 0.50),
     (Chem.MolFromSmarts('c1ccc(N)cc1'), 'Primary Aromatic Amine', 0.40),
     (Chem.MolFromSmarts('C1OC1'), 'Epoxide (Alkylating Agent)', 0.55),
     (Chem.MolFromSmarts('[#6]-[Cl,Br,I]'), 'Alkyl Halide (Genotoxic Alkylating Agent)', 0.30),

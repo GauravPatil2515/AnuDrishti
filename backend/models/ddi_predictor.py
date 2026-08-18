@@ -10,8 +10,12 @@ Phase 3 feature for SIH 2026.
 """
 
 import math
-import numpy as np
+import traceback
 from typing import Dict, Any, List, Optional
+
+from flask import Blueprint, jsonify, request
+
+import numpy as np
 
 try:
     from rdkit import Chem
@@ -62,7 +66,8 @@ class DDIPredictor:
         trace.append({"step": 2, "agent": "ChemBERTa Transformer", "action": "Generating 768-dim SMILES embedding representations"})
 
         # ChemBERTa Cosine Similarity
-        cosine_sim = 0.5
+        cosine_sim = 0.0
+        chemberta_available = False
         if HAS_CHEMBERTA and self.encoder and self.encoder.is_loaded:
             try:
                 emb_a = self.encoder.encode(smiles_a).cpu().numpy().flatten()
@@ -71,17 +76,23 @@ class DDIPredictor:
                 norm_b = np.linalg.norm(emb_b)
                 if norm_a > 0 and norm_b > 0:
                     cosine_sim = float(np.dot(emb_a, emb_b) / (norm_a * norm_b))
+                    chemberta_available = True
             except Exception as e:
                 print(f"⚠️ ChemBERTa encoding error in DDI: {e}")
 
-        trace.append({"step": 3, "agent": "RDKit Fingerprint Engine", "action": f"Computing MACCS Keys & Tanimoto Similarity: {cosine_sim:.2f}"})
-
         # Structural Tanimoto Similarity via RDKit
-        tanimoto_sim = 0.4
+        tanimoto_sim = 0.0
+        rdkit_fp_available = False
         if HAS_RDKIT and mol_a and mol_b:
-            fp_a = MACCSkeys.GenMACCSKeys(mol_a)
-            fp_b = MACCSkeys.GenMACCSKeys(mol_b)
-            tanimoto_sim = float(DataStructs.TanimotoSimilarity(fp_a, fp_b))
+            try:
+                fp_a = MACCSkeys.GenMACCSKeys(mol_a)
+                fp_b = MACCSkeys.GenMACCSKeys(mol_b)
+                tanimoto_sim = float(DataStructs.TanimotoSimilarity(fp_a, fp_b))
+                rdkit_fp_available = True
+            except Exception:
+                tanimoto_sim = 0.0
+
+        trace.append({"step": 3, "agent": "RDKit Fingerprint Engine", "action": "Tanimoto Similarity: %.2f (%s)" % (tanimoto_sim, "available" if rdkit_fp_available else "unavailable - neutral 0.0")})
 
         trace.append({"step": 4, "agent": "Toxicophore Overlap Analyzer", "action": "Scanning shared electrophilic / reactive SMARTS patterns"})
 
@@ -115,7 +126,7 @@ class DDIPredictor:
         ])
 
         if is_known_high_risk:
-            raw_risk = max(raw_risk, 0.85)
+            raw_risk = max(raw_risk, 0.6)
 
         risk_level = "HIGH" if raw_risk >= 0.7 else "MODERATE" if raw_risk >= 0.45 else "LOW"
 
@@ -173,7 +184,7 @@ class DDIPredictor:
             cyp_text = f" Pharmacokinetically, {name_a} and {name_b} share {enzyme} metabolism ({interaction_type})."
 
         if is_known:
-            return f"**High Synergistic Risk**: Co-administration of {name_a} and {name_b} exhibits significant clinical interaction risk (e.g. synergistic anticoagulation, CYP450 enzyme competition, or cumulative GI ulceration).{cyp_text}"
+            return f"**Documented Interaction Risk**: {name_a} and {name_b} are a clinically-flagged drug pair with established interaction potential. Monitor closely and review dosing.{cyp_text}"
         if risk_level == "HIGH":
             return f"**High Interaction Risk**: {name_a} and {name_b} share high structural similarity (Tanimoto: {sim:.2f}) and common toxicophores ({', '.join(shared_alerts) if shared_alerts else 'reactive motifs'}). Simultaneous administration may cause metabolic competitive inhibition.{cyp_text}"
         elif risk_level == "MODERATE":
@@ -303,3 +314,37 @@ def get_ddi_predictor() -> DDIPredictor:
     if _ddi_instance is None:
         _ddi_instance = DDIPredictor()
     return _ddi_instance
+
+
+# REST endpoint for DDI
+def register_ddi_routes(bp):
+    """Register DDI routes on the given blueprint."""
+    @bp.route('/ddi/predict', methods=['POST'])
+    def ddi_predict():
+        """Predict Drug-Drug Interaction between two molecules."""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Request body required'}), 400
+            
+            smiles_a = data.get('smiles_a') or data.get('smiles1')
+            smiles_b = data.get('smiles_b') or data.get('smiles2')
+            name_a = data.get('name_a', 'Drug A')
+            name_b = data.get('name_b', 'Drug B')
+            
+            if not smiles_a or not smiles_b:
+                return jsonify({'error': 'Both smiles_a and smiles_b required'}), 400
+            
+            ddi = get_ddi_predictor()
+            result = ddi.compute_ddi(smiles_a, smiles_b, name_a, name_b)
+            
+            return jsonify(result)
+        except Exception as e:
+            print(f"❌ DDI prediction error: {e}")
+            traceback.print_exc()
+            return jsonify({'error': f'DDI prediction failed: {str(e)}'}), 500
+
+    @bp.route('/ddi/check', methods=['POST'])
+    def ddi_check():
+        """Quick DDI check - alias for predict."""
+        return ddi_predict()
