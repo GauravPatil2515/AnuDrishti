@@ -5,23 +5,21 @@ import {
   SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 const TRIAGE_STYLES = {
   GREEN: { banner: 'border-accent-emerald/30 bg-accent-emerald/5 text-accent-emerald', chip: 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30', Icon: ShieldCheckIcon, label: 'LOW CONCERN' },
   YELLOW: { banner: 'border-accent-amber/30 bg-accent-amber/5 text-accent-amber', chip: 'bg-accent-amber/10 text-accent-amber border-accent-amber/30', Icon: ExclamationTriangleIcon, label: 'REVIEW NEEDED' },
   RED: { banner: 'border-accent-red/30 bg-accent-red/5 text-accent-red', chip: 'bg-accent-red/10 text-accent-red border-accent-red/30', Icon: ShieldExclamationIcon, label: 'HIGH CONCERN' },
-};
-
-const EPISTEMIC_BADGES = {
-  Low: 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30',
-  Moderate: 'bg-accent-amber/10 text-accent-amber border-accent-amber/30',
-  High: 'bg-accent-red/10 text-accent-red border-accent-red/30',
-};
-
-const EFS_BADGES = {
-  VERIFIED: { label: 'VERIFIED', className: 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30', icon: CheckBadgeIcon },
-  PARTIAL: { label: 'PARTIAL', className: 'bg-accent-amber/10 text-accent-amber border-accent-amber/30', icon: InformationCircleIcon },
-  REJECTED: { label: 'REJECTED', className: 'bg-accent-red/10 text-accent-red border-accent-red/30', icon: ShieldExclamationIcon },
 };
 
 const MODEL_SOURCE_COLORS = {
@@ -30,6 +28,12 @@ const MODEL_SOURCE_COLORS = {
   'XGBoost': 'bg-accent-blue/10 text-accent-blue border-accent-blue/20',
   'TDC': 'bg-accent-amber/10 text-accent-amber border-accent-amber/20',
   'Rule-based': 'bg-accent-amber/10 text-accent-amber border-accent-amber/20',
+};
+
+const EFS_BADGES = {
+  VERIFIED: { label: 'VERIFIED', className: 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30', icon: CheckBadgeIcon },
+  PARTIAL: { label: 'PARTIAL', className: 'bg-accent-amber/10 text-accent-amber border-accent-amber/30', icon: InformationCircleIcon },
+  REJECTED: { label: 'REJECTED', className: 'bg-accent-red/10 text-accent-red border-accent-red/30', icon: ShieldExclamationIcon },
 };
 
 const getSourceLabel = (source) => {
@@ -67,6 +71,47 @@ const extractEndpoints = (analysis) => {
 };
 
 
+const buildRadarData = (analysis) => {
+  const preds = analysis?.predictions?.predictions || analysis?.predictions || {};
+  const tdc = analysis?.tdc_predictions || {};
+  const toxProb = analysis?.toxicity_probability || analysis?.summary?.average_toxicity_probability || 0;
+
+  const data = [];
+
+  if (preds['NR-AR'] !== undefined) {
+    data.push({ category: 'NR-AR', score: 1 - (preds['NR-AR']?.probability || 0) });
+  }
+  if (preds['NR-AhR'] !== undefined) {
+    data.push({ category: 'NR-AhR', score: 1 - (preds['NR-AhR']?.probability || 0) });
+  }
+  if (preds['NR-ER'] !== undefined) {
+    data.push({ category: 'NR-ER', score: 1 - (preds['NR-ER']?.probability || 0) });
+  }
+  if (preds['SR-ATAD5'] !== undefined) {
+    data.push({ category: 'SR-ATAD5', score: 1 - (preds['SR-ATAD5']?.probability || 0) });
+  }
+  if (preds['SR-MMP'] !== undefined) {
+    data.push({ category: 'SR-MMP', score: 1 - (preds['SR-MMP']?.probability || 0) });
+  }
+
+  if (tdc['herg']) {
+    data.push({ category: 'hERG', score: 1 - (tdc['herg']?.probability || 0) });
+  }
+  if (tdc['dili']) {
+    data.push({ category: 'DILI', score: 1 - (tdc['dili']?.probability || 0) });
+  }
+  if (tdc['ames']) {
+    data.push({ category: 'Ames', score: 1 - (tdc['ames']?.probability || 0) });
+  }
+
+  if (data.length === 0) {
+    data.push({ category: 'Overall', score: 1 - toxProb });
+  }
+
+  return data;
+};
+
+
 const SafetyDashboard = ({ analysis }) => {
   if (!analysis) return null;
 
@@ -79,7 +124,9 @@ const SafetyDashboard = ({ analysis }) => {
   const summary = analysis.predictions?.summary || analysis.summary || {};
 
   const ciLow = summary.toxicity_ci_low || (toxProb - 0.15);
-  const ciHigh = summary.toxicity_ci_high || (toxProb + 0.15) > 1 ? 1 : (toxProb + 0.15);
+  const ciHigh = summary.toxicity_ci_high || ((toxProb + 0.15) > 1 ? 1 : (toxProb + 0.15));
+
+  const radarData = buildRadarData(analysis);
 
   return (
     <div className="space-y-6">
@@ -204,65 +251,120 @@ const SafetyDashboard = ({ analysis }) => {
         </div>
       </div>
 
-      {/* TDC Core Toxicity Endpoints: hERG, DILI, Ames - 3 prominent risk cards */}
-            {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 && (
-              <div className="grid gap-4 md:grid-cols-3">
-                {['herg', 'dili', 'ames'].map((key) => {
-                  const item = analysis.tdc_predictions[key];
-                  if (!item) return null;
-            
-                  // Determine risk level and colors
-                  const isHighRisk = item.probability >= 0.7;
-                  const isMediumRisk = item.probability >= 0.3 && item.probability < 0.7;
-                  const riskColor = isHighRisk ? 'red' : isMediumRisk ? 'amber' : 'emerald';
-                  const riskLabel = isHighRisk ? 'HIGH' : isMediumRisk ? 'MODERATE' : 'LOW';
-            
-                  return (
-                    <div key={key} className="border border-border/60 surface rounded-xl p-4 hover:border-border/80 transition-border">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-text-primary font-display">{item.name}</h3>
-                        <div className="flex items-center gap-2 text-xs font-medium">
-                          <span className={`pill-${riskColor}`}>{riskLabel}</span>
-                          <span className="text-text-muted">{item.label}</span>
-                        </div>
-                      </div>
-                
-                      {/* Probability bar */}
-                      <div className="w-full bg-border/20 rounded-full h-2.5 mb-2">
-                        <div 
-                          className={`bg-${riskColor}-500 h-2.5 rounded-full`} 
-                          style={{ width: `${Math.min(item.probability * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                
-                      <p className="text-sm text-text-secondary">{item.probability.toFixed(3)} probability</p>
-                
-                      {/* Structural alerts */}
-                      {item.alerts && item.alerts.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          <span className="text-xs font-semibold text-text-muted">Alerts:</span>
-                          {item.alerts.map((alert, idx) => (
-                            <span 
-                              key={idx} 
-                              className="px-2 py-0.5 rounded text-xs font-mono bg-surface/50 border border-border/30"
-                            >
-                              {alert}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                
-                      {/* Risk level description */}
-                      <p className="mt-2 text-xs text-text-muted">
-                        {isHighRisk ? 'Significant structural alert detected' : 
-                         isMediumRisk ? 'Moderate risk indicators present' : 
-                         'Low risk based on current models'}
-                      </p>
-                    </div>
-                  );
-                })}
+      {/* TDC Core Toxicity Endpoints: hERG, DILI, Ames */}
+      {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {['herg', 'dili', 'ames'].map((key) => {
+            const item = analysis.tdc_predictions[key];
+            if (!item) return null;
+          
+            const isHighRisk = item.probability >= 0.7;
+            const isMediumRisk = item.probability >= 0.3 && item.probability < 0.7;
+            const riskColor = isHighRisk ? 'red' : isMediumRisk ? 'amber' : 'emerald';
+            const riskLabel = isHighRisk ? 'HIGH' : isMediumRisk ? 'MODERATE' : 'LOW';
+            const barColorClass = {
+              red: 'bg-red-500',
+              amber: 'bg-amber-500',
+              emerald: 'bg-emerald-500',
+            }[riskColor];
+          
+            return (
+              <div key={key} className="border border-border/60 surface rounded-xl p-4 hover:border-border/80 transition-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-text-primary font-display">{item.name}</h3>
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <span className={`pill-${riskColor}`}>{riskLabel}</span>
+                    <span className="text-text-muted">{item.label}</span>
+                  </div>
+                </div>
+          
+                {/* Probability bar */}
+                <div className="w-full bg-border/20 rounded-full h-2.5 mb-2">
+                  <div 
+                    className={`${barColorClass} h-2.5 rounded-full`} 
+                    style={{ width: `${Math.min(item.probability * 100, 100)}%` }}
+                  ></div>
+                </div>
+          
+                <p className="text-sm text-text-secondary">{item.probability.toFixed(3)} probability</p>
+          
+                {/* Structural alerts */}
+                {item.alerts && item.alerts.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <span className="text-xs font-semibold text-text-muted">Alerts:</span>
+                    {item.alerts.map((alert, idx) => (
+                      <span 
+                        key={idx} 
+                        className="px-2 py-0.5 rounded text-xs font-mono bg-surface/50 border border-border/30"
+                      >
+                        {alert}
+                      </span>
+                    ))}
+                  </div>
+                )}
+          
+                {/* Risk level description */}
+                <p className="mt-2 text-xs text-text-muted">
+                  {isHighRisk ? 'Significant structural alert detected' : 
+                   isMediumRisk ? 'Moderate risk indicators present' : 
+                   'Low risk based on current models'}
+                </p>
               </div>
-            )}
+            );
+          })}
+        </div>
+      )}
+
+      {/* ADMET Radar Chart */}
+      <div className="surface p-4 border border-border/50">
+        <h3 className="text-sm font-bold text-text-primary font-display mb-4 flex items-center gap-2">
+          <ChartBarIcon className="h-4 w-4 text-accent-green" />
+          ADMET Safety Profile
+        </h3>
+        <ResponsiveContainer width="100%" height={280}>
+          <RadarChart data={radarData}>
+            <PolarGrid className="stroke-border/30" />
+            <PolarAngleAxis 
+              dataKey="category" 
+              tick={{ fontSize: 10, fill: '#94a3b8' }} 
+              tickMargin={20}
+            />
+            <PolarRadiusAxis 
+              angle={90} 
+              domain={[0, 1]} 
+              tick={{ fontSize: 8, fill: '#64748b' }}
+              tickCount={6}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '8px',
+                color: '#e2e8f0'
+              }}
+              labelStyle={{ color: '#e2e8f0', fontSize: 12 }}
+            />
+            <Legend 
+              layout="horizontal" 
+              align="center" 
+              verticalAlign="bottom" 
+              wrapperStyle={{ paddingTop: 16 }}
+            />
+            <Radar 
+              name="Safety Score (1 = Safe, 0 = Toxic)" 
+              dataKey="score" 
+              stroke="#10b981" 
+              fill="#10b981" 
+              fillOpacity={0.15}
+              strokeWidth={2}
+              dot={false}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+        <p className="text-xs text-text-muted text-center mt-2">
+          Each axis represents a safety category. Score closer to 1 (outer edge) = safer profile.
+        </p>
+      </div>
 
       {/* ADMET Table */}
       <div className="surface overflow-hidden">
