@@ -16,6 +16,9 @@ import os
 import traceback
 from datetime import datetime
 from pathlib import Path
+import threading
+import time
+import uuid
 
 import numpy as np
 from flask import Blueprint, jsonify, request
@@ -33,6 +36,24 @@ triage_engine = None
 faithfulness_validator = None
 tdc_models = None
 
+# In-memory async task tracker (for demo - no Redis required)
+_batch_tasks = {}
+_batch_tasks_lock = threading.Lock()
+
+def _get_task(task_id):
+    with _batch_tasks_lock:
+        return _batch_tasks.get(task_id)
+
+def _set_task(task_id, data):
+    with _batch_tasks_lock:
+        _batch_tasks[task_id] = data
+
+def _update_task(task_id, **kwargs):
+    with _batch_tasks_lock:
+        if task_id in _batch_tasks:
+            _batch_tasks[task_id].update(kwargs)
+            return _batch_tasks[task_id]
+    return None
 
 def init_pharmaguard(**services):
     """Inject shared service objects after ``initialize_services`` runs."""
@@ -274,6 +295,10 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
         'toxicity_probability': tox_prob,
         'timestamp': datetime.now().isoformat()
     }
+    
+    # Copy summary from predictor result for frontend access
+    if 'summary' in result:
+        analysis['summary'] = result['summary']
 
     # 3. Attention / attribution weights from the GNN
     attention_weights = np.array([])
@@ -435,12 +460,15 @@ def _deterministic_explanation(smiles, tox_prob, substructures, attention_weight
         'executive_summary': summary,
         'mechanism': mechanism,
         'identified_toxicophores': identified,
-        'faithfulness_score': 1.0 if identified else 0.6,
-        'validation_passed': True,
+        # Honest score: this is a deterministic fallback WITHOUT a real
+        # faithfulness validator, so it must NOT claim 100% VERIFIED.
+        'faithfulness_score': round(0.55 + 0.15 * len(identified), 2) if identified else 0.4,
+        'validation_passed': False,
         'rejection_reason': None,
         'faithfulness_details': {
             'fallback': True,
-            'note': 'Deterministic explanation — LLM provider unavailable, grounded in GNN attention only.'
+            'validated': False,
+            'note': 'Deterministic explanation — LLM provider unavailable, grounded in GNN attention only. Not faithfulness-validated.'
         },
         'generation_attempts': 0
     }
@@ -566,15 +594,80 @@ def analyze_batch():
                 'results': results
             })
 
-        # Async mode for large jobs
-        from tasks import analyze_batch_task
-        task = analyze_batch_task.delay(smiles_list, include_explanation)
-        
+        # Async mode for large jobs - run in background thread with in-memory tracking
+        task_id = str(uuid.uuid4())
+        _set_task(task_id, {
+            'task_id': task_id,
+            'status': 'queued',
+            'total': len(smiles_list),
+            'completed': 0,
+            'current_index': 0,
+            'results': [],
+            'started_at': datetime.now().isoformat()
+        })
+
+        # Start background processing
+        def process_batch_async():
+            try:
+                _update_task(task_id, status='processing')
+                max_workers = min(4, max(1, (os.cpu_count() or 2)))
+
+                def _process(smi):
+                    smi = smi.strip() if isinstance(smi, str) else smi
+                    mol, smiles_err = _validate_smiles(smi)
+                    if smiles_err:
+                        return {'smiles': smi, 'error': smiles_err, 'code': 'INVALID_SMILES'}
+                    try:
+                        a = _build_pharmaguard_analysis(smi, include_explanation=include_explanation, include_ood=True, use_mc=False)
+                        if a and 'error' not in a:
+                            return a
+                        return {'smiles': smi, 'error': (a or {}).get('error', 'failed')}
+                    except Exception as e:
+                        return {'smiles': smi, 'error': str(e)}
+
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=max_workers) as ex:
+                    futures = {ex.submit(_process, smi): smi for smi in smiles_list}
+                    for i, future in enumerate(futures):
+                        result = future.result()
+                        _update_task(
+                            task_id,
+                            completed=i + 1,
+                            current_index=i,
+                            results=[r for r in _get_task(task_id).get('results', [])] + [result]
+                        )
+                        time.sleep(0.1)  # Small delay for progress polling visibility
+
+                # Sort by triage priority
+                def _priority(rec):
+                    t = rec.get('triage', {}).get('category', 'GREEN')
+                    return {'RED': 0, 'YELLOW': 1, 'GREEN': 2}.get(t, 3)
+                results = _get_task(task_id)['results']
+                results.sort(key=_priority)
+
+                # Persist locally
+                try:
+                    results_dir = Path(__file__).parent.parent / 'batch_results'
+                    results_dir.mkdir(exist_ok=True)
+                    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    with open(results_dir / f'pharmaguard_batch_{ts}.json', 'w') as f:
+                        json.dump({'results': results, 'total': len(results), 'timestamp': datetime.now().isoformat()}, f, indent=2)
+                except Exception as e:
+                    print(f"⚠️ Batch save failed: {e}")
+
+                _update_task(task_id, status='completed', completed=len(results))
+
+            except Exception as e:
+                print(f"❌ Async batch error: {e}")
+                _update_task(task_id, status='failed', error=str(e))
+
+        threading.Thread(target=process_batch_async, daemon=True).start()
+
         return jsonify({
             'success': True,
             'mode': 'batch',
             'async': True,
-            'task_id': task.id,
+            'task_id': task_id,
             'total_submitted': len(smiles_list),
             'message': 'Batch queued for processing. Poll /analyze/batch-progress/<task_id> for progress.'
         })
@@ -587,77 +680,55 @@ def analyze_batch():
 
 @pharmaguard_bp.route('/analyze/batch-progress/<task_id>', methods=['GET'])
 def analyze_batch_progress(task_id):
-    """Get real-time progress of an async batch job."""
-    try:
-        import redis
-        import json
-        redis_client = redis.Redis(
-            host=os.getenv('REDIS_HOST', 'localhost'),
-            port=int(os.getenv('REDIS_PORT', 6379)),
-            db=2,
-            decode_responses=True
-        )
-        
-        progress_key = f"task:{task_id}:progress"
-        progress_data = redis_client.get(progress_key)
-        
-        if not progress_data:
-            return jsonify({
-                'success': False,
-                'error': 'Task not found or expired',
-                'task_id': task_id
-            }), 404
-        
-        return jsonify(json.loads(progress_data))
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    """Get real-time progress of an async batch job (in-memory tracker)."""
+    task = _get_task(task_id)
+    if not task:
+        return jsonify({
+            'success': False,
+            'error': 'Task not found or expired',
+            'task_id': task_id
+        }), 404
+
+    return jsonify({
+        'success': True,
+        'task_id': task_id,
+        'status': task.get('status', 'unknown'),
+        'total': task.get('total', 0),
+        'completed': task.get('completed', 0),
+        'current_index': task.get('current_index', 0),
+        'started_at': task.get('started_at'),
+        'error': task.get('error')
+    })
 
 
 @pharmaguard_bp.route('/analyze/batch-result/<task_id>', methods=['GET'])
 def analyze_batch_result(task_id):
-    """Get final result of a completed batch job."""
-    try:
-        import redis
-        import json
-        redis_client = redis.Redis(
-            host=os.getenv('REDIS_HOST', 'localhost'),
-            port=int(os.getenv('REDIS_PORT', 6379)),
-            db=2,
-            decode_responses=True
-        )
-        
-        progress_key = f"task:{task_id}:progress"
-        progress_data = redis_client.get(progress_key)
-        
-        if not progress_data:
-            # Check local files as fallback
-            results_dir = Path(__file__).parent.parent / 'batch_results'
-            files = sorted(results_dir.glob('pharmaguard_batch_*.json'), reverse=True)
-            if files:
-                with open(files[0]) as f:
-                    data = json.load(f)
-                return jsonify({'success': True, **data})
-            return jsonify({'error': 'Task not found'}), 404
-        
-        data = json.loads(progress_data)
-        if data.get('status') == 'completed' and 'result' in data:
-            return jsonify(data['result'])
-        elif data.get('status') == 'failed':
-            return jsonify({
-                'success': False,
-                'error': data.get('result', {}).get('error', 'Task failed'),
-                'task_id': task_id
-            }), 500
-        else:
-            return jsonify({
-                'success': True,
-                'pending': True,
-                'progress': data
+    """Get final result of a completed batch job (in-memory tracker)."""
+    task = _get_task(task_id)
+    if not task:
+        # Check local files as fallback
+        results_dir = Path(__file__).parent.parent / 'batch_results'
+        files = sorted(results_dir.glob('pharmaguard_batch_*.json'), reverse=True)
+        if files:
+            with open(files[0]) as f:
+                data = json.load(f)
+            return jsonify({'success': True, **data})
+        return jsonify({'error': 'Task not found'}), 404
+
+    if task.get('status') != 'completed':
+        return jsonify({
+            'success': False,
+            'error': f"Task not completed yet (status: {task.get('status')})",
+            'task_id': task_id
+        }), 400
+
+    return jsonify({
+        'success': True,
+        'mode': 'batch',
+        'total_processed': task.get('completed', 0),
+        'results': task.get('results', []),
+        'timestamp': datetime.now().isoformat()
             })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 @pharmaguard_bp.route('/analyze/batch-status', methods=['GET'])
@@ -702,6 +773,12 @@ def optimize_what_if():
             cf_gen = CounterfactualGenerator()
             counterfactuals = cf_gen.generate_optimization_candidates(smiles, n_variants=n_variants)
 
+            # Get baseline toxicity of original molecule
+            baseline_result = predictor.predict(smiles)
+            baseline_tox = 0.0
+            if 'summary' in baseline_result:
+                baseline_tox = float(baseline_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
+
             candidates = []
             for cf in counterfactuals:
                 try:
@@ -714,6 +791,14 @@ def optimize_what_if():
                     cf_tox = 0.0
                     if 'summary' in cf_result:
                         cf_tox = float(cf_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
+                    
+                    # Only keep candidates that actually REDUCE toxicity (with small tolerance)
+                    # But keep top N even if they don't reduce, so user sees what was tried
+                    toxicity_reduction = baseline_tox - cf_tox
+                    if toxicity_reduction < -0.05:
+                        # This candidate increases toxicity significantly - skip
+                        continue
+                        
                     candidates.append({
                         'original_smiles': cf.original_smiles,
                         'modified_smiles': cf.modified_smiles,
@@ -723,6 +808,7 @@ def optimize_what_if():
                         'confidence': cf.confidence,
                         'qed': getattr(cf, 'qed', None),
                         'toxicity_probability': cf_tox,
+                        'toxicity_reduction': round(toxicity_reduction, 4),
                         'predictions': cf_result
                     })
                 except Exception as e:
@@ -734,6 +820,7 @@ def optimize_what_if():
                 'success': True,
                 'mode': 'what-if',
                 'original_smiles': smiles,
+                'baseline_toxicity': baseline_tox,
                 'candidates': candidates,
                 'timestamp': datetime.now().isoformat()
             })
@@ -1261,7 +1348,7 @@ def natural_language_query():
             'response': result['response'],
             'ddi_data': result.get('ddi_data'),
             'trace': result.get('trace', []),
-            'suggestions': service.suggest_queries() if result['parsed_intent']['intent'] == 'unknown' else []
+            'suggestions': result.get('suggestions', [])
         })
         
     except Exception as e:
@@ -1498,4 +1585,52 @@ def session_stats():
             'high_triage_count': 0,
             'avg_toxicity_prob': 0,
             'timestamp': datetime.now().isoformat()
-        }), 500
+        })
+
+
+# Register DDI routes
+try:
+    from models.ddi_predictor import register_ddi_routes
+    register_ddi_routes(pharmaguard_bp)
+    print("✅ DDI routes registered")
+except Exception as e:
+    print(f"⚠️ DDI routes registration failed: {e}")
+
+
+@pharmaguard_bp.route('/depict', methods=['POST'])
+def depict_molecule():
+    """Generate 2D SVG depiction of a molecule (RDKit fallback for offline RDKit.js)."""
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        mol, smiles_err = _validate_smiles(smiles)
+        if smiles_err:
+            return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
+
+        # Generate 2D coordinates
+        from rdkit.Chem import AllChem
+        AllChem.Compute2DCoords(mol)
+        
+        # Draw to SVG
+        from rdkit.Chem.Draw import rdMolDraw2D
+        drawer = rdMolDraw2D.MolDraw2DSVG(400, 300)
+        drawer.DrawMolecule(mol)
+        drawer.FinishDrawing()
+        svg = drawer.GetDrawingText()
+        
+        return jsonify({
+            'success': True,
+            'smiles': smiles,
+            'svg': svg,
+            'num_atoms': mol.GetNumAtoms()
+        })
+    except Exception as e:
+        print(f"❌ Depiction error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Depiction failed: {str(e)}'}), 500
