@@ -10,8 +10,26 @@ This is part of Phase 3 advanced ML upgrades for SIH 2026.
 
 import torch
 import torch.nn as nn
-from transformers import AutoTokenizer, AutoModel
 import os
+
+TRANSFORMERS_AVAILABLE = False
+AutoTokenizer = None
+AutoModel = None
+
+def _try_import_transformers():
+    global TRANSFORMERS_AVAILABLE, AutoTokenizer, AutoModel
+    if TRANSFORMERS_AVAILABLE:
+        return True
+    try:
+        from transformers import AutoTokenizer as _AutoTokenizer, AutoModel as _AutoModel
+        AutoTokenizer = _AutoTokenizer
+        AutoModel = _AutoModel
+        TRANSFORMERS_AVAILABLE = True
+        return True
+    except ImportError as e:
+        print(f"⚠️ Transformers not available: {e}")
+        TRANSFORMERS_AVAILABLE = False
+        return False
 
 
 class ChemBERTaEncoder:
@@ -41,6 +59,14 @@ class ChemBERTaEncoder:
         """Load the tokenizer and model."""
         if self.is_loaded:
             return True
+            
+        # Try to import transformers lazily
+        _try_import_transformers()
+            
+        if not TRANSFORMERS_AVAILABLE:
+            print(f"⚠️ Transformers not available, ChemBERTa encoder disabled")
+            self.is_loaded = False
+            return False
             
         try:
             print(f"🔄 Loading ChemBERTa encoder: {self.model_name}")
@@ -139,6 +165,8 @@ class ChemBERTaClassifier(nn.Module):
     
     def __init__(self, num_tasks=12, dropout=0.3, model_name="seyonec/ChemBERTa-zinc-base-v1"):
         super().__init__()
+        if not TRANSFORMERS_AVAILABLE:
+            raise RuntimeError("Transformers not available, ChemBERTaClassifier cannot be initialized")
         self.encoder = AutoModel.from_pretrained(model_name)
         self.dropout = nn.Dropout(dropout)
         self.classifier = nn.Sequential(
