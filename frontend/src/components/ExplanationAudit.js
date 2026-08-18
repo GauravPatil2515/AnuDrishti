@@ -5,6 +5,17 @@ import {
   CheckBadgeIcon, XCircleIcon, ShieldCheckIcon, SparklesIcon,
   FireIcon, InformationCircleIcon, PlayIcon, TableCellsIcon
 } from '@heroicons/react/24/outline';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  Cell
+} from 'recharts';
 
 const EFSGauge = ({ score, ci }) => {
   const pct = Math.max(0, Math.min(100, Math.round((score || 0) * 100)));
@@ -92,12 +103,21 @@ const ExplanationAudit = ({ analysis }) => {
   const status = result?.status || (verified ? 'VERIFIED' : verified === false ? 'REJECTED' : null);
   const efs = result?.faithfulness?.overall_score ?? faith;
   const claimAudit = result?.faithfulness?.claim_audit || [];
+  const breakdown = result?.faithfulness?.breakdown || {};
+
+  // EFS breakdown data for bar chart (4 components with fixed weights)
+  const efsBreakdownData = [
+    { name: 'Attribution (GNNExplainer)', score: breakdown.attribution ?? 0.0, weight: 0.3, color: '#10b981' },
+    { name: 'Causal (Counterfactual)', score: breakdown.causal ?? 0.0, weight: 0.3, color: '#f59e0b' },
+    { name: 'Substructure (Toxicophore)', score: breakdown.substructure ?? 0.0, weight: 0.2, color: '#8b5cf6' },
+    { name: 'Rules (Chemical Consistency)', score: breakdown.rule ?? 0.0, weight: 0.2, color: '#06b6d4' },
+  ];
 
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2.5 rounded-lg border border-border bg-surface-elevated p-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-emerald/10 text-accent-emerald">
           <InformationCircleIcon className="h-4 w-4" />
         </div>
         <div>
@@ -254,6 +274,39 @@ const ExplanationAudit = ({ analysis }) => {
         </div>
       )}
 
+      {/* EFS Breakdown Bar Chart */}
+      {(efs != null || result?.faithfulness?.breakdown) && (
+        <div className="surface-elevated rounded-lg p-3.5">
+          <p className="mb-2 text-xs font-semibold uppercase text-muted">EFS Component Breakdown</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={efsBreakdownData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+              <XAxis type="number" domain={[0, 1]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickCount={5} />
+              <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#94a3b8' }} width={120} />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #334155',
+                  borderRadius: '8px',
+                  color: '#e2e8f0'
+                }}
+                labelStyle={{ color: '#e2e8f0', fontSize: 12 }}
+                formatter={(value) => [value, 'Score']}
+              />
+              <Legend />
+              <Bar dataKey="score" name="Score" radius={[0, 4, 4, 0]}>
+                {efsBreakdownData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <p className="text-xs text-text-muted text-center mt-2">
+            Weights: Attribution 0.3 · Causal 0.3 · Substructure 0.2 · Rules 0.2
+          </p>
+        </div>
+      )}
+
       {/* Demo Completion Banner */}
       {demoComplete && hallucinating && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
@@ -262,7 +315,7 @@ const ExplanationAudit = ({ analysis }) => {
             <div>
               <p className="font-bold text-red-400">Faithfulness Gate TRIGGERED</p>
               <p className="text-xs text-red-400/80">
-                EFS Score dropped to <span className="font-black">0.23</span> (REJECTED)
+                EFS Score dropped to <span className="font-black">{(efs ?? 0.23).toFixed(2)}</span> (REJECTED)
               </p>
               <p className="text-[10px] text-red-400/60 mt-0.5">
                 Reason: "Claimed toxicophore ungrounded in GNNExplainer attribution map."
