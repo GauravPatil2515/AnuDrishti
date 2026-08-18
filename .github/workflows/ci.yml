@@ -32,26 +32,26 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
-        pip install rdkit numpy pandas scikit-learn xgboost flask flask-cors gunicorn groq python-dotenv pytest
-        if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+        python3 -m pip install --upgrade pip setuptools wheel
+        pip3 install torch==2.4.0 --index-url https://download.pytorch.org/whl/cpu
+        pip3 install rdkit numpy pandas scikit-learn xgboost flask flask-cors gunicorn groq python-dotenv pytest requests
+        if [ -f backend/requirements.txt ]; then pip3 install -r backend/requirements.txt; fi
 
     - name: Verify Backend Compiles
       run: |
-        python -m py_compile backend/app.py backend/routes/pharmaguard.py backend/services/nl_query.py backend/models/ddi_predictor.py
+        python3 -m py_compile backend/app.py backend/routes/pharmaguard.py backend/services/nl_query.py backend/models/ddi_predictor.py backend/services/target_predictor.py backend/services/pubmed_rag.py
 
     - name: Run Backend Unit Tests (Non-Integration)
       env:
         PYTHONPATH: backend
       run: |
-        if [ -d tests ]; then python -m pytest tests/ -v --tb=short -k "not integration"; fi
+        if [ -d tests ]; then python3 -m pytest tests/ -v --tb=short -k "not integration"; fi
 
     - name: Launch Backend Server & Run Integration Tests
       env:
         PYTHONPATH: backend
       run: |
-        python backend/app.py &
+        python3 backend/app.py &
         SERVER_PID=$!
         sleep 4
         
@@ -59,7 +59,7 @@ jobs:
         curl -f http://localhost:5000/api/health || curl -f http://localhost:5000/ || true
         
         # Run integration tests
-        if [ -f tests/integration_test.py ]; then python -m pytest tests/integration_test.py -v --tb=short; fi
+        if [ -f tests/integration_test.py ]; then python3 -m pytest tests/integration_test.py -v --tb=short; fi
         
         kill $SERVER_PID || true
 
