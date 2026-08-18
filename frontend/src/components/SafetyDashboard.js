@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import {
   ShieldCheckIcon, ShieldExclamationIcon, ExclamationTriangleIcon,
   SignalIcon, BeakerIcon, ScaleIcon, CheckBadgeIcon, InformationCircleIcon,
-  ChartBarIcon
+  ChartBarIcon, AcademicCapIcon, MagnifyingGlassCircleIcon, BoltIcon
 } from '@heroicons/react/24/outline';
 import {
   RadarChart,
@@ -447,6 +447,105 @@ const SafetyDashboard = ({ analysis }) => {
           </div>
         )}
       </div>
+
+      {/* Target Profiling / MoA Panel */}
+      {analysis.targets && analysis.targets.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-border space-y-4">
+          <div className="flex items-center gap-2">
+            <AcademicCapIcon className="h-5 w-5 text-accent-purple" />
+            <h3 className="text-sm font-bold text-text-primary font-display">Target Profiling / Mechanism of Action (ChEMBL)</h3>
+          </div>
+          
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {analysis.targets.map((t, idx) => (
+              <div key={idx} className={clsx('surface p-3 rounded-lg border', t.is_toxicity_relevant ? 'border-accent-red/30 bg-accent-red/5' : 'border-border')}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-text-primary text-xs">{t.name}</span>
+                  <span className={clsx('text-[9px] font-mono px-1.5 py-0.25 rounded border', t.confidence === 'HIGH' ? 'bg-accent-red/10 text-accent-red border-accent-red/30' : t.confidence === 'MEDIUM' ? 'bg-accent-amber/10 text-accent-amber border-accent-amber/30' : 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30')}>
+                    {t.confidence}
+                  </span>
+                </div>
+                <div className="text-[9px] text-text-muted font-mono space-y-0.5">
+                  <div>{t.type} • {t.organism}</div>
+                  <div>pChEMBL: {t.pchembl_value?.toFixed(1)} • {t.activity_type} {t.activity_value} {t.activity_unit}</div>
+                  {t.is_toxicity_relevant && <div className="text-accent-red">⚠️ Toxicity-Relevant</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {analysis.moa_summary && (
+            <div className="p-3 rounded-lg bg-accent-purple/5 border border-accent-purple/20">
+              <p className="text-xs font-semibold text-accent-purple">🧬 Inferred Mechanism of Action</p>
+              <p className="text-xs text-text-secondary mt-1">{analysis.moa_summary}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Clinical DDI Panel */}
+      {analysis.clinical_ddi && analysis.clinical_ddi.available && analysis.clinical_ddi.interactions_found && (
+        <div className="mt-6 pt-4 border-t border-border space-y-4">
+          <div className="flex items-center gap-2">
+            <BoltIcon className="h-5 w-5 text-accent-red" />
+            <h3 className="text-sm font-bold text-text-primary font-display">Clinical DDI (NIH RxNav)</h3>
+          </div>
+          
+          <div className="surface p-3 rounded-lg border border-accent-red/30 bg-accent-red/5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-accent-red">Severity: {analysis.clinical_ddi.severity}</span>
+              <span className="text-[9px] font-mono text-text-muted">RxCUI: {analysis.clinical_ddi.rxcui_a} ↔ {analysis.clinical_ddi.rxcui_b}</span>
+            </div>
+            <p className="text-xs text-text-secondary mb-2">{analysis.clinical_ddi.summary}</p>
+            <div className="space-y-1">
+              {analysis.clinical_ddi.interactions.slice(0, 3).map((inter, idx) => (
+                <div key={idx} className="p-2 rounded bg-surface border border-border/50">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className={clsx('text-[9px] font-mono px-1 py-0.25 rounded border', inter.severity === 'High' ? 'bg-accent-red/10 text-accent-red border-accent-red/30' : inter.severity === 'Moderate' ? 'bg-accent-amber/10 text-accent-amber border-accent-amber/30' : 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30')}>
+                      {inter.severity}
+                    </span>
+                    <span className="text-text-primary text-xs font-medium">{inter.interacting_drug}</span>
+                  </div>
+                  <p className="text-[9px] text-text-muted line-clamp-2">{inter.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Literature Evidence Panel */}
+      {analysis.literature && analysis.literature.articles && analysis.literature.articles.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MagnifyingGlassCircleIcon className="h-5 w-5 text-accent-blue" />
+              <h3 className="text-sm font-bold text-text-primary font-display">Literature Evidence (PubMed)</h3>
+            </div>
+            <span className="text-[9px] font-mono text-text-muted">{analysis.literature.total_found} found • {analysis.literature.search_time_ms}ms</span>
+          </div>
+          
+          <div className="space-y-2">
+            {analysis.literature.articles.slice(0, 3).map((article, idx) => (
+              <div key={idx} className="surface p-3 rounded-lg border border-border/50">
+                <p className="font-semibold text-text-primary text-xs line-clamp-1">{article.title}</p>
+                <p className="text-[9px] text-text-muted mt-0.5 font-mono">{article.authors.slice(0, 3).join(', ')}{article.authors.length > 3 ? ' et al.' : ''} • {article.journal} ({article.pub_date})</p>
+                <p className="text-[9px] text-text-secondary mt-1 line-clamp-2">{article.abstract?.slice(0, 200)}...</p>
+                {article.mesh_terms && article.mesh_terms.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {article.mesh_terms.slice(0, 3).map((mesh, mIdx) => (
+                      <span key={mIdx} className="text-[8px] px-1 py-0.25 rounded bg-accent-blue/10 text-accent-blue border border-accent-blue/20">{mesh}</span>
+                    ))}
+                  </div>
+                )}
+                {article.doi && (
+                  <a href={`https://doi.org/${article.doi}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-accent-blue hover:underline mt-1 inline-block font-mono">DOI: {article.doi}</a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -7,6 +7,11 @@ Uses a lightweight transformer model (distilbert) to parse user queries and rout
 them to the appropriate backend function.
 
 Phase 3 feature for SIH 2026.
+
+Enhanced with:
+- ChEMBL Target Profiling (Mechanism of Action)
+- NIH RxNav Clinical DDI Integration
+- PubMed RAG Literature Grounding
 """
 
 import re
@@ -28,6 +33,20 @@ try:
     HAS_DDI = True
 except ImportError:
     HAS_DDI = False
+
+# Try to import Target Predictor (ChEMBL)
+try:
+    from services.target_predictor import get_target_predictor
+    HAS_TARGET = True
+except ImportError:
+    HAS_TARGET = False
+
+# Try to import PubMed RAG
+try:
+    from services.pubmed_rag import get_pubmed_rag
+    HAS_PUBMED = True
+except ImportError:
+    HAS_PUBMED = False
 
 # Local lightweight query parser (no external API needed)
 @dataclass
@@ -96,6 +115,18 @@ TREND_PATTERNS = [
     (r'trend.*property', 'trend'),
     (r'correlation', 'trend'),
     (r'relationship.*toxicity', 'trend'),
+]
+
+TARGET_PATTERNS = [
+    (r'(?:target|targets|mechanism of action|moa|binds to|receptor|protein target)', 'target'),
+    (r'what.*target', 'target'),
+    (r'mechanism.*action', 'target'),
+]
+
+LITERATURE_PATTERNS = [
+    (r'(?:literature|pubmed|research|study|evidence|paper|citation)', 'literature'),
+    (r'what.*evidence', 'literature'),
+    (r'show.*study', 'literature'),
 ]
 
 PROPERTY_MAP = {
@@ -194,6 +225,8 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
     
     # Step 6: Agentic DDI Evaluation if 2 molecules present or DDI intent
     ddi_result = None
+    target_result = None
+    literature_result = None
     agent_trace = [
         {"step": 1, "agent": "Query Parsing Agent", "action": f"Classified intent: '{intent.upper()}', extracted {len(all_entities)} molecular entities."}
     ]
@@ -209,8 +242,50 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
                 ddi_predictor = get_ddi_predictor()
                 ddi_result = ddi_predictor.compute_ddi(s1, s2, n1, n2)
                 agent_trace.extend(ddi_result.get("trace", []))
+                
+                # Also check clinical RxNav DDI if drug names available
+                if len(molecule_names) >= 2:
+                    clinical_ddi = ddi_predictor.get_clinical_ddi(molecule_names[0], molecule_names[1])
+                    if clinical_ddi.get('available'):
+                        ddi_result['clinical_ddi'] = clinical_ddi
             except Exception as e:
                 print(f"⚠️ DDI prediction error: {e}")
+
+    # Step 6b: Target Profiling (ChEMBL) for MoA analysis
+    if intent in ['target', 'explain', 'safety'] and len(all_entities) >= 1 and HAS_TARGET:
+        try:
+            target_predictor = get_target_predictor()
+            target_result = target_predictor.predict_targets(
+                smiles=all_entities[0],
+                name=molecule_names[0] if molecule_names else None
+            )
+            agent_trace.append({"step": "2b", "agent": "ChEMBL Target Agent", "action": f"Found {len(target_result.targets)} protein targets with pChEMBL ≥ 6.0"})
+        except Exception as e:
+            print(f"⚠️ Target profiling error: {e}")
+
+    # Step 6c: Literature Search (PubMed RAG) for evidence grounding
+    if intent in ['literature', 'explain', 'safety', 'target'] and len(all_entities) >= 1 and HAS_PUBMED:
+        try:
+            pubmed_rag = get_pubmed_rag()
+            # Determine query type for literature search
+            lit_query_type = 'literature'
+            if intent == 'ddi' and len(molecule_names) >= 2:
+                lit_query_type = 'ddi'
+            elif intent in ['explain', 'safety']:
+                lit_query_type = 'explain'
+            elif intent == 'target':
+                lit_query_type = 'target'
+            
+            literature_result = pubmed_rag.search_literature(
+                query_type=lit_query_type,
+                drug_name=molecule_names[0] if molecule_names else None,
+                drug1=molecule_names[0] if len(molecule_names) > 0 else None,
+                drug2=molecule_names[1] if len(molecule_names) > 1 else None,
+                max_results=3
+            )
+            agent_trace.append({"step": "2c", "agent": "PubMed RAG Agent", "action": f"Retrieved {len(literature_result.articles)} relevant articles from PubMed"})
+        except Exception as e:
+            print(f"⚠️ PubMed RAG error: {e}")
 
     # Step 7: Generate response
     intent_obj = QueryIntent(
@@ -248,6 +323,8 @@ def parse_query(query: str, predictor=None) -> Dict[str, Any]:
             'efs_score': efs_score
         },
         'ddi_data': ddi_result,
+        'target_data': target_result,
+        'literature_data': literature_result,
         'trace': agent_trace,
         'response': response,
         'suggestions': suggestions
@@ -301,6 +378,12 @@ def classify_intent(text: str) -> str:
         if re.search(pattern, text):
             return intent
     for pattern, intent in TREND_PATTERNS:
+        if re.search(pattern, text):
+            return intent
+    for pattern, intent in TARGET_PATTERNS:
+        if re.search(pattern, text):
+            return intent
+    for pattern, intent in LITERATURE_PATTERNS:
         if re.search(pattern, text):
             return intent
     return 'unknown'
@@ -373,7 +456,7 @@ def resolve_molecule_name(name: str, predictor=None) -> Optional[str]:
     return None
 
 
-def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None) -> str:
+def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None, target_result=None, literature_result=None) -> str:
     """Generate a natural language response based on parsed intent."""
     
     intent = intent_obj.intent
@@ -383,7 +466,14 @@ def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None) 
     if intent == 'ddi' or (intent == 'compare' and len(entities) >= 2):
         if ddi_result and ddi_result.get("success"):
             m = ddi_result.get("metrics", {})
-            return f"{ddi_result.get('mechanism')}\n\n**ChemBERTa Cosine Similarity**: `{m.get('chemberta_cosine_similarity')}` | **Tanimoto Similarity**: `{m.get('tanimoto_similarity')}`"
+            response = f"{ddi_result.get('mechanism')}\n\n**ChemBERTa Cosine Similarity**: `{m.get('chemberta_cosine_similarity')}` | **Tanimoto Similarity**: `{m.get('tanimoto_similarity')}`"
+            if ddi_result.get('clinical_ddi'):
+                clinical = ddi_result['clinical_ddi']
+                if clinical.get('interactions_found'):
+                    response += f"\n\n**🏥 Clinical DDI (NIH RxNav)**: {clinical['summary']}"
+                    for inter in clinical.get('interactions', [])[:2]:
+                        response += f"\n- **{inter.get('severity', 'Unknown')}**: {inter.get('description', '')[:200]}"
+            return response
         elif len(entities) >= 2:
             return _compare_response(intent_obj, predictor)
         return "I recognized a Drug-Drug Interaction (DDI) query. Please specify two compounds to evaluate (e.g., 'Do Aspirin and Warfarin interact?')."
@@ -395,8 +485,47 @@ def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None) 
     
     elif intent == 'explain':
         if entities:
-            return _explain_response(intent_obj, predictor)
+            # Pass target and literature data to explain response
+            return _explain_response(intent_obj, predictor, target_result, literature_result)
         return "I found an explanation query but need a molecule. Please provide a SMILES or molecule name."
+    
+    elif intent == 'safety':
+        if entities:
+            return _safety_response(intent_obj, predictor, target_result, literature_result)
+        return "I found a safety query but need a molecule. Please provide a SMILES or molecule name (e.g., 'is caffeine safe?')."
+    
+    elif intent == 'target':
+        if target_result:
+            return _format_target_response(target_result)
+        elif entities:
+            # Try to fetch targets on-demand
+            if HAS_TARGET:
+                try:
+                    target_predictor = get_target_predictor()
+                    target_result = target_predictor.predict_targets(smiles=intent_obj.entities[0])
+                    return _format_target_response(target_result)
+                except Exception as e:
+                    print(f"⚠️ Target profiling error: {e}")
+            return "Target profiling requires a molecule. Please provide a SMILES or molecule name."
+        return "Target profiling requires a molecule. Please provide a SMILES or molecule name (e.g., 'What targets does aspirin bind to?')."
+    
+    elif intent == 'literature':
+        if literature_result:
+            return _format_literature_response(literature_result)
+        elif entities:
+            if HAS_PUBMED:
+                try:
+                    pubmed_rag = get_pubmed_rag()
+                    literature_result = pubmed_rag.search_literature(
+                        query_type='explain',
+                        drug_name=intent_obj.modifiers.get('resolved_molecules', [None])[0],
+                        max_results=3
+                    )
+                    return _format_literature_response(literature_result)
+                except Exception as e:
+                    print(f"⚠️ PubMed RAG error: {e}")
+            return "Literature search requires a molecule. Please provide a SMILES or molecule name."
+        return "Literature search requires a molecule. Please provide a SMILES or molecule name (e.g., 'Show me PubMed studies on aspirin toxicity')."
     
     elif intent == 'safety':
         if entities:
@@ -412,8 +541,10 @@ def generate_response(intent_obj: QueryIntent, predictor=None, ddi_result=None) 
     elif intent == 'unknown':
         return ("I'm a molecular toxicity query assistant. I can help you: "
                 "compare molecules, explain toxicity predictions, check safety profiles, "
+                "profile targets/mechanism of action, search literature, "
                 "or run what-if optimizations. For example: "
-                "'is caffeine safe?', 'compare caffeine and aspirin', 'why is cisplatin toxic?'")
+                "'is caffeine safe?', 'compare caffeine and aspirin', 'why is cisplatin toxic?', "
+                "'what targets does aspirin bind to?', 'show me PubMed studies on aspirin toxicity'")
     
     return "I couldn't understand your query. Please rephrase."
 
@@ -474,7 +605,7 @@ def _compare_response(intent_obj: QueryIntent, predictor) -> str:
     )
 
 
-def _explain_response(intent_obj: QueryIntent, predictor) -> str:
+def _explain_response(intent_obj: QueryIntent, predictor, target_result=None, literature_result=None) -> str:
     """Generate detailed evidence-grounded chemical & toxicological analysis."""
     if not intent_obj.entities:
         return "Please specify a molecule or SMILES string (e.g. 'Is Aspirin safe?' or 'Analyze Caffeine')."
@@ -545,11 +676,109 @@ def _explain_response(intent_obj: QueryIntent, predictor) -> str:
         f"· **EFS (proxy estimate): {((mean_prob * 0.7 + 0.3) if mean_prob is not None else 0.5) * 100:.0f}%** - Heuristic proxy from predicted toxicity; not a validated GNN attribution score. \n"
         f"*Note: EFS weights are empirical (Attr=0.3, CF=0.3, Sub=0.2, Rules=0.2), not learned. Mean toxicity probability used as proxy for grounding.*"
     )
+    base_response = base_response
+    
+    # Add target profiling section if available
+    if target_result and target_result.targets:
+        response = _format_target_response(target_result)
+        return base_response + "\n\n" + response
+    
+    # Add literature section if available
+    if literature_result and literature_result.articles:
+        response = _format_literature_response(literature_result)
+        return base_response + "\n\n" + response
+    
+    return base_response
 
 
-def _safety_response(intent_obj: QueryIntent, predictor) -> str:
+def _safety_response(intent_obj: QueryIntent, predictor, target_result=None, literature_result=None) -> str:
     """Generate detailed safety assessment response."""
-    return _explain_response(intent_obj, predictor)
+    return _explain_response(intent_obj, predictor, target_result, literature_result)
+
+
+def _format_target_response(target_result) -> str:
+    """Format ChEMBL target profiling results for display."""
+    if not target_result or not target_result.targets:
+        return "No protein targets found with high-confidence bioactivity data (pChEMBL ≥ 6.0)."
+    
+    lines = [
+        "### 🎯 Target Profiling / Mechanism of Action (ChEMBL)",
+        f"**{len(target_result.targets)} high-confidence target(s) identified** (pChEMBL ≥ 6.0)\n"
+    ]
+    
+    # Group by target type
+    toxicity_targets = []
+    other_targets = []
+    
+    for target in target_result.targets[:10]:  # Top 10
+        if target.is_toxicity_relevant:
+            toxicity_targets.append(target)
+        else:
+            other_targets.append(target)
+    
+    if toxicity_targets:
+        lines.append("#### ⚠️ Toxicity-Relevant Targets")
+        for t in toxicity_targets:
+            confidence_icon = "🔴" if t.confidence == "HIGH" else "🟡" if t.confidence == "MEDIUM" else "🟢"
+            lines.append(
+                f"- **{t.target_name}** ({t.target_type}) — {confidence_icon} **{t.confidence}** confidence  "
+                f"(pChEMBL: {t.pchembl_value:.1f}, Activity: {t.activity_type})"
+            )
+        lines.append("")
+    
+    if other_targets:
+        lines.append("#### 📋 Other Known Targets")
+        for t in other_targets[:5]:
+            confidence_icon = "🔴" if t.confidence == "HIGH" else "🟡" if t.confidence == "MEDIUM" else "🟢"
+            lines.append(
+                f"- **{t.target_name}** ({t.target_type}) — {confidence_icon} **{t.confidence}** confidence  "
+                f"(pChEMBL: {t.pchembl_value:.1f}, Activity: {t.activity_type})"
+            )
+        if len(other_targets) > 5:
+            lines.append(f"- ... and {len(other_targets) - 5} more targets")
+        lines.append("")
+    
+    # MoA inference
+    if target_result.moa_summary:
+        lines.append("#### 🧬 Inferred Mechanism of Action")
+        lines.append(target_result.moa_summary)
+        lines.append("")
+    
+    lines.append("*Data source: ChEMBL REST API — high-confidence bioactivity (pChEMBL ≥ 6.0)*")
+    
+    return "\n".join(lines)
+
+
+def _format_literature_response(literature_result) -> str:
+    """Format PubMed literature search results for display."""
+    if not literature_result or not literature_result.articles:
+        return "No relevant literature found in PubMed for this query."
+    
+    lines = [
+        f"### 📚 Literature Evidence (PubMed)",
+        f"**{literature_result.total_found} articles found** — showing top {len(literature_result.articles)} most relevant\n"
+    ]
+    
+    for i, article in enumerate(literature_result.articles, 1):
+        # Format authors
+        authors = ", ".join(article.authors[:3])
+        if len(article.authors) > 3:
+            authors += " et al."
+        
+        lines.append(f"**[{i}] {article.title}**")
+        lines.append(f"*{authors} — {article.journal} ({article.pub_date})*")
+        if article.doi:
+            lines.append(f"DOI: `{article.doi}` | PMID: `{article.pmid}`")
+        lines.append(f"> {article.abstract[:400]}...")
+        if article.mesh_terms:
+            toxicity_mesh = [m for m in article.mesh_terms if m in ['Drug Toxicity', 'Drug-Induced Liver Injury', 'Cardiotoxicity', 'Nephrotoxicity', 'Neurotoxicity', 'Hepatotoxicity']]
+            if toxicity_mesh:
+                lines.append(f"**Relevant MeSH**: {', '.join(toxicity_mesh)}")
+        lines.append("")
+    
+    lines.append(f"*Search time: {literature_result.search_time_ms}ms | Query: \"{literature_result.query}\"*")
+    
+    return "\n".join(lines)
 
 
 class NaturalLanguageQueryService:

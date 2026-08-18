@@ -1634,3 +1634,181 @@ def depict_molecule():
         print(f"❌ Depiction error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Depiction failed: {str(e)}'}), 500
+
+
+# ============================================================
+# NEW: Target Profiling / Mechanism of Action (ChEMBL)
+# ============================================================
+@pharmaguard_bp.route('/targets/profile', methods=['POST'])
+def target_profile():
+    """Get protein targets / Mechanism of Action for a molecule via ChEMBL."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        smiles = data.get('smiles')
+        name = data.get('name')
+        
+        if not smiles:
+            return jsonify({'error': 'SMILES string required'}), 400
+        
+        # Validate SMILES
+        mol, smiles_err = _validate_smiles(smiles)
+        if smiles_err:
+            return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
+        
+        # Get target predictor
+        try:
+            from services.target_predictor import get_target_predictor
+            target_predictor = get_target_predictor()
+            profile = target_predictor.predict_targets(smiles=smiles, name=name)
+        except Exception as e:
+            print(f"⚠️ Target profiling error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Target profiling failed: {str(e)}',
+                'molecule_id': smiles
+            }), 500
+        
+        # Format response
+        return jsonify({
+            'success': True,
+            'molecule_id': profile.molecule_id,
+            'molecule_name': profile.molecule_name,
+            'source': profile.source,
+            'targets': [
+                {
+                    'chembl_id': t.chembl_id,
+                    'name': t.target_name,
+                    'type': t.target_type,
+                    'organism': t.organism,
+                    'pchembl_value': t.pchembl_value,
+                    'activity_type': t.standard_type,
+                    'activity_value': t.standard_value,
+                    'activity_unit': t.standard_units,
+                    'confidence': t.confidence,
+                    'is_toxicity_relevant': t.toxicity_relevance is not None
+                }
+                for t in profile.targets
+            ],
+            'moa_summary': profile.moa_summary,
+            'toxicity_mechanisms': profile.toxicity_mechanisms
+        })
+    except Exception as e:
+        print(f"❌ Target profiling error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Target profiling failed: {str(e)}'}), 500
+
+
+# ============================================================
+# NEW: Clinical DDI from NIH RxNav
+# ============================================================
+@pharmaguard_bp.route('/ddi/clinical', methods=['POST'])
+def clinical_ddi():
+    """Get clinical drug-drug interaction from NIH RxNav."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        drug_a = data.get('drug_a') or data.get('name_a')
+        drug_b = data.get('drug_b') or data.get('name_b')
+        
+        if not drug_a or not drug_b:
+            return jsonify({'error': 'Both drug_a and drug_b required'}), 400
+        
+        # Get DDI predictor
+        try:
+            from models.ddi_predictor import get_ddi_predictor
+            ddi_predictor = get_ddi_predictor()
+            clinical_ddi = ddi_predictor.get_clinical_ddi(drug_a, drug_b)
+        except Exception as e:
+            print(f"⚠️ Clinical DDI error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Clinical DDI lookup failed: {str(e)}',
+                'drug_a': drug_a,
+                'drug_b': drug_b
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'drug_a': drug_a,
+            'drug_b': drug_b,
+            'clinical_ddi': clinical_ddi
+        })
+    except Exception as e:
+        print(f"❌ Clinical DDI error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Clinical DDI failed: {str(e)}'}), 500
+
+
+# ============================================================
+# NEW: Literature Search (PubMed RAG)
+# ============================================================
+@pharmaguard_bp.route('/literature/search', methods=['POST'])
+def literature_search():
+    """Search PubMed for literature evidence via NCBI E-utilities."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        query_type = data.get('query_type', 'explain')  # explain, safety, ddi, target, literature
+        drug_name = data.get('drug_name')
+        drug1 = data.get('drug1')
+        drug2 = data.get('drug2')
+        smiles = data.get('smiles')
+        max_results = data.get('max_results', 3)
+        
+        if not drug_name and not drug1:
+            return jsonify({'error': 'At least drug_name or drug1 required'}), 400
+        
+        # Get PubMed RAG
+        try:
+            from services.pubmed_rag import get_pubmed_rag
+            pubmed_rag = get_pubmed_rag()
+            result = pubmed_rag.search_literature(
+                query_type=query_type,
+                drug_name=drug_name,
+                drug1=drug1,
+                drug2=drug2,
+                smiles=smiles,
+                max_results=max_results
+            )
+        except Exception as e:
+            print(f"⚠️ PubMed RAG error: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Literature search failed: {str(e)}',
+                'query_type': query_type
+            }), 500
+        
+        # Format response
+        return jsonify({
+            'success': True,
+            'query': result.query,
+            'query_type': result.query_type,
+            'total_found': result.total_found,
+            'search_time_ms': result.search_time_ms,
+            'cached': result.cached,
+            'articles': [
+                {
+                    'pmid': a.pmid,
+                    'title': a.title,
+                    'abstract': a.abstract,
+                    'authors': a.authors,
+                    'journal': a.journal,
+                    'pub_date': a.pub_date,
+                    'doi': a.doi,
+                    'mesh_terms': a.mesh_terms,
+                    'relevance_score': a.relevance_score
+                }
+                for a in result.articles
+            ]
+        })
+    except Exception as e:
+        print(f"❌ Literature search error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Literature search failed: {str(e)}'}), 500

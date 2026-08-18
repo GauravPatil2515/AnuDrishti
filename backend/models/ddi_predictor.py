@@ -7,15 +7,25 @@ multiple molecules using ChemBERTa embeddings, RDKit fingerprints, and
 SMARTS structural alert overlap.
 
 Phase 3 feature for SIH 2026.
+
+Enhanced with NIH RxNav clinical DDI integration for real-world
+drug-drug interaction warnings from FDA/EMA databases.
 """
 
 import math
 import traceback
+import requests
+import re
+import logging
 from typing import Dict, Any, List, Optional
+from functools import lru_cache
+import time
 
 from flask import Blueprint, jsonify, request
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 try:
     from rdkit import Chem
@@ -45,6 +55,16 @@ class DDIPredictor:
                 self.encoder = get_chemberta_encoder()
             except Exception as e:
                 print(f"⚠️ ChemBERTa initialization in DDI predictor: {e}")
+        
+        # RxNav session with caching
+        self._rxnav_session = requests.Session()
+        self._rxnav_session.headers.update({
+            'Accept': 'application/json',
+            'User-Agent': 'AnuDrishti/1.0 (PharmaGuard AI)'
+        })
+        self._rxnav_cache = {}
+        self._rxnav_last_request = 0
+        self._rxnav_min_interval = 0.2  # 5 requests/sec max
 
     def compute_ddi(self, smiles_a: str, smiles_b: str, name_a: str = "Drug A", name_b: str = "Drug B") -> Dict[str, Any]:
         """
@@ -303,6 +323,127 @@ class DDIPredictor:
             'mechanism': mechanism,
             'summary': f'{enzyme} {interaction_type}',
             'shared_enzymes': sorted(shared_enzymes)
+        }
+
+    # ============================================================
+    # NIH RxNav Clinical DDI Integration
+    # ============================================================
+    
+    # RxNav API configuration
+    RXNAV_BASE_URL = "https://rxnav.nlm.nih.gov/REST"
+    
+    def _rxnav_request(self, endpoint: str, params: Dict = None) -> Optional[Dict]:
+        """Make request to RxNav API with rate limiting and caching."""
+        cache_key = f"{endpoint}:{str(params)}"
+        if cache_key in self._rxnav_cache:
+            return self._rxnav_cache[cache_key]
+        
+        try:
+            # Rate limiting
+            elapsed = time.time() - getattr(self, '_rxnav_last_request', 0)
+            if elapsed < 0.2:
+                time.sleep(0.2 - elapsed)
+            
+            response = requests.get(
+                f"{self.RXNAV_BASE_URL}/{endpoint}",
+                params=params,
+                timeout=10
+            )
+            self._rxnav_last_request = time.time()
+            
+            if response.status_code == 200:
+                data = response.json()
+                self._rxnav_cache[cache_key] = data
+                return data
+            else:
+                logger.warning(f"RxNav API error: {response.status_code}")
+                return None
+        except Exception as e:
+            logger.warning(f"RxNav API request failed: {e}")
+            return None
+    
+    def _rxnav_get_rxcui(self, drug_name: str) -> Optional[str]:
+        """Get RxCUI for a drug name via RxNav."""
+        data = self._rxnav_request("rxcui.json", params={"name": drug_name, "search": 2})
+        if data and 'idGroup' in data and 'rxnormId' in data['idGroup']:
+            return data['idGroup']['rxnormId'][0]
+        return None
+    
+    def _rxnav_get_interactions(self, rxcui: str) -> List[Dict]:
+        """Get clinical DDI interactions for an RxCUI."""
+        data = self._rxnav_request("interaction/interaction.json", params={"rxcui": rxcui})
+        interactions = []
+        if data and 'interactionTypeGroup' in data:
+            for group in data['interactionTypeGroup']:
+                for interaction_type in group.get('interactionType', []):
+                    for interaction in interaction_type.get('interactionPair', []):
+                        interactions.append({
+                            'severity': interaction.get('severity', ''),
+                            'description': interaction.get('description', ''),
+                            'interacting_drug': interaction.get('interactionConcept', [{}])[1].get('minConceptItem', {}).get('name', '') if len(interaction.get('interactionConcept', [])) > 1 else ''
+                        })
+        return interactions
+    
+    def get_clinical_ddi(self, name_a: str, name_b: str) -> Dict[str, Any]:
+        """
+        Fetch clinical DDI from NIH RxNav for known drugs.
+        
+        Returns structured clinical interaction data if available,
+        otherwise falls back to structural prediction.
+        """
+        # Try to get RxCUIs for both drugs
+        rxcui_a = self._rxnav_get_rxcui(name_a)
+        rxcui_b = self._rxnav_get_rxcui(name_b)
+        
+        if not rxcui_a or not rxcui_b:
+            return {
+                'source': 'RxNav',
+                'available': False,
+                'reason': 'One or both drugs not found in RxNav database',
+                'rxcui_a': rxcui_a,
+                'rxcui_b': rxcui_b
+            }
+        
+        # Get interactions for both directions
+        interactions_a = self._rxnav_get_interactions(rxcui_a)
+        interactions_b = self._rxnav_get_interactions(rxcui_b)
+        
+        # Check if drug B is in A's interactions
+        found_interactions = []
+        for interaction in interactions_a:
+            if interaction['interacting_drug'].lower() == name_b.lower() or interaction['interacting_drug'].lower() == name_b.replace(' ', '').lower():
+                found_interactions.append(interaction)
+        
+        for interaction in interactions_b:
+            if interaction['interacting_drug'].lower() == name_a.lower() or interaction['interacting_drug'].lower() == name_a.replace(' ', '').lower():
+                found_interactions.append(interaction)
+        
+        if not found_interactions:
+            return {
+                'source': 'RxNav',
+                'available': True,
+                'interactions_found': False,
+                'rxcui_a': rxcui_a,
+                'rxcui_b': rxcui_b,
+                'message': f'No clinical interaction documented between {name_a} and {name_b} in RxNav'
+            }
+        
+        # Deduplicate and summarize
+        unique_interactions = {}
+        for inter in found_interactions:
+            key = inter['description'][:100]
+            if key not in unique_interactions or len(inter['description']) > len(unique_interactions[key]['description']):
+                unique_interactions[key] = inter
+        
+        return {
+            'source': 'RxNav',
+            'available': True,
+            'interactions_found': True,
+            'rxcui_a': rxcui_a,
+            'rxcui_b': rxcui_b,
+            'interactions': list(unique_interactions.values()),
+            'severity': max([i.get('severity', 'Unknown') for i in unique_interactions.values()], default='Unknown'),
+            'summary': f"Clinical DDI found in NIH RxNav: {len(unique_interactions)} interaction(s) documented"
         }
 
 

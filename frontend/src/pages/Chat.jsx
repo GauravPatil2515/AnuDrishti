@@ -8,7 +8,8 @@ import {
   BeakerIcon, ShieldCheckIcon, ShieldExclamationIcon,
   CheckBadgeIcon, MagnifyingGlassIcon, ClipboardDocumentIcon,
   ChevronDownIcon, ChevronUpIcon, CpuChipIcon, ArrowRightIcon,
-  ExclamationCircleIcon, InformationCircleIcon
+  ExclamationCircleIcon, InformationCircleIcon,
+  AcademicCapIcon, MagnifyingGlassCircleIcon, BoltIcon
 } from '@heroicons/react/24/outline';
 
 const SUGGESTED_PROMPTS = [
@@ -35,6 +36,24 @@ const SUGGESTED_PROMPTS = [
     prompt: "Suggest bioisosteric modifications to lower drug toxicity while preserving drug-likeness.",
     icon: SparklesIcon,
     tag: "Optimization"
+  },
+  {
+    title: "Target Profiling / MoA",
+    prompt: "What protein targets does Aspirin bind to?",
+    icon: AcademicCapIcon,
+    tag: "Mechanism of Action"
+  },
+  {
+    title: "Clinical DDI Check",
+    prompt: "Show clinical DDI between Warfarin and Aspirin from NIH RxNav",
+    icon: BoltIcon,
+    tag: "Clinical DDI"
+  },
+  {
+    title: "Literature Evidence",
+    prompt: "Show me PubMed studies on Aspirin toxicity mechanism",
+    icon: MagnifyingGlassCircleIcon,
+    tag: "PubMed RAG"
   }
 ];
 
@@ -166,6 +185,132 @@ const Chat = () => {
     );
   };
 
+  // Render Target Profiling / MoA card
+  const renderTargetCard = (targetData) => {
+    if (!targetData || !targetData.targets || targetData.targets.length === 0) return null;
+    
+    const toxicityTargets = targetData.targets.filter(t => t.is_toxicity_relevant);
+    const otherTargets = targetData.targets.filter(t => !t.is_toxicity_relevant);
+    
+    return (
+      <div className="mt-3 pt-3 border-t border-border space-y-2">
+        <div className="flex items-center gap-2">
+          <AcademicCapIcon className="h-4 w-4 text-accent-purple" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+            Target Profiling / MoA (ChEMBL)
+          </span>
+          <span className="text-[10px] font-mono text-accent-purple">
+            {targetData.targets.length} targets
+          </span>
+        </div>
+        
+        {toxicityTargets.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-[10px] font-semibold text-accent-red">⚠️ Toxicity-Relevant Targets</p>
+            {toxicityTargets.slice(0, 5).map((t, idx) => (
+              <div key={idx} className="p-2 rounded bg-accent-red/5 border border-accent-red/20">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-text-primary text-[10px]">{t.name}</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.25 rounded bg-accent-red/20 text-accent-red border border-accent-red/30">
+                    {t.confidence}
+                  </span>
+                </div>
+                <div className="text-[9px] text-text-muted mt-0.5 font-mono">
+                  {t.type} • pChEMBL: {t.pchembl_value?.toFixed(1)} • {t.activity_type} {t.activity_value} {t.activity_unit}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {otherTargets.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-[10px] font-semibold text-text-muted">Other Known Targets</p>
+            {otherTargets.slice(0, 3).map((t, idx) => (
+              <div key={idx} className="p-2 rounded bg-surface border border-border/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-text-primary text-[10px]">{t.name}</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.25 rounded bg-surface-elevated text-text-muted border border-border">
+                    {t.confidence}
+                  </span>
+                </div>
+                <div className="text-[9px] text-text-muted mt-0.5 font-mono">
+                  {t.type} • pChEMBL: {t.pchembl_value?.toFixed(1)}
+                </div>
+              </div>
+            ))}
+            {otherTargets.length > 3 && (
+              <p className="text-[9px] text-text-muted italic">+ {otherTargets.length - 3} more targets</p>
+            )}
+          </div>
+        )}
+        
+        {targetData.moa_summary && (
+          <div className="mt-2 p-2 rounded bg-accent-purple/5 border border-accent-purple/20">
+            <p className="text-[10px] font-semibold text-accent-purple">🧬 Inferred MoA</p>
+            <p className="text-[10px] text-text-secondary mt-1">{targetData.moa_summary}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render Literature Evidence card
+  const renderLiteratureCard = (literatureData) => {
+    if (!literatureData || !literatureData.articles || literatureData.articles.length === 0) return null;
+    
+    return (
+      <div className="mt-3 pt-3 border-t border-border space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MagnifyingGlassCircleIcon className="h-4 w-4 text-accent-blue" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+              Literature Evidence (PubMed)
+            </span>
+          </div>
+          <span className="text-[9px] font-mono text-text-muted">
+            {literatureData.total_found} found • {literatureData.search_time_ms}ms
+          </span>
+        </div>
+        
+        <div className="space-y-2">
+          {literatureData.articles.map((article, idx) => (
+            <div key={idx} className="p-2 rounded bg-surface border border-border/50">
+              <p className="font-semibold text-text-primary text-[10px] line-clamp-1">
+                {article.title}
+              </p>
+              <p className="text-[9px] text-text-muted mt-0.5 font-mono">
+                {article.authors.slice(0, 3).join(', ')}{article.authors.length > 3 ? ' et al.' : ''} • {article.journal} ({article.pub_date})
+              </p>
+              <p className="text-[9px] text-text-secondary mt-1 line-clamp-2">
+                {article.abstract?.slice(0, 200)}...
+              </p>
+              {article.mesh_terms && article.mesh_terms.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {article.mesh_terms.slice(0, 3).map((mesh, mIdx) => (
+                    <span key={mIdx} className="text-[8px] px-1 py-0.25 rounded bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
+                      {mesh}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {article.doi && (
+                <a 
+                  href={`https://doi.org/${article.doi}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] text-accent-blue hover:underline mt-1 inline-block font-mono"
+                >
+                  DOI: {article.doi}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // Render agent trace accordion
   const renderTraceAccordion = (trace, messageId) => {
     if (!trace || trace.length === 0) return null;
@@ -272,6 +417,8 @@ const Chat = () => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         analysis: singleAnalysis,
         ddi: qData.ddi_data,
+        target_data: qData.target_data,
+        literature_data: qData.literature_data,
         trace: qData.trace || [],
         smiles: targetSmiles,
         compoundName: targetName,
@@ -423,6 +570,12 @@ const Chat = () => {
 
               {/* TDC Safety Endpoints Card (If available in single analysis) */}
               {renderTDCCard(m.analysis?.predictions?.tdc_predictions)}
+
+              {/* Target Profiling / MoA Card */}
+              {renderTargetCard(m.target_data)}
+
+              {/* Literature Evidence Card */}
+              {renderLiteratureCard(m.literature_data)}
 
               {/* Comparison cards from parsed_intent */}
               {renderComparisonCards(m.parsed_intent, m.ddi)}
