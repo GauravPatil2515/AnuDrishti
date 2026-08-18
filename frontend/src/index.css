@@ -225,12 +225,28 @@ h1, h2, h3, h4, h5, h6 {
 .text-accent-emerald { color: var(--color-accent-emerald); }
 .text-accent-amber   { color: var(--color-accent-amber); }
 .text-accent-red     { color: var(--color-accent-red); }
+.text-accent-purple  { color: #a855f7; }
+.text-accent-blue    { color: #3b82f6; }
 .border-accent-emerald { border-color: var(--color-accent-emerald); }
 .border-accent-amber   { border-color: var(--color-accent-amber); }
 .border-accent-red     { border-color: var(--color-accent-red); }
+.border-accent-purple  { border-color: #a855f7; }
+.border-accent-blue    { border-color: #3b82f6; }
 .bg-accent-emerald   { background-color: var(--color-accent-emerald); }
 .bg-accent-amber     { background-color: var(--color-accent-amber); }
 .bg-accent-red       { background-color: var(--color-accent-red); }
+.bg-accent-purple    { background-color: #a855f7; }
+.bg-accent-blue      { background-color: #3b82f6; }
+
+/* Opacity variants for badges */
+.bg-accent-purple\/10  { background-color: rgba(168, 85, 247, 0.10); }
+.bg-accent-blue\/10    { background-color: rgba(59, 130, 246, 0.10); }
+.border-accent-purple\/20 { border-color: rgba(168, 85, 247, 0.20); }
+.border-accent-blue\/20   { border-color: rgba(59, 130, 246, 0.20); }
+.bg-accent-green\/10   { background-color: rgba(16, 185, 129, 0.10); }
+.bg-accent-amber\/10   { background-color: rgba(245, 158, 11, 0.10); }
+.border-accent-green\/20  { border-color: rgba(16, 185, 129, 0.20); }
+.border-accent-amber\/20  { border-color: rgba(245, 158, 11, 0.20); }
 
 /* Data Patterns */
 .bg-canvas { background-color: var(--color-canvas); }

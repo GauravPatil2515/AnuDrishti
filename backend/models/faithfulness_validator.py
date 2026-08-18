@@ -835,73 +835,9 @@ class FaithfulnessValidator:
             return None
     
     def _smiles_to_data(self, smiles: str):
-        """Convert SMILES to PyTorch Geometric Data."""
-        try:
-            from rdkit import Chem
-            import torch
-            from torch_geometric.data import Data
-            
-            mol = Chem.MolFromSmiles(smiles)
-            if mol is None:
-                return None
-            
-            mol = Chem.AddHs(mol)
-            
-            # Atom and bond type constants (matching training script)
-            ATOM_LIST = list(range(1, 119))
-            CHIRALITY_LIST = [
-                Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
-                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
-                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW
-            ]
-            BOND_LIST = [
-                Chem.rdchem.BondType.SINGLE,
-                Chem.rdchem.BondType.DOUBLE,
-                Chem.rdchem.BondType.TRIPLE,
-                Chem.rdchem.BondType.AROMATIC
-            ]
-            BONDDIR_LIST = [
-                Chem.rdchem.BondDir.NONE,
-                Chem.rdchem.BondDir.ENDDOWNRIGHT,
-                Chem.rdchem.BondDir.ENDUPRIGHT
-            ]
-            
-            # Node features
-            type_idx = []
-            chirality_idx = []
-            for atom in mol.GetAtoms():
-                type_idx.append(ATOM_LIST.index(atom.GetAtomicNum()))
-                chirality_idx.append(CHIRALITY_LIST.index(atom.GetChiralTag()))
-            x1 = torch.tensor(type_idx, dtype=torch.long).view(-1, 1)
-            x2 = torch.tensor(chirality_idx, dtype=torch.long).view(-1, 1)
-            x = torch.cat([x1, x2], dim=-1)
-            
-            # Edge features
-            row, col, edge_feat = [], [], []
-            for bond in mol.GetBonds():
-                start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-                row += [start, end]
-                col += [end, start]
-                edge_feat.extend([
-                    [BOND_LIST.index(bond.GetBondType()), BONDDIR_LIST.index(bond.GetBondDir())],
-                    [BOND_LIST.index(bond.GetBondType()), BONDDIR_LIST.index(bond.GetBondDir())]
-                ])
-            
-            if len(row) == 0:
-                edge_index = torch.empty((2, 0), dtype=torch.long)
-                edge_attr = torch.empty((0, 2), dtype=torch.long)
-            else:
-                edge_index = torch.tensor([row, col], dtype=torch.long)
-                edge_attr = torch.tensor(np.array(edge_feat), dtype=torch.long)
-            
-            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-            data.batch = torch.zeros(x.size(0), dtype=torch.long)
-            
-            return data
-            
-        except Exception as e:
-            logger.error(f"Failed to convert SMILES: {e}")
-            return None
+        """Convert SMILES to PyTorch Geometric Data (with explicit hydrogens)."""
+        from utils.molecular_featurizer import smiles_to_data_with_hs
+        return smiles_to_data_with_hs(smiles)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

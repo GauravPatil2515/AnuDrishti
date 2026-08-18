@@ -24,6 +24,22 @@ const EFS_BADGES = {
   REJECTED: { label: 'REJECTED', className: 'bg-accent-red/10 text-accent-red border-accent-red/30', icon: ShieldExclamationIcon },
 };
 
+const MODEL_SOURCE_COLORS = {
+  'Attention-GIN': 'bg-accent-green/10 text-accent-green border-accent-green/20',
+  'GPS Graph Transformer': 'bg-accent-purple/10 text-accent-purple border-accent-purple/20',
+  'XGBoost': 'bg-accent-blue/10 text-accent-blue border-accent-blue/20',
+  'TDC': 'bg-accent-amber/10 text-accent-amber border-accent-amber/20',
+  'Rule-based': 'bg-accent-amber/10 text-accent-amber border-accent-amber/20',
+};
+
+const getSourceLabel = (source) => {
+  if (!source) return 'Attention-GIN';
+  if (source.includes('GPS')) return 'GPS Graph Transformer';
+  if (source.includes('XGBoost')) return 'XGBoost';
+  if (source.includes('TDC') || source.includes('placeholder')) return 'TDC Rule-based';
+  return 'Attention-GIN';
+};
+
 const extractEndpoints = (analysis) => {
   const preds = analysis?.predictions?.predictions || analysis?.predictions || {};
   const perEndpointUnc = analysis?.uncertainty?.per_endpoint || {};
@@ -43,9 +59,13 @@ const extractEndpoints = (analysis) => {
       epistemic_std: unc.epistemic_std,
       epistemic_uncertainty: epistemicLabel,
       label: v?.prediction || (prob > 0.5 ? 'Toxic' : 'Non-toxic'),
+      source: v?.source || null,
+      model_type: v?.model_type || null,
+      dataset: v?.dataset || null,
     };
   });
 };
+
 
 const SafetyDashboard = ({ analysis }) => {
   if (!analysis) return null;
@@ -257,15 +277,31 @@ const SafetyDashboard = ({ analysis }) => {
               <thead>
                 <tr>
                   <th className="w-1/3">Endpoint</th>
+                  <th className="text-left w-1/4">Model Source</th>
                   <th className="text-right w-1/5">Probability</th>
-                  <th className="text-center w-1/4">Prediction</th>
+                  <th className="text-center w-1/5">Prediction</th>
                   <th className="text-center">Uncertainty</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {endpoints.map((e) => (
+                {endpoints.map((e) => {
+                    const srcLabel = getSourceLabel(e.source);
+                    const srcStyle = MODEL_SOURCE_COLORS[srcLabel] || MODEL_SOURCE_COLORS['Attention-GIN'];
+                    return (
                   <tr key={e.id} className="hover:bg-surface-hover transition-colors">
-                    <td className="font-medium text-text-primary text-xs">{e.id}</td>
+                    <td className="font-medium text-text-primary text-xs">
+                      <div>
+                        <span>{e.id}</span>
+                        {e.dataset && (
+                          <p className="text-[9px] text-text-muted font-mono mt-0.5">{e.dataset}</p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="text-left">
+                      <span className={clsx('inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold border', srcStyle)}>
+                        {srcLabel}
+                      </span>
+                    </td>
                     <td className="text-right">
                       <div className="flex flex-col items-end">
                         <span className="font-mono text-text-primary font-semibold">{(e.prob * 100).toFixed(1)}%</span>
@@ -285,7 +321,8 @@ const SafetyDashboard = ({ analysis }) => {
                       </span>
                     </td>
                   </tr>
-                ))}
+                    );
+                  })}
               </tbody>
             </table>
           </div>

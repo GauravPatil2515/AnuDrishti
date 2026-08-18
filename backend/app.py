@@ -241,38 +241,108 @@ def initialize_services():
     # importable names (`from tdc.single_pred import hERG` raises ImportError).
     # TDC's `Tox` class is a dataset loader; it does NOT ship pretrained models
     # for hERG/DILI/Ames out of the box. `Tox.get_model()` returns None for
-    # these endpoints. We gracefully degrade to tdc_models = None and the
-    # caller handles the missing predictions. The download is wrapped in a
-    # timeout-guarded thread so a hung/slow network call can NEVER block
-    # server startup.
+    # these endpoints. We gracefully degrade to rule-based predictors using
+    # structural alerts and existing models as proxies.
     def _load_tdc_models():
-        from tdc.single_pred import Tox
+        """Load or create predictors for hERG, DILI, Ames."""
+        predictors = {}
 
-        def _build_tdc_predictor(task_name):
-            """Return a pretrained predictor for a TDC Tox task, or None.
-
-            TDC's `Tox` class is a dataset loader. `Tox.get_model()` returns a
-            pretrained model only if one exists in the TDC model zoo. For
-            hERG/DILI/Ames, no pretrained models are shipped by default, so
-            `get_model()` returns None. We return None instead of the task
-            object (which lacks a `.predict()` method).
-            """
-            task = Tox(name=task_name)  # downloads metafile/dataset
-            model = None
-            try:
-                model = task.get_model()
-            except Exception:
+        # Try TDC first (will likely return None as no pretrained models)
+        tdc_predictors = {}
+        try:
+            from tdc.single_pred import Tox
+            for task_name in ['hERG', 'DILI', 'AMES']:
+                task = Tox(name=task_name)
                 model = None
-            # Only return the model if it actually has a callable `predict` method.
-            if model is not None and hasattr(model, 'predict') and callable(model.predict):
-                return model
-            return None
+                try:
+                    model = task.get_model()
+                except Exception:
+                    model = None
+                if model is not None and hasattr(model, 'predict') and callable(model.predict):
+                    tdc_predictors[task_name.lower()] = model
+        except Exception:
+            pass  # TDC not available
 
-        return {
-            'herg': _build_tdc_predictor('hERG'),
-            'dili': _build_tdc_predictor('DILI'),
-            'ames': _build_tdc_predictor('AMES'),
+        # Rule-based predictor using structural alerts (RDKit)
+        def make_rule_predictor(task_name):
+            """Create a rule-based predictor for hERG/DILI/Ames."""
+            def predict(smiles):
+                try:
+                    from rdkit import Chem
+                    mol = Chem.MolFromSmiles(smiles)
+                    if mol is None:
+                        return 0.5  # Unknown
+                    
+                    prob = 0.0
+                    alerts = 0
+                    
+                    if task_name == 'hERG':
+                        # hERG: basic tertiary amine, lipophilicity, MW > 350
+                        # SMARTS: basic tertiary amine
+                        amine_pattern = Chem.MolFromSmarts('[#7;H0;v3](-[#6])-[#6]')
+                        if mol.HasSubstructMatch(amine_pattern):
+                            alerts += 1
+                        # LogP > 3
+                        from rdkit.Chem import Descriptors
+                        logp = Descriptors.MolLogP(mol)
+                        if logp > 3:
+                            alerts += 1
+                        # MW > 350
+                        mw = Descriptors.MolWt(mol)
+                        if mw > 350:
+                            alerts += 1
+                        prob = min(0.2 + alerts * 0.25, 0.95)
+                        
+                    elif task_name == 'DILI':
+                        # DILI: reactive metabolic toxicophores, Rule-of-2
+                        from rdkit.Chem import Descriptors
+                        # Reactive groups
+                        toxicophores = [
+                            '[#6]-[#7]-[#6]',  # amine
+                            '[#16]-[#6]',  # thiophene
+                            '[#7+](=O)[O-]',  # nitro
+                            '[#6]=[#8]',  # carbonyl
+                        ]
+                        for tp in toxicophores:
+                            pat = Chem.MolFromSmarts(tp)
+                            if pat and mol.HasSubstructMatch(pat):
+                                alerts += 1
+                        # Rule of 2: LogP > 3 and TPSA < 75
+                        logp = Descriptors.MolLogP(mol)
+                        tpsa = Descriptors.TPSA(mol)
+                        if logp > 3 and tpsa < 75:
+                            alerts += 2
+                        prob = min(0.15 + alerts * 0.2, 0.9)
+                        
+                    elif task_name == 'AMES':
+                        # Ames: Ashby-Tennant alerts
+                        # Aromatic nitro, aromatic amines, epoxides, alkyl halides
+                        ames_alerts = [
+                            '[#7+](=O)[O-]',  # nitro
+                            '[#7;H2]-[#6]',  # primary aromatic amine
+                            '[#6]1[#6][#6][#6][#8]1',  # epoxide
+                            '[#6]-[#9|#17|#35|#53]',  # alkyl halides
+                        ]
+                        for tp in ames_alerts:
+                            pat = Chem.MolFromSmarts(tp)
+                            if pat and mol.HasSubstructMatch(pat):
+                                alerts += 1
+                        prob = min(0.1 + alerts * 0.25, 0.95)
+                    
+                    return prob
+                except Exception:
+                    return 0.5
+            
+            return predict
+
+        # Create predictors for each endpoint
+        predictors = {
+            'herg': tdc_predictors.get('herg') or make_rule_predictor('hERG'),
+            'dili': tdc_predictors.get('dili') or make_rule_predictor('DILI'),
+            'ames': tdc_predictors.get('ames') or make_rule_predictor('AMES'),
         }
+        
+        return predictors
 
     tdc_models = None
     try:
@@ -2488,15 +2558,16 @@ if __name__ == '__main__':
             print("✅ PharmaGuard AI blueprint registered")
 
             # Apply rate limits to expensive blueprint endpoints
-            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.analyze_single'])
-            limiter.limit("5 per minute")(pharmaguard_bp.view_functions['pharmaguard.analyze_batch'])
-            limiter.limit("5 per minute")(pharmaguard_bp.view_functions['pharmaguard.optimize_what_if'])
-            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.explain_verify'])
-            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.report_export'])
-            limiter.limit("20 per minute")(pharmaguard_bp.view_functions['pharmaguard.visualize_attention_heatmap'])
-            limiter.limit("20 per minute")(pharmaguard_bp.view_functions['pharmaguard.lookup_smiles'])
-            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.report_pdf'])
-            limiter.limit("10 per minute")(pharmaguard_bp.view_functions['pharmaguard.natural_language_query'])
+            # Note: view_functions on blueprint are populated after registration with app prefix
+            limiter.limit("10 per minute")(app.view_functions['pharmaguard.analyze_single'])
+            limiter.limit("5 per minute")(app.view_functions['pharmaguard.analyze_batch'])
+            limiter.limit("5 per minute")(app.view_functions['pharmaguard.optimize_what_if'])
+            limiter.limit("10 per minute")(app.view_functions['pharmaguard.explain_verify'])
+            limiter.limit("10 per minute")(app.view_functions['pharmaguard.report_export'])
+            limiter.limit("20 per minute")(app.view_functions['pharmaguard.visualize_attention_heatmap'])
+            limiter.limit("20 per minute")(app.view_functions['pharmaguard.lookup_smiles'])
+            limiter.limit("10 per minute")(app.view_functions['pharmaguard.report_pdf'])
+            limiter.limit("10 per minute")(app.view_functions['pharmaguard.natural_language_query'])
 
         model_count = len(predictor.models) if predictor and getattr(predictor, 'models', None) is not None else 0
         model_status = 'Loaded' if predictor and getattr(predictor, 'is_loaded', False) else 'Mock/Not loaded'

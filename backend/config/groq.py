@@ -26,7 +26,9 @@ class GroqConfig:
     def __init__(self):
         # Groq API configuration - load from environment variables only
         self.api_key = os.getenv('GROQ_API_KEY', '')
-        self.default_model = os.getenv('AI_MODEL', 'llama-3.3-70b-versatile')
+        # Use llama-3.1-8b-instant — verified available on Groq free tier.
+        # Override via AI_MODEL env var if needed (e.g. llama-3.1-70b-versatile).
+        self.default_model = os.getenv('AI_MODEL', 'llama-3.1-8b-instant')
         
         # Validate API key
         if not self.api_key or self.api_key.startswith('your'):

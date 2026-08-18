@@ -1,5 +1,6 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import { Menu, Transition, Popover } from '@headlessui/react';
+import { useNavigate } from 'react-router-dom';
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -11,10 +12,55 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
-import { useTheme } from '../../App';
+import { useTheme, useAnalysis } from '../../App';
+import api from '../../api';
+import { toast } from 'react-hot-toast';
 
 const TopNavbar = ({ setSidebarOpen, pageTitle = 'Dashboard' }) => {
   const { theme, toggleTheme } = useTheme();
+  const { addAnalysis } = useAnalysis();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim() || searching) return;
+    const term = searchQuery.trim();
+    setSearching(true);
+    toast.loading(`Searching compound "${term}"...`, { id: 'search-toast' });
+
+    try {
+      let smiles = term;
+      // If term is not a raw SMILES string (simple heuristic: contains spaces or no standard SMILES characters)
+      const isSmiles = /[()\[\]=#@\/\.0-9]/.test(term) && !term.includes(' ');
+      if (!isSmiles) {
+        const lookupRes = await api.post('/api/lookup/smiles', { name: term });
+        if (lookupRes.data?.canonical_smiles) {
+          smiles = lookupRes.data.canonical_smiles;
+        } else {
+          toast.error(`Could not resolve drug name "${term}"`, { id: 'search-toast' });
+          setSearching(false);
+          return;
+        }
+      }
+
+      // Run analysis
+      const analysisRes = await api.post('/api/analyze/single', { smiles, include_explanation: true });
+      if (analysisRes.data?.analysis) {
+        addAnalysis(analysisRes.data.analysis);
+        toast.success(`Analyzed ${term}`, { id: 'search-toast' });
+        setSearchQuery('');
+        navigate('/app/safety');
+      } else {
+        toast.error(`Analysis failed for "${term}"`, { id: 'search-toast' });
+      }
+    } catch (err) {
+      toast.error(`Search error for "${term}"`, { id: 'search-toast' });
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const notifications = [
     { id: 1, title: 'Model Training Complete', message: 'Attention-GIN model loaded with 16 active ADMET targets', time: '2 min ago', type: 'success' },
@@ -44,13 +90,16 @@ const TopNavbar = ({ setSidebarOpen, pageTitle = 'Dashboard' }) => {
 
       <div className="flex flex-1 items-center gap-x-3 self-stretch">
         <h1 className="truncate text-base font-bold text-text-primary font-display">{pageTitle}</h1>
-        <form className="relative hidden flex-1 md:flex max-w-md" action="#" method="GET" onSubmit={e => e.preventDefault()}>
+        <form className="relative hidden flex-1 md:flex max-w-md" onSubmit={handleSearchSubmit}>
           <label htmlFor="search-field" className="sr-only">Search</label>
           <MagnifyingGlassIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-text-muted pl-3" aria-hidden="true" />
           <input
             id="search-field"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            disabled={searching}
             className="block h-full w-full border-0 bg-transparent py-0 pl-10 pr-0 text-sm text-text-primary placeholder:text-text-muted focus:ring-0 focus:outline-none"
-            placeholder="Search molecules, SMILES, or models..."
+            placeholder="Search drug (e.g. Aspirin, Warfarin) or SMILES..."
             type="search"
             name="search"
           />

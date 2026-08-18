@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../api';
 import { clsx } from 'clsx';
 import { toast } from 'react-hot-toast';
@@ -8,12 +8,13 @@ import {
 } from '@heroicons/react/24/outline';
 import MolecularInput from '../components/MolecularInput';
 import MolecularExplorer from '../components/MolecularExplorer';
-import SafetyDashboard from '../components/SafetyDashboard';
+import SafetyDashboard from '../components/SafetyDashboardWrapper';
 import ExplanationAudit from '../components/ExplanationAudit';
 import LibraryScreening from '../components/LibraryScreening';
 import WhatIfOptimizer from '../components/WhatIfOptimizer';
 import PipelineProgress from '../components/PipelineProgress';
 import BenchmarkTab from '../components/BenchmarkTab';
+import { useAnalysis } from '../App';
 
 const TABS = [
   { id: 'input', label: 'Input', icon: BeakerIcon },
@@ -170,8 +171,9 @@ const CommandPalette = ({ isOpen, onClose, activeTab, onTabSelect, onQuickAction
 };
 
 const PharmaGuardWorkbench = () => {
+  const { addAnalysis, lastAnalysis } = useAnalysis();
   const [activeTab, setActiveTab] = useState('input');
-  const [analysis, setAnalysis] = useState(null);
+  const [analysis, setAnalysis] = useState(() => lastAnalysis || null);
   const [batchResult, setBatchResult] = useState(null);
   const [whatif, setWhatif] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -252,7 +254,9 @@ const PharmaGuardWorkbench = () => {
     try {
       if (mode === 'single') {
         const res = await api.post('/api/analyze/single', { smiles, include_explanation: true });
-        setAnalysis(res.data.analysis);
+        const newAnalysis = { ...res.data.analysis, smiles };
+        setAnalysis(newAnalysis);
+        addAnalysis(newAnalysis);
         setWhatif(null);
         setActiveTab('safety');
         toast.success('Analysis complete');

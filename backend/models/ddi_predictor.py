@@ -90,8 +90,21 @@ class DDIPredictor:
         alerts_b = self._find_alerts(smiles_b)
         shared_alerts = list(set(alerts_a).intersection(set(alerts_b)))
 
+        # T2-E: CYP450 substrate/inhibitor analysis
+        cyp450_a = self._check_cyp450_interaction(smiles_a, name_a)
+        cyp450_b = self._check_cyp450_interaction(smiles_b, name_b)
+        cyp450_interaction = self._evaluate_cyp450_interaction(cyp450_a, cyp450_b, name_a, name_b)
+        trace.append({"step": "4b", "agent": "CYP450 Metabolism Engine", "action": f"CYP450 {cyp450_interaction.get('enzyme', '—')} analysis: {cyp450_interaction.get('summary', 'no interaction')}"})
+
         # Interaction Risk Score Formula
         raw_risk = (0.4 * tanimoto_sim) + (0.4 * cosine_sim) + (0.2 * (len(shared_alerts) > 0))
+
+        # Boost risk if there's a CYP450 pharmacokinetic interaction
+        if cyp450_interaction['severity'] == 'HIGH':
+            raw_risk = max(raw_risk, 0.85)
+            is_known_high_risk = True
+        elif cyp450_interaction['severity'] == 'MODERATE':
+            raw_risk = max(raw_risk, 0.5)
         # Known heavy interaction pairs (e.g. Warfarin + Aspirin)
         names_combined = f"{name_a.lower()} {name_b.lower()}"
         is_known_high_risk = any(pair in names_combined for pair in [
@@ -109,7 +122,7 @@ class DDIPredictor:
         trace.append({"step": 5, "agent": "Synthesis Agent", "action": f"Synthesized final DDI Risk ({risk_level}: {(raw_risk*100):.0f}%)"})
 
         # Interaction mechanism synthesis
-        mechanism = self._generate_mechanism(name_a, name_b, risk_level, shared_alerts, tanimoto_sim, is_known_high_risk)
+        mechanism = self._generate_mechanism(name_a, name_b, risk_level, shared_alerts, tanimoto_sim, is_known_high_risk, cyp450_interaction)
 
         return {
             "success": True,
@@ -125,6 +138,7 @@ class DDIPredictor:
             },
             "shared_alerts": shared_alerts,
             "mechanism": mechanism,
+            "cyp450_interaction": cyp450_interaction,
             "trace": trace
         }
 
@@ -136,28 +150,149 @@ class DDIPredictor:
             return []
         patterns = {
             "Nitro [NO2]": "[N+](=O)[O-]",
-            "Aromatic Amine": "c[NH2]",
+            "Aromatic Amine": "[c][NH2]",
             "Thiophene": "c1ccsc1",
-            "Quinone": "C1(=O)C=CC(=O)C=C1",
+            "Quinone": "O=C1C=CC(=O)C=C1",
             "Alkyl Halide": "[CX4][Cl,Br,I]",
-            "Phenol": "c[OH]"
+            "Phenol": "[c][OH]"
         }
         found = []
         for name, smarts in patterns.items():
             patt = Chem.MolFromSmarts(smarts)
-            if patt and mol.HasSubstructMatch(patt):
+            # Guard: patt must not be None AND mol must have the method
+            if patt is not None and hasattr(mol, 'HasSubstructMatch') and mol.HasSubstructMatch(patt):
                 found.append(name)
         return found
 
-    def _generate_mechanism(self, name_a: str, name_b: str, risk_level: str, shared_alerts: List[str], sim: float, is_known: bool) -> str:
+    def _generate_mechanism(self, name_a: str, name_b: str, risk_level: str, shared_alerts: List[str], sim: float, is_known: bool, cyp450_info: Optional[Dict] = None) -> str:
+        # Incorporate CYP450 mechanism if available
+        cyp_text = ""
+        if cyp450_info and cyp450_info.get('severity') != 'NONE':
+            enzyme = cyp450_info.get('enzyme', 'CYP450')
+            interaction_type = cyp450_info.get('interaction_type', '')
+            cyp_text = f" Pharmacokinetically, {name_a} and {name_b} share {enzyme} metabolism ({interaction_type})."
+
         if is_known:
-            return f"**High Synergistic Risk**: Co-administration of {name_a} and {name_b} exhibits significant clinical interaction risk (e.g. synergistic anticoagulation, CYP450 enzyme competition, or cumulative GI ulceration)."
+            return f"**High Synergistic Risk**: Co-administration of {name_a} and {name_b} exhibits significant clinical interaction risk (e.g. synergistic anticoagulation, CYP450 enzyme competition, or cumulative GI ulceration).{cyp_text}"
         if risk_level == "HIGH":
-            return f"**High Interaction Risk**: {name_a} and {name_b} share high structural similarity (Tanimoto: {sim:.2f}) and common toxicophores ({', '.join(shared_alerts) if shared_alerts else 'reactive motifs'}). Simultaneous administration may cause metabolic competitive inhibition."
+            return f"**High Interaction Risk**: {name_a} and {name_b} share high structural similarity (Tanimoto: {sim:.2f}) and common toxicophores ({', '.join(shared_alerts) if shared_alerts else 'reactive motifs'}). Simultaneous administration may cause metabolic competitive inhibition.{cyp_text}"
         elif risk_level == "MODERATE":
-            return f"**Moderate Risk**: Mild pharmacodynamic overlap detected between {name_a} and {name_b}. Monitor for additive hepatic or renal clearance loads."
+            return f"**Moderate Risk**: Mild pharmacodynamic overlap detected between {name_a} and {name_b}. Monitor for additive hepatic or renal clearance loads.{cyp_text}"
         else:
             return f"**Low Risk**: {name_a} and {name_b} display distinct chemical scaffolds (Tanimoto: {sim:.2f}) with minimal shared metabolic toxicophores."
+
+
+    # T2-E: CYP450 substrate/inhibitor SMARTS patterns (valid RDKit SMARTS only)
+    CYP_SMARTS = {
+        'CYP3A4': {
+            # Imidazole/pyridine nitrogens common in CYP3A4 substrates; tertiary amines
+            'substrate': ['c1ccncc1', 'CN(C)C', 'C(=O)Oc1ccccc1'],
+            # Ketoconazole-like imidazole inhibitors, macrolide ester motifs
+            'inhibitor': ['c1cncs1', 'OC(=O)c1ccccc1', 'N1C=CN=C1'],
+        },
+        'CYP2D6': {
+            # Basic amine + aromatic ring — hallmark CYP2D6 substrate
+            'substrate': ['cCC(N)C', 'c1ccccc1CCN'],
+            # Fluoxetine-like: trifluoromethyl + aryl amine
+            'inhibitor': ['c1ccc(cc1)NC', 'FC(F)(F)c1ccccc1'],
+        },
+        'CYP2C9': {
+            # NSAIDs / warfarin: aryl acetic acid, aryl propanoic acid
+            'substrate': ['c1ccccc1CC(=O)O', 'c1ccc(cc1)OC'],
+            # Sulfonamide / fluconazole-type inhibitors
+            'inhibitor': ['NS(=O)(=O)c1ccccc1', 'c1cnc(nc1)C'],
+        },
+        'CYP1A2': {
+            # Planar aromatic / xanthine (caffeine-like) CYP1A2 substrates
+            'substrate': ['c1ccncc1', 'C1=CN=CN=C1', 'c1ccc2ccccc2c1'],
+            # Quinolone-class inhibitors
+            'inhibitor': ['c1ccc2nc(ccc2c1)=O', 'c1cc(ccc1)c1ccncc1'],
+        },
+    }
+
+    def _check_cyp450_interaction(self, smiles: str, name: str = "Compound") -> Dict[str, Any]:
+        """Check if a compound is a CYP450 substrate or inhibitor for major enzymes."""
+        if not HAS_RDKIT:
+            return {'name': name, 'smiles': smiles, 'roles': {}, 'enzymes': []}
+        mol = Chem.MolFromSmiles(smiles)
+        if not mol:
+            return {'name': name, 'smiles': smiles, 'roles': {}, 'enzymes': []}
+
+        roles = {}
+        enzymes_found = []
+        for enzyme, patterns_dict in self.CYP_SMARTS.items():
+            def _matches(smarts_list):
+                for s in smarts_list:
+                    patt = Chem.MolFromSmarts(s)
+                    if patt is not None and hasattr(mol, 'HasSubstructMatch') and mol.HasSubstructMatch(patt):
+                        return True
+                return False
+            is_substrate = _matches(patterns_dict.get('substrate', []))
+            is_inhibitor = _matches(patterns_dict.get('inhibitor', []))
+            if is_substrate:
+                roles.setdefault(enzyme, []).append('substrate')
+                if enzyme not in enzymes_found:
+                    enzymes_found.append(enzyme)
+            if is_inhibitor:
+                roles.setdefault(enzyme, []).append('inhibitor')
+                if enzyme not in enzymes_found:
+                    enzymes_found.append(enzyme)
+        return {
+            'name': name,
+            'smiles': smiles,
+            'roles': roles,
+            'enzymes': enzymes_found
+        }
+
+    def _evaluate_cyp450_interaction(self, cyp450_a: Dict, cyp450_b: Dict, name_a: str, name_b: str) -> Dict[str, Any]:
+        """Evaluate pharmacokinetic DDI based on CYP450 enzyme overlap."""
+        shared_enzymes = set(cyp450_a.get('enzymes', [])).intersection(set(cyp450_b.get('enzymes', [])))
+        if not shared_enzymes:
+            return {
+                'severity': 'NONE',
+                'enzyme': None,
+                'interaction_type': None,
+                'mechanism': 'No CYP450 enzyme overlap detected between compounds.',
+                'summary': 'No pharmacokinetic DDI predicted',
+                'shared_enzymes': []
+            }
+
+        enzyme = sorted(shared_enzymes)[0]
+        roles_a = set(cyp450_a.get('roles', {}).get(enzyme, []))
+        roles_b = set(cyp450_b.get('roles', {}).get(enzyme, []))
+
+        # Substrate + Inhibitor = HIGH (competitive inhibition)
+        # Substrate + Substrate = MODERATE (metabolic competition)
+        # Inhibitor + Inhibitor = MODERATE (additive inhibition)
+        if 'substrate' in roles_a and 'inhibitor' in roles_b:
+            severity = 'HIGH'
+            interaction_type = 'substrate-inhibitor competitive inhibition'
+            mechanism = f"{name_b} is a {enzyme} inhibitor that may reduce metabolism of {name_a} (a {enzyme} substrate), leading to elevated plasma levels of {name_a}."
+        elif 'inhibitor' in roles_a and 'substrate' in roles_b:
+            severity = 'HIGH'
+            interaction_type = 'substrate-inhibitor competitive inhibition'
+            mechanism = f"{name_a} is a {enzyme} inhibitor that may reduce metabolism of {name_b} (a {enzyme} substrate), leading to elevated plasma levels of {name_b}."
+        elif 'substrate' in roles_a and 'substrate' in roles_b:
+            severity = 'MODERATE'
+            interaction_type = 'substrate-substrate metabolic competition'
+            mechanism = f"Both {name_a} and {name_b} are {enzyme} substrates; coadministration may cause competitive inhibition and reduced clearance of one or both."
+        elif 'inhibitor' in roles_a and 'inhibitor' in roles_b:
+            severity = 'MODERATE'
+            interaction_type = 'inhibitor-inhibitor additive effect'
+            mechanism = f"Both {name_a} and {name_b} inhibit {enzyme}; coadministration may lead to additive CYP450 suppression and altered metabolism of other drugs."
+        else:
+            severity = 'MODERATE'
+            interaction_type = 'enzyme overlap'
+            mechanism = f"Both compounds interact with {enzyme}; monitor for altered drug metabolism."
+
+        return {
+            'severity': severity,
+            'enzyme': enzyme,
+            'interaction_type': interaction_type,
+            'mechanism': mechanism,
+            'summary': f'{enzyme} {interaction_type}',
+            'shared_enzymes': sorted(shared_enzymes)
+        }
 
 
 # Singleton instance

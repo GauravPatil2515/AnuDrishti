@@ -25,6 +25,15 @@ from datetime import datetime
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
+# Import unified featurizer
+from utils.molecular_featurizer import (
+    smiles_to_graph_simple,
+    smiles_to_graph_rich,
+    extract_rdkit_descriptors,
+    mc_dropout_predict,
+    validate_smiles,
+)
+
 class UnifiedADMETPredictor:
     """Unified predictor for all ADMET properties"""
     
@@ -234,75 +243,11 @@ class UnifiedADMETPredictor:
         print("✅ Loaded Clearance: Intrinsic Clearance")
         return True
 
+    # Use unified featurizer
     def _smiles_to_graph_simple(self, smiles):
-        """Convert SMILES to PyG Data object (Simple Featurization for SimplifiedGIN)"""
-        try:
-            from rdkit import Chem
-            from torch_geometric.data import Data
-            
-            mol = Chem.MolFromSmiles(smiles)
-            if mol is None: return None
-            
-            # Constants matching training script - atom types 1-118, chirality 0-3
-            ATOM_LIST = list(range(1, 119))  # 1-118
-            CHIRALITY_LIST = [
-                Chem.rdchem.ChiralType.CHI_UNSPECIFIED,
-                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CW,
-                Chem.rdchem.ChiralType.CHI_TETRAHEDRAL_CCW
-            ]
-            BOND_LIST = [
-                Chem.rdchem.BondType.SINGLE,
-                Chem.rdchem.BondType.DOUBLE,
-                Chem.rdchem.BondType.TRIPLE,
-                Chem.rdchem.BondType.AROMATIC
-            ]
-            BONDDIR_LIST = [
-                Chem.rdchem.BondDir.NONE,
-                Chem.rdchem.BondDir.ENDUPRIGHT,
-                Chem.rdchem.BondDir.ENDDOWNRIGHT
-            ]
-            
-            # Atom features: [atom_type_index, chirality_index]
-            atom_features = []
-            for atom in mol.GetAtoms():
-                atom_type = atom.GetAtomicNum()
-                chirality = atom.GetChiralTag()
-                atom_features.append([
-                    ATOM_LIST.index(atom_type) if atom_type in ATOM_LIST else len(ATOM_LIST),  # 0-118
-                    CHIRALITY_LIST.index(chirality) if chirality in CHIRALITY_LIST else 0
-                ])
-            
-            x = torch.tensor(atom_features, dtype=torch.long)
-            
-            # Edge features
-            edge_index = []
-            edge_attr = []
-            for bond in mol.GetBonds():
-                i = bond.GetBeginAtomIdx()
-                j = bond.GetEndAtomIdx()
-                bond_type = bond.GetBondType()
-                bond_dir = bond.GetBondDir()
-                
-                bond_feat = [
-                    BOND_LIST.index(bond_type) if bond_type in BOND_LIST else len(BOND_LIST),
-                    BONDDIR_LIST.index(bond_dir) if bond_dir in BONDDIR_LIST else 0
-                ]
-                
-                edge_index.extend([[i, j], [j, i]])
-                edge_attr.extend([bond_feat, bond_feat])
-            
-            if len(edge_index) == 0:
-                edge_index = torch.zeros((2, 0), dtype=torch.long)
-                edge_attr = torch.zeros((0, 2), dtype=torch.long)
-            else:
-                edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
-                edge_attr = torch.tensor(edge_attr, dtype=torch.long)
-            
-            return Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-        except Exception as e:
-            print(f"Error in graph conversion: {e}")
-            return None
-    
+        """Convert SMILES to PyG Data object (Simple Featurization for Attention-GIN)"""
+        return smiles_to_graph_simple(smiles)
+
     def _load_attention_gin(self):
         """Load trained Attention-GIN model"""
         model_path = Path(__file__).parent.parent.parent / "results" / "trained_models" / "attention_gin_model.pth"
@@ -375,71 +320,14 @@ class UnifiedADMETPredictor:
             return False
     
     def _smiles_to_graph(self, smiles):
-        """Convert SMILES to PyG Data object"""
-        from rdkit import Chem
-        from torch_geometric.data import Data
-        
-        mol = Chem.MolFromSmiles(smiles)
-        if mol is None:
-            return None
-        
-        # Atom features
-        atom_features = []
-        for atom in mol.GetAtoms():
-            features = [
-                atom.GetAtomicNum(),
-                atom.GetDegree(),
-                atom.GetFormalCharge(),
-                int(atom.GetHybridization()),
-                int(atom.GetIsAromatic()),
-                atom.GetTotalNumHs(),
-                int(atom.IsInRing()),
-                atom.GetImplicitValence(),
-                int(atom.GetChiralTag())
-            ]
-            atom_features.append(features)
-        
-        x = torch.tensor(atom_features, dtype=torch.float)
-        
-        # Edge indices
-        edge_index = []
-        for bond in mol.GetBonds():
-            i = bond.GetBeginAtomIdx()
-            j = bond.GetEndAtomIdx()
-            edge_index.append([i, j])
-            edge_index.append([j, i])
-        
-        if len(edge_index) == 0:
-            edge_index = torch.zeros((2, 0), dtype=torch.long)
-        else:
-            edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
-        
-        return Data(x=x, edge_index=edge_index)
-    
+        """Convert SMILES to PyG Data object (Rich featurization for GPS/XGBoost models)"""
+        from utils.molecular_featurizer import smiles_to_graph_rich
+        return smiles_to_graph_rich(smiles)
+
     def _extract_rdkit_features(self, smiles):
         """Extract 306 RDKit descriptors for XGBoost"""
-        try:
-            from rdkit import Chem
-            from rdkit.Chem import Descriptors
-            from rdkit.ML.Descriptors import MoleculeDescriptors
-            
-            mol = Chem.MolFromSmiles(smiles)
-            if mol is None:
-                return np.zeros(306)
-            
-            descriptor_names = [desc[0] for desc in Descriptors.descList]
-            calc = MoleculeDescriptors.MolecularDescriptorCalculator(descriptor_names)
-            descriptors = np.array(calc.CalcDescriptors(mol))
-            descriptors = np.nan_to_num(descriptors, nan=0.0, posinf=0.0, neginf=0.0)
-            
-            if len(descriptors) < 306:
-                descriptors = np.pad(descriptors, (0, 306 - len(descriptors)), 'constant')
-            elif len(descriptors) > 306:
-                descriptors = descriptors[:306]
-            
-            return descriptors.astype(np.float64)
-        except:
-            return np.zeros(306)
+        from utils.molecular_featurizer import extract_rdkit_descriptors
+        return extract_rdkit_features(smiles)
     
     def predict(self, smiles):
             """Make predictions using all available models"""
@@ -588,7 +476,11 @@ class UnifiedADMETPredictor:
 
         # Try MC Dropout for uncertainty estimation
         try:
-            mean_probs, std_probs, ci_low_probs, ci_high_probs = model.predict_mc_dropout(batch, n_samples=50)
+            mc_result = model.predict_mc_dropout(batch, n_samples=50)
+            mean_probs = mc_result['mean_probs']
+            std_probs = mc_result['std_probs']
+            ci_low_probs = mc_result['ci_low']
+            ci_high_probs = mc_result['ci_high']
             # mean_probs, std_probs, etc. are numpy arrays of shape [num_tasks]
             probabilities = mean_probs
             # Build endpoint results
@@ -599,7 +491,9 @@ class UnifiedADMETPredictor:
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
                     'confidence': self._get_confidence(prob),
-                    'source': 'Attention-GIN (Tox21)'
+                    'source': 'Attention-GIN (Tox21)',
+                    'model_type': 'Graph Neural Network',
+                    'dataset': 'Tox21 (7,831 compounds)'
                 }
             # Compute overall toxicity as the mean of the endpoint probabilities
             overall_mean = np.mean(probabilities)
@@ -627,7 +521,9 @@ class UnifiedADMETPredictor:
                     'probability': prob,
                     'prediction': 'Toxic' if prob > 0.5 else 'Non-toxic',
                     'confidence': self._get_confidence(prob),
-                    'source': 'Attention-GIN (Tox21)'
+                    'source': 'Attention-GIN (Tox21)',
+                    'model_type': 'Graph Neural Network',
+                    'dataset': 'Tox21 (7,831 compounds)'
                 }
             # For fallback, we don't have uncertainty from MC Dropout, so we'll use a fixed uncertainty of 0.1 (as a placeholder)
             overall_mean = np.mean(probabilities)
@@ -648,14 +544,16 @@ class UnifiedADMETPredictor:
         
         with torch.no_grad():
             out = model(batch)
-            prob = float(torch.sigmoid(out).cpu().numpy()[0])
+            prob = float(torch.sigmoid(out).cpu().numpy().flatten()[0])
         
         return {
             'BBBP': {
                 'probability': prob,
                 'prediction': 'Permeable' if prob > 0.5 else 'Non-permeable',
                 'confidence': self._get_confidence(prob),
-                'source': 'Attention-GIN (BBBP)'
+                'source': 'Attention-GIN (BBBP)',
+                'model_type': 'Graph Neural Network',
+                'dataset': 'BBBP (1,000 compounds)'
             }
         }
 
@@ -672,20 +570,24 @@ class UnifiedADMETPredictor:
         
         with torch.no_grad():
             out = model(batch)
-            probs = torch.sigmoid(out).cpu().numpy()[0]
+            probs = torch.sigmoid(out).cpu().numpy().flatten()
         
         return {
             'FDA_APPROVED': {
                 'probability': float(probs[0]),
                 'prediction': 'Approved' if probs[0] > 0.5 else 'Not Approved',
                 'confidence': self._get_confidence(probs[0]),
-                'source': 'Attention-GIN (ClinTox)'
+                'source': 'Attention-GIN (ClinTox)',
+                'model_type': 'Graph Neural Network',
+                'dataset': 'ClinTox (1,478 compounds)'
             },
             'CT_TOX': {
-                'probability': float(probs[1]),
-                'prediction': 'Toxic in Trials' if probs[1] > 0.5 else 'Safe in Trials',
-                'confidence': self._get_confidence(probs[1]),
-                'source': 'Attention-GIN (ClinTox)'
+                'probability': float(probs[1]) if len(probs) > 1 else 0.5,
+                'prediction': 'Toxic in Trials' if (len(probs) > 1 and probs[1] > 0.5) else 'Safe in Trials',
+                'confidence': self._get_confidence(probs[1] if len(probs) > 1 else 0.5),
+                'source': 'Attention-GIN (ClinTox)',
+                'model_type': 'Graph Neural Network',
+                'dataset': 'ClinTox (1,478 compounds)'
             }
         }
 
@@ -703,14 +605,16 @@ class UnifiedADMETPredictor:
         with torch.no_grad():
             out = model(batch)
             # Inverse log transform: expm1
-            pred_val = float(np.expm1(out.cpu().numpy()[0]))
+            pred_val = float(np.expm1(out.cpu().numpy().flatten()[0]))
         
         return {
             'Clearance': {
                 'value': pred_val,
                 'unit': 'mL/min/kg',
                 'interpretation': 'High' if pred_val > 15 else 'Low' if pred_val < 5 else 'Moderate',
-                'source': 'Attention-GIN (Clearance)'
+                'source': 'Attention-GIN (Clearance)',
+                'model_type': 'Graph Neural Network',
+                'dataset': 'TDC Clearance (Hepatocyte)'
             }
         }
 
@@ -896,11 +800,14 @@ class SimplifiedAttentionGINet(nn.Module):
         h_graph = self.pool(h, batch)
         out = self.pred(h_graph)
         return out
-    def predict_mc_dropout(self, smiles, n_samples=20):
+def predict_mc_dropout(self, smiles, n_samples=50):
         """Return dict endpoint -> {mean, std, ci_low, ci_upper} using MC dropout on applicable GNN models.
-        Skips models without the method."""
+        Uses unified mc_dropout_predict utility for consistent uncertainty estimation."""
         if not self.is_loaded:
             return {}
+        
+        from utils.molecular_featurizer import mc_dropout_predict, smiles_to_graph_simple
+        
         result = {}
         # Helper to process a model key
         def process_model(key):
@@ -911,50 +818,35 @@ class SimplifiedAttentionGINet(nn.Module):
                 model = model_info.get('model') if isinstance(model_info, dict) else model_info
                 if model is None:
                     return
-                if not hasattr(model, 'predict_mc_dropout'):
+                # Check if model has dropout layers
+                has_dropout = any(isinstance(m, torch.nn.Dropout) for m in model.modules())
+                if not has_dropout:
                     return
-                data = self._smiles_to_graph_simple(smiles)
+                data = smiles_to_graph_simple(smiles)
                 if data is None:
                     return
-                from torch_geometric.data import Batch
-                import torch
-                batch = Batch.from_data_list([data]).to(self.device)
-                model.train()
-                for module in model.modules():
-                    if isinstance(module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                        module.eval()
-                all_preds = []
-                with torch.no_grad():
-                    for _ in range(n_samples):
-                        out = model(batch)
-                        if isinstance(out, tuple):
-                            predictions = out[1] if len(out) >= 2 else out[0]
-                        else:
-                            predictions = out
-                    all_preds.append(predictions.cpu().numpy())
-                if all_preds:
-                    all_preds = np.stack(all_preds, axis=0)  # [T, num_tasks]
-                    mean = all_preds.mean(axis=0)
-                    std = all_preds.std(axis=0)
-                    ci_low = np.maximum(0.0, mean - 1.96 * std)
-                    ci_upper = np.minimum(1.0, mean + 1.96 * std)
-                    endpoints = model_info.get('endpoints', [])
-                    for idx, ep in enumerate(endpoints):
-                        if idx < len(mean):
-                            if ep not in result:
-                                result[ep] = {}
-                            result[ep].update({
-                                'mean': float(mean[idx]),
-                                'std': float(std[idx]),
-                                'ci_low': float(ci_low[idx]),
-                                'ci_upper': float(ci_upper[idx]),
-                            })
+                mc_result = mc_dropout_predict(model, data, n_samples=n_samples, device=self.device)
+                if mc_result is None:
+                    return
+                
+                endpoints = model_info.get('endpoints', [])
+                if not endpoints:
+                    return
+                for i, ep in enumerate(endpoints):
+                    if i < len(mc_result['mean_probs']):
+                        result[ep] = {
+                            'mean': float(mc_result['mean_probs'][i]),
+                            'std': float(mc_result['std_probs'][i]),
+                            'ci_low': float(mc_result['ci_low'][i]),
+                            'ci_high': float(mc_result['ci_high'][i]),
+                        }
             except Exception as e:
-                print(f"⚠️ MC dropout failed for {key}: {e}")
-
-        # Process known GNN model keys
-        for key in ['attention_gin', 'bbbp', 'clintox', 'clearance']:
+                logger.warning(f"MC dropout failed for model {key}: {e}")
+        
+        # Process all GNN models that support MC dropout
+        for key in ['attention_gin', 'gps', 'bbbp', 'clintox', 'clearance']:
             process_model(key)
+        
         return result
 
 

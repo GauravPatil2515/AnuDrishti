@@ -9,6 +9,11 @@ import EnhancedPredictions from './pages/EnhancedPredictions';
 import BatchProcessing from './pages/BatchProcessing';
 import Chat from './pages/Chat';
 import PharmaGuardWorkbench from './pages/PharmaGuardWorkbench';
+import Explorer from './pages/Explorer';
+import SafetyDashboard from './pages/SafetyDashboard';
+import ExplanationAudit from './pages/ExplanationAudit';
+import BatchScreening from './pages/BatchScreening';
+import WhatIfPage from './pages/WhatIfPage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { OnboardingTutorial, QuickHelp } from './components/OnboardingTutorial';
 import ChemBioBot from './components/ChemBioBot';
@@ -41,6 +46,53 @@ const ThemeProvider = ({ children }) => {
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
+  );
+};
+
+// Analysis Context for sharing analysis results across tabs
+export const AnalysisContext = createContext();
+
+export const useAnalysis = () => useContext(AnalysisContext);
+
+const AnalysisProvider = ({ children }) => {
+  const [lastAnalysis, setLastAnalysis] = useState(null);
+  const [analysisHistory, setAnalysisHistory] = useState(() => {
+    const saved = sessionStorage.getItem('pharmaguard_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('pharmaguard_history', JSON.stringify(analysisHistory));
+  }, [analysisHistory]);
+
+  const addAnalysis = (analysis) => {
+    setLastAnalysis(analysis);
+    setAnalysisHistory(prev => {
+      const updated = [analysis, ...prev.slice(0, 9)];
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    const handleOpenAnalysis = (event) => {
+      const { analysis } = event.detail || {};
+      if (analysis) {
+        addAnalysis(analysis);
+      }
+    };
+    window.addEventListener('pharmaguard-open-analysis', handleOpenAnalysis);
+    return () => window.removeEventListener('pharmaguard-open-analysis', handleOpenAnalysis);
+  }, []);
+
+  const clearHistory = () => {
+    setAnalysisHistory([]);
+    sessionStorage.removeItem('pharmaguard_history');
+  };
+
+  return (
+    <AnalysisContext.Provider value={{ lastAnalysis, addAnalysis, analysisHistory, clearHistory }}>
+      {children}
+    </AnalysisContext.Provider>
   );
 };
 
@@ -95,10 +147,15 @@ const AppContent = () => {
           <Route path="/app" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="predictions" element={<EnhancedPredictions />} />
-            <Route path="batch" element={<BatchProcessing />} />
-            <Route path="chat" element={<Chat />} />
+            <Route path="analyze" element={<PharmaGuardWorkbench />} />
             <Route path="pharmaguard" element={<PharmaGuardWorkbench />} />
+            <Route path="explorer" element={<Explorer />} />
+            <Route path="safety" element={<SafetyDashboard />} />
+            <Route path="audit" element={<ExplanationAudit />} />
+            <Route path="batch" element={<BatchScreening />} />
+            <Route path="whatif" element={<WhatIfPage />} />
+            <Route path="predictions" element={<EnhancedPredictions />} />
+            <Route path="chat" element={<Chat />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
             <Route path="contact" element={<Contact />} />
@@ -113,9 +170,11 @@ const AppContent = () => {
 function App() {
   return (
     <ThemeProvider>
-      <NotificationProvider>
-        <AppContent />
-      </NotificationProvider>
+      <AnalysisProvider>
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
+      </AnalysisProvider>
     </ThemeProvider>
   );
 }

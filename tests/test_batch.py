@@ -76,9 +76,11 @@ class TestPharmaGuardEndpoints(unittest.TestCase):
                 'triage': {'category': 'GREEN', 'risk_score': 0.2},
                 'toxicity_probability': 0.2,
             }
+            # Use sync mode (default for small batches)
             resp = client.post('/api/analyze/batch', json={
                 'smiles_list': ['CCO', 'c1ccccc1'],
                 'include_explanation': False,
+                'async': False,
             })
         self.assertEqual(resp.status_code, 200)
         data = resp.get_json()

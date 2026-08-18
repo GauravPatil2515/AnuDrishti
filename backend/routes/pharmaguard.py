@@ -491,7 +491,10 @@ def analyze_single():
 
 @pharmaguard_bp.route('/analyze/batch', methods=['POST'])
 def analyze_batch():
-    """Mode B — Async library screening & ranking (PharmaGuard AI)."""
+    """Mode B — Library screening & ranking (PharmaGuard AI).
+    
+    Supports both sync (small batches, async=False) and async (large batches, async=True) modes.
+    """
     try:
         if not predictor or not predictor.is_loaded:
             return jsonify({'error': 'Predictor not initialized'}), 500
@@ -507,56 +510,154 @@ def analyze_batch():
         if len(smiles_list) > 1000:
             return jsonify({'error': 'Maximum 1000 molecules per batch'}), 400
 
+        if len(smiles_list) == 0:
+            return jsonify({'error': 'SMILES list cannot be empty'}), 400
+
         include_explanation = data.get('include_explanation', False)
-        max_workers = min(4, max(1, (os.cpu_count() or 2)))
+        async_mode = data.get('async', len(smiles_list) > 10)
 
-        def _process(smi):
-            smi = smi.strip() if isinstance(smi, str) else smi
-            mol, smiles_err = _validate_smiles(smi)
-            if smiles_err:
-                return {'smiles': smi, 'error': smiles_err, 'code': 'INVALID_SMILES'}
+        # Validate all SMILES upfront
+        for smi in smiles_list:
+            if not isinstance(smi, str) or not smi.strip():
+                return jsonify({'error': 'All items must be non-empty SMILES strings'}), 400
+
+        # Sync mode for small batches (backward compatibility)
+        if not async_mode:
+            max_workers = min(4, max(1, (os.cpu_count() or 2)))
+
+            def _process(smi):
+                smi = smi.strip() if isinstance(smi, str) else smi
+                mol, smiles_err = _validate_smiles(smi)
+                if smiles_err:
+                    return {'smiles': smi, 'error': smiles_err, 'code': 'INVALID_SMILES'}
+                try:
+                    a = _build_pharmaguard_analysis(smi, include_explanation=include_explanation, include_ood=True, use_mc=False)
+                    if a and 'error' not in a:
+                        return a
+                    return {'smiles': smi, 'error': (a or {}).get('error', 'failed')}
+                except Exception as e:
+                    return {'smiles': smi, 'error': str(e)}
+
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=max_workers) as ex:
+                results = list(ex.map(_process, smiles_list))
+
+            # Sort by triage priority (RED first)
+            def _priority(rec):
+                t = rec.get('triage', {}).get('category', 'GREEN')
+                return {'RED': 0, 'YELLOW': 1, 'GREEN': 2}.get(t, 3)
+            results.sort(key=_priority)
+
+            # Persist locally
             try:
-                a = _build_pharmaguard_analysis(smi, include_explanation=include_explanation, include_ood=True, use_mc=False)
-                if a and 'error' not in a:
-                    return a
-                return {'smiles': smi, 'error': (a or {}).get('error', 'failed')}
+                results_dir = Path(__file__).parent.parent / 'batch_results'
+                results_dir.mkdir(exist_ok=True)
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                with open(results_dir / f'pharmaguard_batch_{ts}.json', 'w') as f:
+                    json.dump({'results': results, 'total': len(results),
+                               'timestamp': datetime.now().isoformat()}, f, indent=2)
             except Exception as e:
-                return {'smiles': smi, 'error': str(e)}
+                print(f"⚠️ Batch save failed: {e}")
 
-        # Parallelize molecule processing so a 50-molecule library screen does not
-        # block the single worker for minutes during a live demo (SIH audit Bug #4).
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            results = list(ex.map(_process, smiles_list))
+            return jsonify({
+                'success': True,
+                'mode': 'batch',
+                'total_processed': len(results),
+                'results': results
+            })
 
-        # Sort by triage priority (RED first)
-        def _priority(rec):
-            t = rec.get('triage', {}).get('category', 'GREEN')
-            return {'RED': 0, 'YELLOW': 1, 'GREEN': 2}.get(t, 3)
-        results.sort(key=_priority)
-
-        # Persist locally
-        try:
-            results_dir = Path(__file__).parent.parent / 'batch_results'
-            results_dir.mkdir(exist_ok=True)
-            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-            with open(results_dir / f'pharmaguard_batch_{ts}.json', 'w') as f:
-                json.dump({'results': results, 'total': len(results),
-                           'timestamp': datetime.now().isoformat()}, f, indent=2)
-        except Exception as e:
-            print(f"⚠️ Batch save failed: {e}")
-
+        # Async mode for large jobs
+        from tasks import analyze_batch_task
+        task = analyze_batch_task.delay(smiles_list, include_explanation)
+        
         return jsonify({
             'success': True,
             'mode': 'batch',
-            'total_processed': len(results),
-            'results': results
+            'async': True,
+            'task_id': task.id,
+            'total_submitted': len(smiles_list),
+            'message': 'Batch queued for processing. Poll /analyze/batch-progress/<task_id> for progress.'
         })
 
     except Exception as e:
-        print(f"❌ Batch analysis error: {e}")
+        print(f"❌ Batch error: {e}")
         traceback.print_exc()
-        return jsonify({'error': f'Batch analysis failed: {str(e)}'}), 500
+        return jsonify({'error': f'Batch failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/analyze/batch-progress/<task_id>', methods=['GET'])
+def analyze_batch_progress(task_id):
+    """Get real-time progress of an async batch job."""
+    try:
+        import redis
+        import json
+        redis_client = redis.Redis(
+            host=os.getenv('REDIS_HOST', 'localhost'),
+            port=int(os.getenv('REDIS_PORT', 6379)),
+            db=2,
+            decode_responses=True
+        )
+        
+        progress_key = f"task:{task_id}:progress"
+        progress_data = redis_client.get(progress_key)
+        
+        if not progress_data:
+            return jsonify({
+                'success': False,
+                'error': 'Task not found or expired',
+                'task_id': task_id
+            }), 404
+        
+        return jsonify(json.loads(progress_data))
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@pharmaguard_bp.route('/analyze/batch-result/<task_id>', methods=['GET'])
+def analyze_batch_result(task_id):
+    """Get final result of a completed batch job."""
+    try:
+        import redis
+        import json
+        redis_client = redis.Redis(
+            host=os.getenv('REDIS_HOST', 'localhost'),
+            port=int(os.getenv('REDIS_PORT', 6379)),
+            db=2,
+            decode_responses=True
+        )
+        
+        progress_key = f"task:{task_id}:progress"
+        progress_data = redis_client.get(progress_key)
+        
+        if not progress_data:
+            # Check local files as fallback
+            results_dir = Path(__file__).parent.parent / 'batch_results'
+            files = sorted(results_dir.glob('pharmaguard_batch_*.json'), reverse=True)
+            if files:
+                with open(files[0]) as f:
+                    data = json.load(f)
+                return jsonify({'success': True, **data})
+            return jsonify({'error': 'Task not found'}), 404
+        
+        data = json.loads(progress_data)
+        if data.get('status') == 'completed' and 'result' in data:
+            return jsonify(data['result'])
+        elif data.get('status') == 'failed':
+            return jsonify({
+                'success': False,
+                'error': data.get('result', {}).get('error', 'Task failed'),
+                'task_id': task_id
+            }), 500
+        else:
+            return jsonify({
+                'success': True,
+                'pending': True,
+                'progress': data
+            })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @pharmaguard_bp.route('/analyze/batch-status', methods=['GET'])
@@ -576,7 +677,10 @@ def analyze_batch_status():
 
 @pharmaguard_bp.route('/optimize/what-if', methods=['POST'])
 def optimize_what_if():
-    """Mode C — Counterfactual modification & ADMET optimization (PharmaGuard AI)."""
+    """Mode C — Counterfactual modification & ADMET optimization (PharmaGuard AI).
+    
+    Supports both sync (small n_variants) and async (large n_variants) modes.
+    """
     try:
         if not predictor or not predictor.is_loaded:
             return jsonify({'error': 'Predictor not initialized'}), 500
@@ -590,52 +694,96 @@ def optimize_what_if():
         if smiles_err:
             return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
         n_variants = int(data.get('n_variants', 5))
+        async_mode = data.get('async', n_variants > 10)
 
-        from utils.counterfactual_generator import CounterfactualGenerator
-        cf_gen = CounterfactualGenerator()
-        counterfactuals = cf_gen.generate_optimization_candidates(smiles, n_variants=n_variants)
+        # For small jobs, run synchronously (backward compatibility)
+        if not async_mode:
+            from utils.counterfactual_generator import CounterfactualGenerator
+            cf_gen = CounterfactualGenerator()
+            counterfactuals = cf_gen.generate_optimization_candidates(smiles, n_variants=n_variants)
 
-        candidates = []
-        for cf in counterfactuals:
-            try:
-                if predictor_cached:
-                    cf_result = predictor_cached.predict_single(cf.modified_smiles)
-                else:
-                    cf_result = predictor.predict(cf.modified_smiles)
-                if 'error' in cf_result:
-                    continue
-                cf_tox = 0.0
-                if 'summary' in cf_result:
-                    cf_tox = float(cf_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
-                candidates.append({
-                    'original_smiles': cf.original_smiles,
-                    'modified_smiles': cf.modified_smiles,
-                    'modification_type': cf.modification_type.value if hasattr(cf.modification_type, 'value') else str(cf.modification_type),
-                    'modification_description': cf.modification_description,
-                    'expected_toxicity_change': cf.expected_toxicity_change.value if hasattr(cf.expected_toxicity_change, 'value') else str(cf.expected_toxicity_change),
-                    'confidence': cf.confidence,
-                    'qed': getattr(cf, 'qed', None),
-                    'toxicity_probability': cf_tox,
-                    'predictions': cf_result
-                })
-            except Exception as e:
-                print(f"⚠️ CF prediction failed: {e}")
+            candidates = []
+            for cf in counterfactuals:
+                try:
+                    if predictor_cached:
+                        cf_result = predictor_cached.predict_single(cf.modified_smiles)
+                    else:
+                        cf_result = predictor.predict(cf.modified_smiles)
+                    if 'error' in cf_result:
+                        continue
+                    cf_tox = 0.0
+                    if 'summary' in cf_result:
+                        cf_tox = float(cf_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
+                    candidates.append({
+                        'original_smiles': cf.original_smiles,
+                        'modified_smiles': cf.modified_smiles,
+                        'modification_type': cf.modification_type.value if hasattr(cf.modification_type, 'value') else str(cf.modification_type),
+                        'modification_description': cf.modification_description,
+                        'expected_toxicity_change': cf.expected_toxicity_change.value if hasattr(cf.expected_toxicity_change, 'value') else str(cf.expected_toxicity_change),
+                        'confidence': cf.confidence,
+                        'qed': getattr(cf, 'qed', None),
+                        'toxicity_probability': cf_tox,
+                        'predictions': cf_result
+                    })
+                except Exception as e:
+                    print(f"⚠️ CF prediction failed: {e}")
 
-        # Rank by toxicity reduction
-        candidates.sort(key=lambda c: c.get('toxicity_probability', 1.0))
+            candidates.sort(key=lambda c: c.get('toxicity_probability', 1.0))
 
+            return jsonify({
+                'success': True,
+                'mode': 'what-if',
+                'original_smiles': smiles,
+                'candidates': candidates,
+                'timestamp': datetime.now().isoformat()
+            })
+
+        # Async mode for large jobs
+        from tasks import optimize_whatif_task
+        task = optimize_whatif_task.delay(smiles, n_variants)
+        
         return jsonify({
             'success': True,
             'mode': 'what-if',
-            'original_smiles': smiles,
-            'candidates': candidates,
-            'timestamp': datetime.now().isoformat()
+            'async': True,
+            'task_id': task.id,
+            'n_variants': n_variants,
+            'message': 'Optimization queued. Poll /optimize/what-if-progress/<task_id> for progress.'
         })
 
     except Exception as e:
         print(f"❌ What-if optimization error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Optimization failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/optimize/what-if-progress/<task_id>', methods=['GET'])
+def optimize_whatif_progress(task_id):
+    """Get real-time progress of an async what-if optimization job."""
+    try:
+        import redis
+        import json
+        redis_client = redis.Redis(
+            host=os.getenv('REDIS_HOST', 'localhost'),
+            port=int(os.getenv('REDIS_PORT', 6379)),
+            db=2,
+            decode_responses=True
+        )
+        
+        progress_key = f"task:{task_id}:progress"
+        progress_data = redis_client.get(progress_key)
+        
+        if not progress_data:
+            return jsonify({
+                'success': False,
+                'error': 'Task not found or expired',
+                'task_id': task_id
+            }), 404
+        
+        return jsonify(json.loads(progress_data))
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @pharmaguard_bp.route('/explain/verify', methods=['POST'])
@@ -1109,6 +1257,7 @@ def natural_language_query():
             'intent': result['parsed_intent']['intent'],
             'entities': result['parsed_intent']['entities'],
             'properties': result['parsed_intent']['properties'],
+            'parsed_intent': result['parsed_intent'],
             'response': result['response'],
             'ddi_data': result.get('ddi_data'),
             'trace': result.get('trace', []),
@@ -1260,7 +1409,7 @@ def query_suggestions():
     return jsonify({
         'success': True,
         'suggestions': service.suggest_queries(),
-        'categories': {
+            'categories': {
             'safety': ['Is caffeine safe?', 'What is the safety of aspirin?', 'Toxicity check for benzene'],
             'comparison': ['Compare caffeine and aspirin toxicity', 'Difference between aspirin and ibuprofen'],
             'explanation': ['Why is benzene toxic?', 'Explain cisplatin toxicity', 'Mechanism of doxorubicin'],
@@ -1268,3 +1417,85 @@ def query_suggestions():
             'trend': ['What is the toxicity trend across these molecules?']
         }
     })
+
+
+@pharmaguard_bp.route('/session/stats', methods=['GET'])
+def session_stats():
+    """Return session-scoped analysis statistics for the Dashboard KPIs.
+
+    The frontend stores its analysis history in ``sessionStorage``; this endpoint
+    accepts an optional JSON list of analysis objects (posted from the client) or
+    returns aggregate counts derived from the analysis cache / DB.
+
+    Response fields:
+      - molecules_analyzed : int
+      - avg_efs_score      : float
+      - avg_efs_std        : float  (± band for EFS calibration)
+      - ood_flags          : int   (how many analyses were flagged OOD)
+      - high_triage_count  : int   (RED triage category count)
+      - avg_toxicity_prob  : float
+      - timestamp          : ISO string
+    """
+    try:
+        # The client sends its session history as a JSON body so the server can
+        # compute aggregate metrics without a database.
+        payload = request.get_json(silent=True) or {}
+        history = payload.get('history', [])
+
+        total = len(history)
+        molecules_analyzed = total
+        ood_flags = sum(1 for h in history if h.get('ood', {}).get('is_ood'))
+        high_triage_count = sum(
+            1 for h in history
+            if (h.get('triage', {}).get('category') or '').upper() == 'RED'
+        )
+
+        efs_scores = [
+            h.get('explanation', {}).get('faithfulness_score', h.get('explanation', {}).get('efs'))
+            for h in history
+            if h.get('explanation')
+        ]
+        efs_scores = [float(e) for e in efs_scores if e is not None]
+
+        tox_probs = [
+            h.get('toxicity_probability',
+                  h.get('summary', {}).get('average_toxicity_probability', 0))
+            for h in history
+        ]
+        tox_probs = [float(t) for t in tox_probs]
+
+        avg_efs = round(sum(efs_scores) / len(efs_scores), 4) if efs_scores else 0.0
+        avg_tox = round(sum(tox_probs) / len(tox_probs), 4) if tox_probs else 0.0
+
+        # Rough std approximation (sample std if >= 2 points, else 0)
+        if len(efs_scores) >= 2:
+            mean_e = sum(efs_scores) / len(efs_scores)
+            variance = sum((e - mean_e) ** 2 for e in efs_scores) / (len(efs_scores) - 1)
+            avg_efs_std = round(variance ** 0.5, 4)
+        else:
+            avg_efs_std = 0.0
+
+        return jsonify({
+            'success': True,
+            'molecules_analyzed': molecules_analyzed,
+            'avg_efs_score': avg_efs,
+            'avg_efs_std': avg_efs_std,
+            'ood_flags': ood_flags,
+            'high_triage_count': high_triage_count,
+            'avg_toxicity_prob': avg_tox,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        print(f"❌ session_stats error: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'molecules_analyzed': 0,
+            'avg_efs_score': 0,
+            'avg_efs_std': 0,
+            'ood_flags': 0,
+            'high_triage_count': 0,
+            'avg_toxicity_prob': 0,
+            'timestamp': datetime.now().isoformat()
+        }), 500

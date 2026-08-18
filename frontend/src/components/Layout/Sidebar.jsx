@@ -6,16 +6,54 @@ import {
   BeakerIcon, 
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon,
+  SwatchIcon,
+  MagnifyingGlassIcon,
+  TableCellsIcon,
+  SparklesIcon,
+  Cog6ToothIcon,
+  QuestionMarkCircleIcon,
   XMarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 
-const navigation = [
-  { name: 'PharmaGuard Workbench', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
-  { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
-  { name: 'AI Assistant', href: '/app/chat', icon: ChatBubbleLeftRightIcon },
+const navSections = [
+  {
+    title: 'Overview',
+    items: [
+      { name: 'Dashboard', href: '/app/dashboard', icon: HomeIcon },
+    ]
+  },
+  {
+    title: 'Analysis',
+    items: [
+      { name: 'PharmaGuard Workbench', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
+      { name: 'Batch Screening', href: '/app/batch', icon: TableCellsIcon },
+      { name: 'What-If Optimizer', href: '/app/whatif', icon: SparklesIcon },
+    ]
+  },
+  {
+    title: 'Deep Analysis',
+    items: [
+      { name: 'Molecular Explorer', href: '/app/explorer', icon: SwatchIcon },
+      { name: 'Safety & ADMET', href: '/app/safety', icon: BeakerIcon },
+      { name: 'Explanation Audit', href: '/app/audit', icon: MagnifyingGlassIcon },
+    ]
+  },
+  {
+    title: 'AI Assistant',
+    items: [
+      { name: 'ChemGuard Copilot', href: '/app/chat', icon: ChatBubbleLeftRightIcon },
+    ]
+  },
+  {
+    title: 'Platform',
+    items: [
+      { name: 'Settings', href: '/app/settings', icon: Cog6ToothIcon },
+      { name: 'Help & Docs', href: '/app/help', icon: QuestionMarkCircleIcon },
+    ]
+  }
 ];
 
 const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
@@ -55,43 +93,45 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col pt-2">
-        <ul role="list" className="flex flex-1 flex-col gap-y-6">
-          <li>
-            <div className={clsx("text-[10px] font-bold uppercase tracking-wider text-text-muted mb-2 px-2", collapsed && isDesktop && "sr-only")}>
-              Platform Navigation
-            </div>
-            <ul role="list" className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href || (item.href === '/app/pharmaguard' && location.pathname === '/app');
-                return (
-                  <li key={item.name}>
-                    <Link
-                      to={item.href}
-                      title={collapsed && isDesktop ? item.name : ''}
-                      className={clsx(
-                        isActive
-                          ? 'bg-accent-green/10 text-accent-green border-accent-green/30 font-semibold'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-surface border-transparent',
-                        'group flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-xs border transition-all duration-150',
-                        collapsed && isDesktop && 'justify-center'
-                      )}
-                    >
-                      <item.icon
+        <ul role="list" className="flex flex-1 flex-col gap-y-5">
+          {navSections.map((section) => (
+            <li key={section.title}>
+              <div className={clsx("text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5 px-2", collapsed && isDesktop && "sr-only")}>
+                {section.title}
+              </div>
+              <ul role="list" className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.href || (item.href === '/app/pharmaguard' && location.pathname === '/app');
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        to={item.href}
+                        title={collapsed && isDesktop ? item.name : ''}
                         className={clsx(
-                          isActive ? 'text-accent-green' : 'text-text-muted group-hover:text-text-primary',
-                          'h-4 w-4 shrink-0 transition-colors'
+                          isActive
+                            ? 'bg-accent-green/10 text-accent-green border-accent-green/30 font-semibold'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-surface border-transparent',
+                          'group flex items-center gap-x-3 rounded-lg px-3 py-2 text-xs border transition-all duration-150',
+                          collapsed && isDesktop && 'justify-center'
                         )}
-                        aria-hidden="true"
-                      />
-                      {(!collapsed || !isDesktop) && (
-                        <span className="flex-1 truncate">{item.name}</span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </li>
+                      >
+                        <item.icon
+                          className={clsx(
+                            isActive ? 'text-accent-green' : 'text-text-muted group-hover:text-text-primary',
+                            'h-4 w-4 shrink-0 transition-colors'
+                          )}
+                          aria-hidden="true"
+                        />
+                        {(!collapsed || !isDesktop) && (
+                          <span className="flex-1 truncate">{item.name}</span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
         </ul>
       </nav>
 

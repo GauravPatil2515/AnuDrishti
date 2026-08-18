@@ -13,14 +13,23 @@ const Layout = () => {
       case '/app':
       case '/app/dashboard':
         return 'Dashboard';
+      case '/app/analyze':
       case '/app/pharmaguard':
         return 'PharmaGuard AI Workbench';
+      case '/app/explorer':
+        return 'Molecular Explorer';
+      case '/app/safety':
+        return 'Safety & ADMET Panel';
+      case '/app/audit':
+        return 'Explanation Audit';
+      case '/app/batch':
+        return 'Batch Screening';
+      case '/app/whatif':
+        return 'What-If Optimizer';
       case '/app/chat':
-        return 'AI Assistant';
+        return 'ChemGuard Copilot';
       case '/app/predictions':
         return 'Molecular Predictions';
-      case '/app/batch':
-        return 'Batch Processing';
       case '/app/settings':
         return 'Settings';
       case '/app/help':

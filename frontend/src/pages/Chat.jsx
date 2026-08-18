@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import { clsx } from 'clsx';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
   ChatBubbleLeftRightIcon, PaperAirplaneIcon, SparklesIcon,
   BeakerIcon, ShieldCheckIcon, ShieldExclamationIcon,
   CheckBadgeIcon, MagnifyingGlassIcon, ClipboardDocumentIcon,
-  ChevronDownIcon, ChevronUpIcon, CpuChipIcon
+  ChevronDownIcon, ChevronUpIcon, CpuChipIcon, ArrowRightIcon
 } from '@heroicons/react/24/outline';
 
 const SUGGESTED_PROMPTS = [
@@ -89,8 +90,10 @@ const Chat = () => {
       let replyText = qData.response || '';
       let singleAnalysis = null;
 
-      // Check if SMILES context or single molecule prediction is needed
-      const isSmiles = /[()\[\]=#@\/\.0-9]/.test(textToSend) || textToSend.includes('C') || textToSend.includes('c');
+      // Check if SMILES context or single molecule prediction is needed.
+      // Heuristic: treat as SMILES only if it contains SMILES-specific characters,
+      // has NO spaces (drug names always have spaces or are single words), and is > 10 chars.
+      const isSmiles = !textToSend.includes(' ') && textToSend.length > 10 && /[()\[\]=#@\/\.]/.test(textToSend);
       let targetSmiles = activeSmiles;
       let targetName = activeCompoundName;
 
@@ -124,7 +127,7 @@ const Chat = () => {
         trace: qData.trace || [],
         smiles: targetSmiles,
         compoundName: targetName,
-        efs: singleAnalysis?.explanation?.faithfulness_score || 0.91,
+        efs: singleAnalysis?.explanation?.faithfulness_score || qData.parsed_intent?.efs_score || 0.5,
         validation_passed: true
       };
 
@@ -367,6 +370,22 @@ const Chat = () => {
                     <ClipboardDocumentIcon className="h-3 w-3" />
                     Copy
                   </button>
+                  {m.analysis && (
+                    <button
+                      onClick={() => {
+                        if (m.analysis?.smiles) {
+                          window.dispatchEvent(new CustomEvent('pharmaguard-open-analysis', {
+                            detail: { analysis: m.analysis, source: 'chat' }
+                          }));
+                          navigate('/app/safety');
+                        }
+                      }}
+                      className="flex items-center gap-1 hover:text-accent-green transition-colors"
+                    >
+                      <ArrowRightIcon className="h-3 w-3" />
+                      Open in Workbench
+                    </button>
+                  )}
                 </div>
               )}
             </div>

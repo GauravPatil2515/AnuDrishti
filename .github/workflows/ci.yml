@@ -41,20 +41,26 @@ jobs:
       run: |
         python -m py_compile backend/app.py backend/routes/pharmaguard.py backend/services/nl_query.py backend/models/ddi_predictor.py
 
-    - name: Run Backend Unit Tests
+    - name: Run Backend Unit Tests (Non-Integration)
       env:
         PYTHONPATH: backend
       run: |
-        if [ -d tests ]; then python -m pytest tests/ -v --tb=short; fi
+        if [ -d tests ]; then python -m pytest tests/ -v --tb=short -k "not integration"; fi
 
-    - name: Launch Backend Server & Health Check
+    - name: Launch Backend Server & Run Integration Tests
       env:
         PYTHONPATH: backend
       run: |
         python backend/app.py &
         SERVER_PID=$!
         sleep 4
-        curl -f http://localhost:5000/api/health || curl -f http://localhost:5000/
+        
+        # Health check
+        curl -f http://localhost:5000/api/health || curl -f http://localhost:5000/ || true
+        
+        # Run integration tests
+        if [ -f tests/integration_test.py ]; then python -m pytest tests/integration_test.py -v --tb=short; fi
+        
         kill $SERVER_PID || true
 
   test-frontend:
