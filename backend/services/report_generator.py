@@ -209,11 +209,16 @@ class SimplePDF(_FP):
 def get_pdf_generator():
     """Return the best available PDF generator."""
     if HAS_PDFKIT:
-        return 'pdfkit'
-    elif HAS_FPDF:
+        # Check if wkhtmltopdf is actually available
+        import subprocess
+        try:
+            subprocess.run(['wkhtmltopdf', '--version'], capture_output=True, check=False)
+            return 'pdfkit'
+        except FileNotFoundError:
+            print("⚠️ pdfkit available but wkhtmltopdf not found, trying fpdf...")
+    if HAS_FPDF:
         return 'fpdf'
-    else:
-        raise ImportError("No PDF generation library available. Install pdfkit + wkhtmltopdf, or fpdf.")
+    raise ImportError("No PDF generation library available. Install pdfkit + wkhtmltopdf, or fpdf.")
 
 
 def generate_pdf_report(results: Dict[str, Any]) -> bytes:
@@ -250,29 +255,45 @@ def _generate_pdfkit_report(results: Dict[str, Any]) -> bytes:
 
 def _generate_fpdf_report(results: Dict[str, Any]) -> bytes:
     """Generate PDF using fpdf as a fallback."""
-    
+
+    def sanitize_text(text: str) -> str:
+        """Replace Unicode emojis with ASCII equivalents for Helvetica font."""
+        if not isinstance(text, str):
+            return str(text)
+        return (text
+            .replace('✅', '[OK]')
+            .replace('⚠️', '[WARN]')
+            .replace('❌', '[FAIL]')
+            .replace('🟢', '[GREEN]')
+            .replace('🟡', '[YELLOW]')
+            .replace('🔴', '[RED]')
+            .replace('⚡', '[BOLT]')
+            .replace('🧬', '[DNA]')
+            .replace('📊', '[CHART]')
+        )
+
     pdf = SimplePDF()
     pdf.add_page()
-    
+
     # Title
     pdf.set_font('Helvetica', 'B', 16)
     pdf.set_text_color(67, 56, 200)
     pdf.cell(0, 15, 'PharmaGuard AI - Molecular Safety Report', ln=True, align='C')
     pdf.ln(5)
-    
+
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(107, 115, 128)
     pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', ln=True, align='C')
     pdf.ln(10)
-    
+
     # Section 1: Molecule Overview
     pdf.chapter_title('1. Molecule Overview')
-    pdf.metric_card('SMILES', results.get('smiles', 'N/A'))
-    
+    pdf.metric_card('SMILES', sanitize_text(results.get('smiles', 'N/A')))
+
     summary = results.get('summary', {})
-    assessment = summary.get('overall_assessment', 'Unknown')
+    assessment = sanitize_text(summary.get('overall_assessment', 'Unknown'))
     pdf.metric_card('Overall Assessment', assessment)
-    
+
     # Section 2: Toxicity Probability
     pdf.chapter_title('2. Toxicity Probability')
     mean_toxicity = summary.get('average_toxicity_probability', 0.5)
@@ -280,17 +301,17 @@ def _generate_fpdf_report(results: Dict[str, Any]) -> bytes:
     ci_high = summary.get('toxicity_ci_high', 0.5)
     pdf.metric_card('Mean Toxicity Probability', f'{mean_toxicity:.4f}')
     pdf.metric_card('95% CI', f'[{ci_low:.4f}, {ci_high:.4f}]')
-    
+
     # Section 3: Endpoint Predictions
     pdf.chapter_title('3. Endpoint Predictions')
     predictions = results.get('predictions', {})
     for endpoint, pred in predictions.items():
         if isinstance(pred, dict) and 'probability' in pred:
             pdf.metric_card(
-                endpoint,
-                f"Prob: {pred['probability']:.4f} | {pred.get('prediction', 'N/A')} | Source: {pred.get('source', 'N/A')}"
+                sanitize_text(endpoint),
+                sanitize_text(f"Prob: {pred['probability']:.4f} | {pred.get('prediction', 'N/A')} | Source: {pred.get('source', 'N/A')}")
             )
-    
+
     # Section 4: Model Ensemble
     pdf.chapter_title('4. Model Ensemble')
     pdf.metric_card('Attention-GIN (Tox21)', 'Primary model - 12 endpoints (ROC-AUC 0.8368)')
@@ -298,19 +319,19 @@ def _generate_fpdf_report(results: Dict[str, Any]) -> bytes:
     pdf.metric_card('ChemBERTa', 'Phase 3 - SMILES encoder (768-dim embeddings)')
     pdf.metric_card('GPS Graph Transformer', 'Phase 3 - Graph transformer')
     pdf.metric_card('TDC Models', 'Phase 3 - hERG, DILI, Ames (placeholder)')
-    
+
     # Section 5: Statistics
     pdf.chapter_title('5. Key Statistics')
-    pdf.metric_card('Total Endpoints', summary.get('num_endpoints', 'N/A'))
-    pdf.metric_card('Toxic Endpoints', summary.get('toxic_endpoints', 'N/A'))
+    pdf.metric_card('Total Endpoints', sanitize_text(str(summary.get('num_endpoints', 'N/A'))))
+    pdf.metric_card('Toxic Endpoints', sanitize_text(str(summary.get('toxic_endpoints', 'N/A'))))
     pdf.metric_card('Std Deviation', f"{summary.get('toxicity_std', 0):.4f}")
-    
+
     # Footer
     pdf.ln(10)
     pdf.set_font('Helvetica', '', 8)
     pdf.set_text_color(153, 159, 175)
     pdf.multi_cell(0, 4, 'PharmaGuard AI - Explainable AI for Molecular Toxicity Prediction\nSIH 2026 | Defense-grade AI for molecular safety assessment.')
-    
+
     # Output to bytes
     return pdf.output(dest=bytearray())
 
