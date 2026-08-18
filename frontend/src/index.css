@@ -156,6 +156,18 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+.pill-indigo {
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.3);
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.pill-violet {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.3);
+  background-color: rgba(167, 139, 250, 0.1);
+}
+
 /* Buttons */
 .btn {
   @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150 border border-transparent;

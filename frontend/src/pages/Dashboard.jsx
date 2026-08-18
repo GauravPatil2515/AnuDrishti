@@ -47,10 +47,11 @@ const MODEL_REGISTRY = [
 const Dashboard = () => {
   const { analysisHistory, lastAnalysis } = useAnalysis();
   const [stats, setStats] = useState({
-    molecules_analyzed: 1247,
-    avg_efs_score: 0.82,
-    ood_flags: 23,
-    high_triage_count: 18
+    molecules_analyzed: 0,
+    avg_efs_score: 0.0,
+    ood_flags: 0,
+    high_triage_count: 0,
+    from_session: false
   });
   const [backendStatus, setBackendStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -88,7 +89,8 @@ const Dashboard = () => {
               molecules_analyzed: count,
               avg_efs_score: parseFloat(avgEfs.toFixed(2)),
               ood_flags: oodCount,
-              high_triage_count: redCount
+              high_triage_count: redCount,
+              from_session: true
             });
           }
         });
@@ -98,6 +100,8 @@ const Dashboard = () => {
 
   const modelsLoaded = backendStatus?.models_loaded || [];
   const totalModels = backendStatus?.total_models || 0;
+  const modelSource = backendStatus?.model_source || 'none';
+  const isHeuristic = modelSource === 'heuristic';
   const isBackendOnline = !backendStatus?.error && (backendStatus?.status === 'healthy' || modelsLoaded.length > 0);
 
   return (
@@ -145,7 +149,7 @@ const Dashboard = () => {
             <p className="text-3xl font-black text-text-primary font-mono">
               {typeof stats.avg_efs_score === 'number' ? stats.avg_efs_score.toFixed(2) : stats.avg_efs_score}
             </p>
-            <span className="pill pill-green mb-1">EFS Verified</span>
+            <span className="pill pill-green mb-1">{stats.from_session ? "Session EFS" : "No Data"}</span>
           </div>
         </div>
 
@@ -214,38 +218,13 @@ const Dashboard = () => {
                   );
                 })
               ) : (
-                <>
-                  <div className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-green/10 text-accent-green border border-accent-green/20">
-                      <BeakerIcon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-text-primary">Aspirin Analysis Completed</h3>
-                      <p className="text-xs text-text-secondary truncate mt-0.5">
-                        Safety profile verified with EFS 0.91 - Non-toxic
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="pill pill-green">Verified</span>
-                      <p className="text-[10px] text-text-muted mt-1">Example</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-4 hover:bg-surface-hover transition-colors">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
-                      <CheckBadgeIcon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-text-primary">Batch Processing Finished</h3>
-                      <p className="text-xs text-text-secondary truncate mt-0.5">
-                        50 molecules screened - 3 flagged for review
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="pill pill-yellow">Complete</span>
-                      <p className="text-[10px] text-text-muted mt-1">Example</p>
-                    </div>
-                  </div>
-                </>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <BeakerIcon className="h-10 w-10 text-text-muted mb-3" />
+                  <h3 className="text-sm font-bold text-text-primary">No molecules analyzed yet</h3>
+                  <p className="text-xs text-text-secondary mt-1 max-w-xs">
+                    Analyze a molecule in the <Link to="/app/pharmaguard" className="text-accent-green hover:underline">Workbench</Link> to populate live session stats here.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -280,14 +259,14 @@ const Dashboard = () => {
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-semibold text-text-secondary">Attention-GIN (Tox21)</span>
-                    <span className={`text-xs font-bold ${modelsLoaded.includes?.('attention_gin') || isBackendOnline ? 'text-accent-emerald' : 'text-accent-red'}`}>
-                      {modelsLoaded.includes?.('attention_gin') || isBackendOnline ? 'Active' : 'Not Loaded'}
+                    <span className={`text-xs font-bold ${modelsLoaded.includes?.('attention_gin') || (isBackendOnline && !isHeuristic) ? 'text-accent-emerald' : isHeuristic ? 'text-accent-amber' : 'text-accent-red'}`}>
+                      {isHeuristic ? 'Heuristic Mode' : (modelsLoaded.includes?.('attention_gin') || isBackendOnline ? 'Active' : 'Not Loaded')}
                     </span>
                   </div>
                   <div className="h-1.5 w-full bg-surface-elevated rounded-full overflow-hidden">
                     <div className={`h-full ${isBackendOnline ? 'bg-accent-emerald' : 'bg-accent-red'} w-full`} />
                   </div>
-                  <p className="text-[10px] text-text-muted mt-0.5">ROC-AUC 0.8368 · 12 Tox21 endpoints</p>
+                  <p className="text-[10px] text-text-muted mt-0.5">{isHeuristic ? 'Rule-based (no weights) · 12 Tox21 endpoints' : 'ROC-AUC 0.8368 · 12 Tox21 endpoints'}</p>
                 </div>
                 
                 <div>

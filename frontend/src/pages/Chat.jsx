@@ -7,7 +7,8 @@ import {
   ChatBubbleLeftRightIcon, PaperAirplaneIcon, SparklesIcon,
   BeakerIcon, ShieldCheckIcon, ShieldExclamationIcon,
   CheckBadgeIcon, MagnifyingGlassIcon, ClipboardDocumentIcon,
-  ChevronDownIcon, ChevronUpIcon, CpuChipIcon, ArrowRightIcon
+  ChevronDownIcon, ChevronUpIcon, CpuChipIcon, ArrowRightIcon,
+  ExclamationCircleIcon, InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const SUGGESTED_PROMPTS = [
@@ -65,6 +66,153 @@ const Chat = () => {
 
   const toggleTrace = (id) => {
     setExpandedTraces(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Render structured prediction cards for comparison
+  const renderComparisonCards = (parsedIntent, ddiData) => {
+    const entities = parsedIntent?.entities || [];
+    if (entities.length < 2) return null;
+    
+    const mol1 = entities[0];
+    const mol2 = entities[1];
+    
+    return (
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {entities.map((smiles, idx) => (
+          <div key={idx} className="surface p-3 rounded-lg border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-text-primary text-xs">Molecule {idx + 1}</span>
+              <span className="pill pill-emerald text-[9px] font-mono">{smiles.slice(0, 20)}...</span>
+            </div>
+            <code className="font-mono text-[10px] text-text-muted break-all block mb-2">{smiles}</code>
+            {/* Prediction would come from parsed_intent or separate call */}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Render DDI structured card
+  const renderDDICard = (ddi) => {
+    if (!ddi || !ddi.success) return null;
+    
+    const metrics = ddi.metrics || {};
+    const riskLevel = metrics.risk_level || 'UNKNOWN';
+    const riskColor = riskLevel === 'HIGH' ? 'accent-red' : riskLevel === 'MODERATE' ? 'accent-amber' : 'accent-emerald';
+    
+    return (
+      <div className="mt-3 p-3 rounded-lg bg-surface border border-border space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldExclamationIcon className="h-4 w-4 text-accent-amber" />
+            <span className="font-bold text-xs uppercase tracking-wider">Drug-Drug Interaction Risk</span>
+          </div>
+          <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded uppercase border bg-${riskColor}/10 text-${riskColor} border-${riskColor}/30`}>
+            {riskLevel} RISK ({(metrics.interaction_risk_score * 100).toFixed(0)}%)
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          {ddi.molecules?.map((mol, idx) => (
+            <div key={idx} className="p-2 rounded bg-surface-elevated border border-border">
+              <p className="font-semibold text-text-primary text-[11px]">{mol.name}</p>
+              <code className="font-mono text-[10px] text-text-muted break-all">{mol.smiles}</code>
+              {mol.alerts?.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {mol.alerts.map((al, aIdx) => (
+                    <span key={aIdx} className="text-[9px] font-mono px-1 py-0.25 rounded bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
+                      {al}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] font-mono text-text-muted">
+          <span>ChemBERTa Cosine Sim: <strong className="text-accent-green">{metrics.chemberta_cosine_similarity}</strong></span>
+          <span>Tanimoto Sim: <strong className="text-text-primary">{metrics.tanimoto_similarity}</strong></span>
+        </div>
+      </div>
+    );
+  };
+
+  // Render TDC endpoints card
+  const renderTDCCard = (tdcPredictions) => {
+    if (!tdcPredictions) return null;
+    
+    return (
+      <div className="mt-3 pt-3 border-t border-border space-y-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+          TDC Regulatory Safety Endpoints
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {Object.entries(tdcPredictions).map(([endpoint, data]) => {
+            const prob = data.probability || 0;
+            const riskColor = prob >= 0.6 ? 'text-accent-red border-accent-red/30 bg-accent-red/10'
+              : prob >= 0.3 ? 'text-accent-amber border-accent-amber/30 bg-accent-amber/10'
+              : 'text-accent-emerald border-accent-emerald/30 bg-accent-emerald/10';
+            return (
+              <div key={endpoint} className={clsx('p-2 rounded-lg border text-center', riskColor)}>
+                <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{endpoint}</p>
+                <p className="font-mono text-sm font-black mt-0.5">{(prob * 100).toFixed(0)}%</p>
+                <p className="text-[9px] opacity-75 capitalize">{data.risk_level} Risk</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // Render agent trace accordion
+  const renderTraceAccordion = (trace, messageId) => {
+    if (!trace || trace.length === 0) return null;
+    
+    return (
+      <div className="mt-3 pt-2 border-t border-border/50">
+        <button
+          onClick={() => toggleTrace(messageId)}
+          className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-accent-green hover:underline focus:outline-none"
+        >
+          <CpuChipIcon className="h-3.5 w-3.5" />
+          <span>{expandedTraces[messageId] ? 'Hide Agent Thought Trace' : `Show Agent Thought Trace (${trace.length} steps)`}</span>
+          {expandedTraces[messageId] ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+        </button>
+
+        {expandedTraces[messageId] && (
+          <div className="mt-2 p-2 rounded-lg bg-surface border border-border space-y-1 font-mono text-[10px]">
+            {trace.map((step, sIdx) => (
+              <div key={sIdx} className="flex items-start gap-2 text-text-secondary">
+                <span className="text-accent-green font-bold shrink-0">[{step.step}]</span>
+                <span className="font-semibold text-text-primary shrink-0">{step.agent}:</span>
+                <span className="text-text-muted">{step.action}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render suggestions chips
+  const renderSuggestions = (suggestions, onSend) => {
+    if (!suggestions || suggestions.length === 0) return null;
+    
+    return (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {suggestions.map((s, idx) => (
+          <button
+            key={idx}
+            onClick={() => onSend(s)}
+            className="pill pill-emerald text-[10px] font-mono hover:bg-accent-green/20 transition-colors"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   const handleSend = async (queryText) => {
@@ -127,8 +275,10 @@ const Chat = () => {
         trace: qData.trace || [],
         smiles: targetSmiles,
         compoundName: targetName,
+        parsed_intent: qData.parsed_intent,
         efs: singleAnalysis?.explanation?.faithfulness_score || qData.parsed_intent?.efs_score || 0.5,
-        validation_passed: true
+        validation_passed: singleAnalysis?.explanation?.validation_passed ?? (qData.parsed_intent?.validation_passed ?? false),
+        suggestions: qData.suggestions
       };
 
       setMessages(prev => [...prev, assistantMsg]);
@@ -242,10 +392,16 @@ const Chat = () => {
               <span>•</span>
               <span>{m.timestamp}</span>
               {m.efs && m.sender === 'assistant' && (
-                <span className="inline-flex items-center gap-1 font-mono text-[9px] px-1.5 py-0.25 rounded bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
-                  <CheckBadgeIcon className="h-3 w-3" />
-                  EFS {(m.efs * 100).toFixed(0)}% VERIFIED
-                </span>
+                m.validation_passed ? (
+                  <span className="inline-flex items-center gap-1 font-mono text-[9px] px-1.5 py-0.25 rounded bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
+                    <CheckBadgeIcon className="h-3 w-3" />
+                    EFS {(m.efs * 100).toFixed(0)}% VERIFIED
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 font-mono text-[9px] px-1.5 py-0.25 rounded bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
+                    EFS ~{(m.efs * 100).toFixed(0)}% ESTIMATED
+                  </span>
+                )
               )}
             </div>
 
@@ -263,99 +419,19 @@ const Chat = () => {
               </div>
 
               {/* DDI Alert Card (If Drug-Drug Interaction present) */}
-              {m.ddi && m.ddi.success && (
-                <div className="mt-3 p-3 rounded-lg bg-surface border border-border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldExclamationIcon className="h-4 w-4 text-accent-amber" />
-                      <span className="font-bold text-xs uppercase tracking-wider">Drug-Drug Interaction Risk</span>
-                    </div>
-                    <span className={clsx(
-                      "font-mono text-[10px] font-bold px-2 py-0.5 rounded uppercase border",
-                      m.ddi.metrics?.risk_level === 'HIGH' ? "bg-accent-red/10 text-accent-red border-accent-red/30"
-                      : m.ddi.metrics?.risk_level === 'MODERATE' ? "bg-accent-amber/10 text-accent-amber border-accent-amber/30"
-                      : "bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30"
-                    )}>
-                      {m.ddi.metrics?.risk_level} RISK ({(m.ddi.metrics?.interaction_risk_score * 100).toFixed(0)}%)
-                    </span>
-                  </div>
-
-                  {/* Multi-molecule SMILES badges */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {m.ddi.molecules?.map((mol, idx) => (
-                      <div key={idx} className="p-2 rounded bg-surface-elevated border border-border">
-                        <p className="font-semibold text-text-primary text-[11px]">{mol.name}</p>
-                        <code className="font-mono text-[10px] text-text-muted break-all">{mol.smiles}</code>
-                        {mol.alerts?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {mol.alerts.map((al, aIdx) => (
-                              <span key={aIdx} className="text-[9px] font-mono px-1 py-0.25 rounded bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
-                                {al}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* ChemBERTa & Tanimoto similarity metrics */}
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] font-mono text-text-muted">
-                    <span>ChemBERTa Cosine Sim: <strong className="text-accent-green">{m.ddi.metrics?.chemberta_cosine_similarity}</strong></span>
-                    <span>Tanimoto Sim: <strong className="text-text-primary">{m.ddi.metrics?.tanimoto_similarity}</strong></span>
-                  </div>
-                </div>
-              )}
+              {renderDDICard(m.ddi)}
 
               {/* TDC Safety Endpoints Card (If available in single analysis) */}
-              {m.analysis?.predictions?.tdc_predictions && (
-                <div className="mt-3 pt-3 border-t border-border space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                    TDC Regulatory Safety Endpoints
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {Object.entries(m.analysis.predictions.tdc_predictions).map(([endpoint, data]) => {
-                      const prob = data.probability || 0;
-                      const riskColor = prob >= 0.6 ? 'text-accent-red border-accent-red/30 bg-accent-red/10'
-                        : prob >= 0.3 ? 'text-accent-amber border-accent-amber/30 bg-accent-amber/10'
-                        : 'text-accent-emerald border-accent-emerald/30 bg-accent-emerald/10';
-                      return (
-                        <div key={endpoint} className={clsx('p-2 rounded-lg border text-center', riskColor)}>
-                          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{endpoint}</p>
-                          <p className="font-mono text-sm font-black mt-0.5">{(prob * 100).toFixed(0)}%</p>
-                          <p className="text-[9px] opacity-75 capitalize">{data.risk_level} Risk</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              {renderTDCCard(m.analysis?.predictions?.tdc_predictions)}
+
+              {/* Comparison cards from parsed_intent */}
+              {renderComparisonCards(m.parsed_intent, m.ddi)}
 
               {/* Agent Reasoning Trace Accordion */}
-              {m.trace && m.trace.length > 0 && (
-                <div className="mt-3 pt-2 border-t border-border/50">
-                  <button
-                    onClick={() => toggleTrace(m.id)}
-                    className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-accent-green hover:underline focus:outline-none"
-                  >
-                    <CpuChipIcon className="h-3.5 w-3.5" />
-                    <span>{expandedTraces[m.id] ? 'Hide Agent Thought Trace' : `Show Agent Thought Trace (${m.trace.length} steps)`}</span>
-                    {expandedTraces[m.id] ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
-                  </button>
+              {renderTraceAccordion(m.trace, m.id)}
 
-                  {expandedTraces[m.id] && (
-                    <div className="mt-2 p-2 rounded-lg bg-surface border border-border space-y-1 font-mono text-[10px]">
-                      {m.trace.map((step, sIdx) => (
-                        <div key={sIdx} className="flex items-start gap-2 text-text-secondary">
-                          <span className="text-accent-green font-bold shrink-0">[{step.step}]</span>
-                          <span className="font-semibold text-text-primary shrink-0">{step.agent}:</span>
-                          <span className="text-text-muted">{step.action}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Suggestions chips */}
+              {m.suggestions && renderSuggestions(m.suggestions, handleSend)}
 
               {/* Action buttons on assistant message */}
               {m.sender === 'assistant' && !m.isInitial && (
