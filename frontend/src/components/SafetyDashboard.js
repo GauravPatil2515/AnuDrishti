@@ -132,118 +132,106 @@ const SafetyDashboard = ({ analysis }) => {
     <div className="space-y-6">
       
       {/* Top Banner Area - Triage and Score */}
-      <div className={clsx('flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-xl border p-5 shadow-sm', style.banner)}>
-        <div className="flex items-center gap-4 mb-4 sm:mb-0">
-          <div className={clsx("flex h-12 w-12 items-center justify-center rounded-xl bg-canvas bg-opacity-50 shadow-sm", style.chip)}>
-            <style.Icon className="h-7 w-7" />
+      <div className={clsx(
+        'relative overflow-hidden rounded-2xl border p-6 sm:p-8 shadow-xl backdrop-blur-xl transition-all duration-500',
+        style.banner.replace('bg-', 'bg-gradient-to-br from-').replace('/5', '/10 to-surface/40')
+      )}>
+        {/* Decorative background blur */}
+        <div className={clsx('absolute -right-20 -top-20 h-64 w-64 rounded-full blur-3xl opacity-20', style.chip)} />
+        
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className={clsx("flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg backdrop-blur-md border", style.chip)}>
+              <style.Icon className="h-8 w-8" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70 mb-1">Safety Assessment</p>
+              <p className="text-3xl sm:text-4xl font-black font-display tracking-tight">{triage.category}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-80">Safety Assessment</p>
-            <p className="text-2xl font-black font-display">{triage.category}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6 w-full sm:w-auto">
-          <div className="text-left sm:text-right">
-            <p className="text-xs font-semibold opacity-80 uppercase tracking-widest">Risk Score</p>
-            <p className="text-3xl font-black font-mono">
-              {(triage.risk_score * 100).toFixed(0)}
-            </p>
-          </div>
-          <div className="hidden sm:block h-10 w-px bg-current opacity-20"></div>
-          <div className="flex-1 text-right sm:text-left">
-            <span className={clsx('inline-block rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wider', style.chip)}>
-              {triage.recommendation}
-            </span>
+          
+          <div className="flex items-center gap-8 w-full sm:w-auto bg-surface/30 px-6 py-4 rounded-xl border border-border/30 backdrop-blur-sm">
+            <div className="text-left sm:text-right">
+              <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest mb-1">Risk Score</p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-4xl font-black font-mono tracking-tighter">
+                  {(triage.risk_score * 100).toFixed(0)}
+                </p>
+                <span className="text-sm font-bold opacity-60">/100</span>
+              </div>
+            </div>
+            <div className="hidden sm:block h-12 w-px bg-current opacity-20"></div>
+            <div className="flex-1 text-right sm:text-left">
+              <span className={clsx('inline-block rounded-lg px-4 py-2 text-sm font-bold uppercase tracking-wider shadow-sm', style.chip)}>
+                {triage.recommendation}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Faithfulness EFS Box */}
-      {analysis.explanation && (
-        <div className="surface p-5 border-l-4 border-l-accent-green shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-green/10 border border-accent-green/20 shadow-glow-green relative">
-                <span className="text-lg font-black text-accent-green font-mono">
-                  {(() => {
-                    const efs = analysis.explanation.faithfulness_score ?? analysis.explanation.efs;
-                    return efs != null ? Math.round(efs * 100) : '--';
-                  })()}
-                </span>
-                <svg className="absolute inset-0 h-full w-full -rotate-90 text-accent-green/20" viewBox="0 0 36 36">
-                  <path strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="2"></path>
-                </svg>
-              </div>
-              
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-bold text-text-primary font-display">Explanation Faithfulness Score (EFS)</h3>
-                  {(() => {
-                    const status = analysis.explanation.validation_passed ? 'VERIFIED' :
-                                   analysis.explanation.validation_passed === false ? 'REJECTED' : 'UNCHECKED';
-                    const badge = EFS_BADGES[status] || EFS_BADGES.PARTIAL;
-                    const Icon = badge.icon || CheckBadgeIcon;
-                    return (
-                      <span className={clsx('pill', badge.className)}>
-                        <Icon className="h-3 w-3 inline mr-1" /> {badge.label}
-                      </span>
-                    );
-                  })()}
-                </div>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  The LLM's explanation has been counterfactually verified against the GNN's logic. 
-                  Claims not supported by molecular evidence are rejected.
-                </p>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      )}
+
 
       {/* Grid of Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="surface p-4 hover:shadow-card-hover transition-shadow">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">
-            <BeakerIcon className="h-4 w-4 text-accent-green" /> Toxicity Prob (95% CI)
+      <div className="grid gap-5 md:grid-cols-3">
+        {/* Toxicity Prob Card */}
+        <div className="relative overflow-hidden surface p-5 rounded-xl hover:shadow-card-hover transition-all duration-300 border border-border/50 group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <BeakerIcon className="h-24 w-24" />
           </div>
-          <div className="flex items-end gap-2">
-            <p className="text-3xl font-black text-text-primary font-mono">
-              {(toxProb * 100).toFixed(0)}%
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted mb-4">
+            <BeakerIcon className="h-4 w-4 text-accent-green" /> Toxicity Prob
+          </div>
+          <div className="flex items-end gap-2 relative z-10">
+            <p className="text-4xl font-black text-text-primary font-mono tracking-tighter">
+              {(toxProb * 100).toFixed(0)}<span className="text-2xl text-text-muted">%</span>
             </p>
-            <p className="text-sm text-text-muted font-mono mb-1">
-              [{`${(ciLow * 100).toFixed(0)}-${(ciHigh * 100).toFixed(0)}%`}]
+            <p className="text-xs text-text-muted font-mono mb-1.5 font-medium">
+              [{(ciLow * 100).toFixed(0)}-{(ciHigh * 100).toFixed(0)}% CI]
             </p>
           </div>
         </div>
 
-        <div className={clsx('surface p-4 hover:shadow-card-hover transition-shadow border-l-4', ood.is_ood ? 'border-l-accent-red' : 'border-l-accent-emerald')}>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">
+        {/* Domain Novelty Card */}
+        <div className={clsx(
+          'relative overflow-hidden surface p-5 rounded-xl hover:shadow-card-hover transition-all duration-300 border group',
+          ood.is_ood ? 'border-accent-red/40 bg-accent-red/5' : 'border-accent-emerald/40 bg-accent-emerald/5'
+        )}>
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <SignalIcon className="h-24 w-24" />
+          </div>
+          <div className={clsx(
+            "flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] mb-4",
+            ood.is_ood ? 'text-accent-red' : 'text-accent-emerald'
+          )}>
             <SignalIcon className="h-4 w-4" /> Domain Novelty (OOD)
           </div>
-          <div className="flex items-end gap-2">
-            <p className={clsx('text-xl font-bold font-display', ood.is_ood ? 'text-accent-red' : 'text-accent-emerald')}>
+          <div className="relative z-10">
+            <p className={clsx('text-xl sm:text-2xl font-black font-display tracking-tight leading-none', ood.is_ood ? 'text-accent-red' : 'text-accent-emerald')}>
               {ood.is_ood ? 'OUT-OF-DISTRIBUTION' : 'IN-DISTRIBUTION'}
             </p>
+            {ood.nearest_neighbor_similarity != null && (
+              <p className="text-xs font-medium text-text-muted font-mono mt-3 opacity-80">
+                Nearest Neighbor: {(ood.nearest_neighbor_similarity * 100).toFixed(0)}% similarity
+              </p>
+            )}
           </div>
-          {ood.nearest_neighbor_similarity != null && (
-            <p className="text-[11px] text-text-muted font-mono mt-1">
-              Nearest Neighbor: {(ood.nearest_neighbor_similarity * 100).toFixed(0)}% sim
-            </p>
-          )}
         </div>
 
-        <div className="surface p-4 hover:shadow-card-hover transition-shadow">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">
+        {/* Epistemic Band Card */}
+        <div className="relative overflow-hidden surface p-5 rounded-xl hover:shadow-card-hover transition-all duration-300 border border-border/50 group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <ScaleIcon className="h-24 w-24" />
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted mb-4">
             <ScaleIcon className="h-4 w-4 text-accent-green" /> Epistemic Band
           </div>
-          <div className="flex items-end gap-2">
-            <p className="text-2xl font-bold text-text-primary font-display">
+          <div className="flex items-end gap-3 relative z-10">
+            <p className="text-3xl font-black text-text-primary font-display tracking-tight">
               {overallUnc.epistemic_uncertainty || 'Moderate'}
             </p>
             {overallUnc.epistemic_std != null && (
-              <p className="text-sm text-text-muted font-mono mb-1">
+              <p className="text-sm font-bold text-text-muted font-mono mb-1">
                 ±{(overallUnc.epistemic_std * 100).toFixed(1)}%
               </p>
             )}
@@ -253,73 +241,77 @@ const SafetyDashboard = ({ analysis }) => {
 
       {/* TDC Core Toxicity Endpoints: hERG, DILI, Ames */}
       {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 && (
-        <div className="grid gap-4 md:grid-cols-3">
-          {['herg', 'dili', 'ames'].map((key) => {
-            const item = analysis.tdc_predictions[key];
-            if (!item) return null;
-          
-            const isHighRisk = item.probability >= 0.7;
-            const isMediumRisk = item.probability >= 0.3 && item.probability < 0.7;
-            const riskColor = isHighRisk ? 'red' : isMediumRisk ? 'amber' : 'emerald';
-            const riskLabel = isHighRisk ? 'HIGH' : isMediumRisk ? 'MODERATE' : 'LOW';
-            const barColorClass = {
-              red: 'bg-red-500',
-              amber: 'bg-amber-500',
-              emerald: 'bg-emerald-500',
-            }[riskColor];
-          
-            return (
-              <div key={key} className="border border-border/60 surface rounded-xl p-4 hover:border-border/80 transition-border">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-text-primary font-display">{item.name}</h3>
-                  <div className="flex items-center gap-2 text-xs font-medium">
-                    <span className={`pill-${riskColor}`}>{riskLabel}</span>
-                    <span className="text-text-muted">{item.label}</span>
+        <>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted flex items-center gap-2">
+            <BeakerIcon className="h-4 w-4 text-accent-green" /> Key Clinical Endpoints
+          </h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            {['herg', 'dili', 'ames'].map((key) => {
+              const item = analysis.tdc_predictions[key];
+              if (!item) return null;
+            
+              const isHighRisk = item.probability >= 0.7;
+              const isMediumRisk = item.probability >= 0.3 && item.probability < 0.7;
+              const riskColor = isHighRisk ? 'red' : isMediumRisk ? 'amber' : 'emerald';
+              const riskLabel = isHighRisk ? 'HIGH RISK' : isMediumRisk ? 'MODERATE' : 'LOW RISK';
+              const barColorClass = { red: 'bg-red-500', amber: 'bg-amber-500', emerald: 'bg-emerald-500' }[riskColor];
+              const cardBg = { red: 'bg-red-500/5 border-red-500/30', amber: 'bg-amber-500/5 border-amber-500/30', emerald: 'bg-emerald-500/5 border-emerald-500/30' }[riskColor];
+            
+              return (
+                <div key={key} className={`surface rounded-xl p-5 border ${cardBg}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-text-primary font-display">{item.name}</h3>
+                      <p className="text-xs text-text-muted mt-0.5">{item.label}</p>
+                    </div>
+                    <span className={`pill-${riskColor} text-xs font-bold`}>{riskLabel}</span>
                   </div>
-                </div>
-          
-                {/* Probability bar */}
-                <div className="w-full bg-border/20 rounded-full h-2.5 mb-2">
-                  <div 
-                    className={`${barColorClass} h-2.5 rounded-full`} 
-                    style={{ width: `${Math.min(item.probability * 100, 100)}%` }}
-                  ></div>
-                </div>
-          
-                <p className="text-sm text-text-secondary">{item.probability.toFixed(3)} probability</p>
-          
-                {/* Structural alerts */}
-                {item.alerts && item.alerts.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <span className="text-xs font-semibold text-text-muted">Alerts:</span>
-                    {item.alerts.map((alert, idx) => (
-                      <span 
-                        key={idx} 
-                        className="px-2 py-0.5 rounded text-xs font-mono bg-surface/50 border border-border/30"
-                      >
-                        {alert}
-                      </span>
-                    ))}
+            
+                  {/* Probability bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs mb-1.5">
+                      <span className="font-medium text-text-muted">Risk Probability</span>
+                      <span className="font-bold text-text-primary font-mono">{(item.probability * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-border/30 rounded-full h-3">
+                      <div 
+                        className={`${barColorClass} h-3 rounded-full transition-all duration-700`}
+                        style={{ width: `${Math.min(item.probability * 100, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                )}
-          
-                {/* Risk level description */}
-                <p className="mt-2 text-xs text-text-muted">
-                  {isHighRisk ? 'Significant structural alert detected' : 
-                   isMediumRisk ? 'Moderate risk indicators present' : 
-                   'Low risk based on current models'}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+            
+                  {/* Structural alerts */}
+                  {item.alerts && item.alerts.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-semibold text-text-muted mb-1">Structural Alerts:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.alerts.map((alert, idx) => (
+                          <span key={idx} className="px-2 py-0.5 rounded-md text-xs font-mono bg-surface border border-border text-text-secondary">
+                            {typeof alert === 'string' ? alert : alert.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+            
+                  <p className="mt-3 text-xs text-text-muted">
+                    {isHighRisk ? '⚠️ Significant structural alert detected' : 
+                     isMediumRisk ? '⚡ Moderate risk indicators present' : 
+                     '✓ Low risk based on current models'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* ADMET Radar Chart */}
-      <div className="surface p-4 border border-border/50">
+      <div className="surface p-5 border border-border/50 rounded-xl">
         <h3 className="text-sm font-bold text-text-primary font-display mb-4 flex items-center gap-2">
           <ChartBarIcon className="h-4 w-4 text-accent-green" />
-          ADMET Safety Profile
+          ADMET Safety Profile (Radar)
         </h3>
         <ResponsiveContainer width="100%" height={280}>
           <RadarChart data={radarData}>
@@ -367,10 +359,13 @@ const SafetyDashboard = ({ analysis }) => {
       </div>
 
       {/* ADMET Table */}
-      <div className="surface overflow-hidden">
-        <div className="p-4 border-b border-border bg-surface-elevated flex items-center justify-between">
-          <h3 className="text-sm font-bold text-text-primary font-display">Multi-Task Endpoints</h3>
-          <span className="text-xs text-text-muted font-semibold">{endpoints.length} active</span>
+      <div className="surface overflow-hidden rounded-xl border border-border/50">
+        <div className="p-5 border-b border-border bg-surface-elevated flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-text-primary font-display">Tox21 Multi-Task Endpoints</h3>
+            <p className="text-xs text-text-muted mt-0.5">Per-endpoint predictions from Attention-GIN model</p>
+          </div>
+          <span className="text-sm font-bold text-text-primary bg-surface px-3 py-1 rounded-full border border-border">{endpoints.length} endpoints</span>
         </div>
         
         {endpoints.length > 0 ? (
@@ -391,36 +386,36 @@ const SafetyDashboard = ({ analysis }) => {
                     const srcStyle = MODEL_SOURCE_COLORS[srcLabel] || MODEL_SOURCE_COLORS['Attention-GIN'];
                     return (
                   <tr key={e.id} className="hover:bg-surface-hover transition-colors">
-                    <td className="font-medium text-text-primary text-xs">
+                    <td className="font-medium text-text-primary">
                       <div>
-                        <span>{e.id}</span>
+                        <span className="text-sm font-bold">{e.id}</span>
                         {e.dataset && (
-                          <p className="text-[9px] text-text-muted font-mono mt-0.5">{e.dataset}</p>
+                          <p className="text-xs text-text-muted font-mono mt-0.5">{e.dataset}</p>
                         )}
                       </div>
                     </td>
                     <td className="text-left">
-                      <span className={clsx('inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold border', srcStyle)}>
+                      <span className={clsx('inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border', srcStyle)}>
                         {srcLabel}
                       </span>
                     </td>
                     <td className="text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="font-mono text-text-primary font-semibold">{(e.prob * 100).toFixed(1)}%</span>
-                      </div>
+                      <span className="font-mono text-text-primary font-bold text-sm">{(e.prob * 100).toFixed(1)}%</span>
                     </td>
                     <td className="text-center">
-                      <span className={clsx('pill', e.prob > 0.5 ? 'pill-red' : 'pill-green')}>
+                      <span className={clsx('pill text-xs font-bold', e.prob > 0.5 ? 'pill-red' : 'pill-green')}>
                         {e.label}
                       </span>
                     </td>
                     <td className="text-center">
-                      <span className={clsx('pill', e.epistemic_uncertainty === 'Low' ? 'pill-green' : e.epistemic_uncertainty === 'High' ? 'pill-red' : 'pill-yellow')}>
-                        {e.epistemic_uncertainty}
-                        <span className="text-[10px] ml-1 opacity-70" title="95% CI Range">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className={clsx('pill text-xs font-bold', e.epistemic_uncertainty === 'Low' ? 'pill-green' : e.epistemic_uncertainty === 'High' ? 'pill-red' : 'pill-yellow')}>
+                          {e.epistemic_uncertainty}
+                        </span>
+                        <span className="text-xs text-text-muted font-mono">
                           [{Math.max(0, e.ci_low * 100).toFixed(0)}-{Math.min(100, e.ci_high * 100).toFixed(0)}%]
                         </span>
-                      </span>
+                      </div>
                     </td>
                   </tr>
                     );
@@ -436,10 +431,10 @@ const SafetyDashboard = ({ analysis }) => {
       </div>
       
       {/* Footer Notes */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
-        <div className="text-[10px] text-text-muted flex items-center gap-2">
-          <span className="text-accent-amber font-bold">⚠</span>
-          <span>SCREENING ONLY. NOT A CLINICAL OR REGULATORY TOOL.</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2 p-4 rounded-xl bg-surface-elevated border border-border/50">
+        <div className="text-xs text-text-muted flex items-center gap-2 font-medium">
+          <span className="text-accent-amber font-bold text-sm">⚠</span>
+          <span>SCREENING ONLY — NOT A CLINICAL OR REGULATORY TOOL.</span>
         </div>
         {analysis.triage?.disclaimer && (
           <div className="text-[10px] text-text-muted italic text-right">

@@ -62,7 +62,7 @@ const Chat = () => {
     {
       id: 1,
       sender: 'assistant',
-      text: "Welcome to **PharmaGuard Agentic Assistant**. I am your ChemBERTa-augmented computational toxicology & drug interaction co-pilot.\n\nAsk me any question, compare two drugs for Drug-Drug Interactions (DDI), or analyze hERG/DILI/Ames endpoints.",
+      text: "Welcome to **AnuDrishti Agentic Assistant**. I am your ChemBERTa-augmented computational toxicology & drug interaction co-pilot.\n\nAsk me any question, compare two drugs for Drug-Drug Interactions (DDI), or analyze hERG/DILI/Ames endpoints.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isInitial: true
     }
@@ -140,7 +140,7 @@ const Chat = () => {
                 <div className="flex flex-wrap gap-1 mt-1">
                   {mol.alerts.map((al, aIdx) => (
                     <span key={aIdx} className="text-[9px] font-mono px-1 py-0.25 rounded bg-accent-amber/10 text-accent-amber border border-accent-amber/20">
-                      {al}
+                      {typeof al === 'string' ? al : al.name}
                     </span>
                   ))}
                 </div>
@@ -360,6 +360,84 @@ const Chat = () => {
     );
   };
 
+
+
+  // Render single molecule analysis card
+  const renderAnalysisCard = (analysis) => {
+    if (!analysis) return null;
+
+    const summary = analysis.summary || {};
+    const triage = analysis.triage || {};
+    const explanation = analysis.explanation || {};
+    const predictions = analysis.predictions || {};
+    const ood = analysis.ood || {};
+
+    const toxicityProb = summary?.average_toxicity_probability || 0;
+    const riskLevel = triage?.category || 'GREEN';
+    const riskColor = riskLevel === 'RED' ? 'accent-red' : riskLevel === 'YELLOW' ? 'accent-amber' : 'accent-emerald';
+    const efsScore = explanation?.faithfulness_score || explanation?.efs || 0;
+    const isOod = ood?.is_ood ?? false;
+
+    return (
+      <div className="mt-3 p-3 rounded-lg bg-surface border border-border space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BeakerIcon className="h-4 w-4 text-accent-amber" />
+            <span className="font-bold text-xs uppercase tracking-wider">Molecular Analysis</span>
+          </div>
+          <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded uppercase border bg-${riskColor}/10 text-${riskColor} border-${riskColor}/30`}>
+            {riskLevel} RISK ({(toxicityProb * 100).toFixed(0)}%)
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="p-2 rounded bg-surface-elevated border border-border">
+            <p className="font-semibold text-text-primary text-[11px]">SMILES</p>
+            <code className="font-mono text-[10px] text-text-muted break-all">{analysis.smiles?.slice(0, 30)}${analysis.smiles?.length > 30 ? '...' : ''}</code>
+          </div>
+          <div className="p-2 rounded bg-surface-elevated border border-border">
+            <p className="font-semibold text-text-primary text-[11px]">Overall Assessment</p>
+            <p className="font-mono text-sm">{summary?.overall_assessment || 'Unknown'}</p>
+          </div>
+        </div>
+
+        {Object.keys(predictions).length > 0 && (
+          <div className="mt-2 pt-2 border-t border-border/50">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Endpoint Predictions</p>
+            <div className="space-y-1">
+              {Object.entries(predictions).slice(0, 5).map(([endpoint, data]) => {
+                if (typeof data === 'object' && data !== null && 'probability' in data) {
+                  const prob = data.probability || 0;
+                  const isToxic = prob > 0.5;
+                  return (
+                    <div key={endpoint} className="flex items-center justify-between px-2 py-1 text-[9px]">
+                      <span className="font-mono">{endpoint}</span>
+                      <span className={`text-right ${isToxic ? 'text-accent-red' : 'text-accent-emerald'}`}>{(prob * 100).toFixed(0)}%</span>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+              {Object.keys(predictions).length > 5 && (
+                <div className="text-[9px] text-text-muted italic mt-1">
+                  + {Object.keys(predictions).length - 5} more endpoints
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] font-mono text-text-muted">
+          <span>EFS Score: <strong className={`${efsScore >= 0.8 ? 'text-accent-emerald' : efsScore >= 0.6 ? 'text-accent-amber' : 'text-accent-red'}`}>
+            {(efsScore * 100).toFixed(0)}%
+          </strong></span>
+          <span>OOD: <strong className={isOod ? 'text-accent-red' : 'text-accent-emerald'}>
+            {isOod ? 'YES' : 'NO'}
+          </strong></span>
+        </div>
+      </div>
+    );
+  };
   const handleSend = async (queryText) => {
     const textToSend = queryText || inputQuery;
     if (!textToSend.trim() || loading) return;
@@ -473,7 +551,7 @@ const Chat = () => {
           </div>
           <div>
             <h1 className="text-base font-bold text-text-primary font-display flex items-center gap-2">
-              PharmaGuard Agentic Assistant
+              AnuDrishti Agentic Assistant
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
                 ChemBERTa + Agent RAG
               </span>
@@ -534,7 +612,7 @@ const Chat = () => {
           >
             <div className="flex items-center gap-2 text-[10px] text-text-muted px-1">
               <span className="font-bold uppercase tracking-wider">
-                {m.sender === 'user' ? 'Researcher' : 'PharmaGuard AI Agent'}
+                {m.sender === 'user' ? 'Researcher' : 'AnuDrishti AI Agent'}
               </span>
               <span>•</span>
               <span>{m.timestamp}</span>
@@ -562,10 +640,14 @@ const Chat = () => {
             >
               {/* Text Body */}
               <div className="whitespace-pre-wrap font-sans">
-                {m.text}
+                {m.text.replace(/\*\*/g, '').replace(/#+\s/g, '')}
               </div>
 
-              {/* DDI Alert Card (If Drug-Drug Interaction present) */}
+              
+              {/* Analysis Card (If single molecule analysis present) */}
+              {renderAnalysisCard(m.analysis)}
+
+{/* DDI Alert Card (If Drug-Drug Interaction present) */}
               {renderDDICard(m.ddi)}
 
               {/* TDC Safety Endpoints Card (If available in single analysis) */}

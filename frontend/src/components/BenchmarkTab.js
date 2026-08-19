@@ -5,7 +5,7 @@ import { TableCellsIcon, SparklesIcon, ShieldCheckIcon, BeakerIcon } from '@hero
 const BenchmarkTab = () => {
   const benchmarkData = [
     {
-      tool: 'PharmaGuard AI (GNN+EFS)',
+      tool: 'AnuDrishti AI (GNN+EFS)',
       auroc: '0.849 (BBBP) / 0.892 (Avg)',
       endpoints: '16',
       explainability: '✅ GNN + EFS LLM',

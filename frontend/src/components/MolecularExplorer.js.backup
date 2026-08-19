@@ -10,8 +10,8 @@ const MolecularExplorer = ({ analysis }) => {
   const [rdkitFailed, setRdkitFailed] = useState(false);
   const [depictSvg, setDepictSvg] = useState(null);
   const [depictLoading, setDepictLoading] = useState(false);
-  const [rdkitSvg, setRdkitSvg] = useState(null);
-
+const [rdkitSvg, setRdkitSvg] = useState(None);
+  
   const apiBase = process.env.REACT_APP_API_BASE || '';
 
   useEffect(() => {
@@ -104,7 +104,6 @@ const MolecularExplorer = ({ analysis }) => {
       <div className="rounded-lg border border-border bg-surface p-8 text-center text-muted">
         Run an analysis to explore the molecular graph and risk-associated regions.
       </div>
-    );
   }
 
   const smiles = analysis.smiles;
@@ -188,59 +187,5 @@ const MolecularExplorer = ({ analysis }) => {
                   <div className="text-center text-muted text-xs">Loading structure from server…</div>
                 )}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Attention heatmap sub-components (placeholder) */}
-      <div className="surface-elevated rounded-lg p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Attention Details</h3>
-        </div>
-        <div className="space-y-2">
-          {attnSource && (
-            <>
-              <p className="text-xs font-semibold text-text-primary">Source: {attnSource}</p>
-              {substructures.length > 0 && (
-                <>
-                  <p className="text-xs font-semibold text-text-primary">
-                    Top Substructure: {typeof topSub === 'string' ? topSub : (topSub.name || topSub.smarts || 'Alert')}
-                  </p>
-                  <p className="text-xs text-text-muted">{substructures.length} substructures detected</p>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Substructure highlights */}
-      <div className="surface-elevated rounded-lg p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Substructure Highlights</h3>
-        </div>
-        <div className="space-y-2">
-          {substructures.length > 0 ? (
-            <>
-              {substructures.map((sub, idx) => (
-                <div key={idx} className="flex items-center justify-between px-3 py-1 bg-surface/50 rounded">
-                  <span className="font-mono text-xs">
-                    {typeof sub === 'string' ? sub : (sub.name || sub.smarts || 'Alert')}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    {typeof sub === 'object' && sub.category ? sub.category : 'Highlighted'}
-                  </span>
-                </div>
-              ))}
-              <p className="text-xs text-text-muted mt-2">Click on a substructure to view details</p>
-            </>
-          ) : (
-            <p className="text-xs text-text-muted">No substructures detected</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default MolecularExplorer;

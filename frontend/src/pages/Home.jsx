@@ -41,7 +41,7 @@ const Home = () => {
             </div>
             <div>
               <span className="text-xl font-bold tracking-tight text-primary font-display">
-                PharmaGuard <span className="text-accent-green">AI</span>
+                AnuDrishti <span className="text-accent-green">AI</span>
               </span>
               <span className="ml-2 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-accent-green/10 text-accent-green border border-accent-green/20">
                 SIH 2026
@@ -92,7 +92,7 @@ const Home = () => {
               className="btn btn-primary px-8 py-3.5 text-base w-full sm:w-auto shadow-glow-green"
             >
               <BeakerIcon className="h-5 w-5" />
-              <span>Open PharmaGuard Workbench</span>
+              <span>Open AnuDrishti Workbench</span>
               <ArrowRightIcon className="h-5 w-5" />
             </button>
             <button

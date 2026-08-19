@@ -795,7 +795,7 @@ def optimize_what_if():
                     # Only keep candidates that actually REDUCE toxicity (with small tolerance)
                     # But keep top N even if they don't reduce, so user sees what was tried
                     toxicity_reduction = baseline_tox - cf_tox
-                    if toxicity_reduction < -0.01:
+                    if toxicity_reduction < -0.05:
                         # This candidate increases toxicity significantly - skip
                         continue
                         
