@@ -1,0 +1,35 @@
+name: Issue Automated Triage & Welcoming Bot
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  triage-issue:
+    name: Issue Welcoming & Automated Tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome Issue Author
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const author = issue.user.login;
+            
+            const comment = `👋 Hi @${author}, thank you for opening this issue in **AnuDrishti**!
+            
+Our maintainers and automated triage agents have been notified.
+- If this is a **bug report**, please ensure a SMILES string or reproducible snippet is attached.
+- If this is a **scientific question**, feel free to reference relevant literature in the thread.
+
+We will review your submission shortly!`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: comment
+            });

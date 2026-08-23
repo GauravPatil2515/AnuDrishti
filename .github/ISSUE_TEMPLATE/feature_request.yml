@@ -1,0 +1,33 @@
+name: 💡 Feature Request
+description: Suggest an enhancement or new capability for AnuDrishti
+title: "[Feature]: "
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a new feature or improvement for AnuDrishti.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a specific drug discovery or safety bottleneck?
+      placeholder: I am frustrated when...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see.
+      placeholder: Add support for target X / assay Y...
+    validations:
+      required: true
+  - type: textarea
+    id: scientific_context
+    attributes:
+      label: Scientific Citations / Literature Reference
+      description: Please cite relevant papers, assay standards (OECD/ICH), or public datasets if applicable.
+      placeholder: e.g. Banerjee et al., Nucleic Acids Res. 2024
+    validations:
+      required: false

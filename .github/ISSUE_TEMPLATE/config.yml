@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions & Q&A
+    url: https://github.com/GauravPatil2515/AnuDrishti/discussions
+    about: Ask general questions, share screening use-cases, and connect with the community.
+  - name: 📖 System Architecture & Docs
+    url: https://github.com/GauravPatil2515/AnuDrishti/tree/main/docs
+    about: Read complete scientific and technical specifications.

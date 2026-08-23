@@ -1,0 +1,28 @@
+name: 🧪 Scientific Question / Benchmark Discussion
+description: Discuss model predictions, benchmark datasets, or biological grounding
+title: "[Science]: "
+labels: ["scientific-validation", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to inquire about benchmark datasets, reproducibility, physicochemical descriptors, or biological validity.
+  - type: input
+    id: endpoint
+    attributes:
+      label: Toxicity / ADMET Endpoint
+      placeholder: e.g. hERG inhibition, Wager CNS MPO, Clearance scaling
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: In-Depth Question / Observation
+      description: Explain your scientific question or findings.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Experimental or Literature Evidence
+      description: Provide supporting citations (DOI/PMID).

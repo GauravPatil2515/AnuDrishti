@@ -1,0 +1,57 @@
+name: 🐛 Bug Report
+description: Report a reproducible bug or incorrect prediction behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue in AnuDrishti (PharmaGuard AI)!
+  - type: input
+    id: smiles
+    attributes:
+      label: Molecule SMILES (if applicable)
+      description: Provide the SMILES string that triggered the bug.
+      placeholder: e.g. CC(=O)Oc1ccccc1C(=O)O
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what went wrong.
+      placeholder: Expected outcome vs actual outcome...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can maintainers reproduce this issue?
+      value: |
+        1. Run endpoint or page:
+        2. Input payload:
+        3. See error:
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module / Pillar
+      options:
+        - "Pillar 1: Multi-Channel Cardiotox (hERG / SMARTS)"
+        - "Pillar 2: Species Translation & Allometry"
+        - "Pillar 3: CNS Safety (Wager MPO / P-gp)"
+        - "Pillar 4: Neuro-Symbolic Co-Pilot & Conformal"
+        - "21 CFR Part 11 Audit Trail"
+        - "Core GNN / Attention-GIN"
+        - "Frontend Workbench UI"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Traceback
+      description: Paste relevant terminal or console error outputs.
+      render: shell
