@@ -2072,3 +2072,217 @@ def literature_search():
         print(f"❌ Literature search error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Literature search failed: {str(e)}'}), 500
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Phase 3 — Regulatory & Clinical Safety Layer Endpoints
+# ───────────────────────────────────────────────────────────────────────────
+
+@pharmaguard_bp.route('/cardiotox/cipa', methods=['POST'])
+def cipa_cardiotox():
+    """CiPA 3-Channel CardioToxicity endpoint (Phase 3).
+
+    Predicts hERG, Nav1.5, and Cav1.2 ion channel block probabilities,
+    computes the net charge carrier balance (qNet), proarrhythmic risk
+    score (PRS), and risk classification per CiPA methodology.
+
+    Request JSON:
+        smiles: str  — molecule SMILES string
+
+    Returns:
+        channels, q_net, proarrhythmic_risk_score, risk_classification,
+        ghs_risk_flag, with conformal confidence intervals.
+    """
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        from models.cipa_cardiotox import CiPACardioToxEngine, get_default_cipa_engine
+
+        # Use the singleton engine
+        cipa_engine = get_default_cipa_engine()
+        result = cipa_engine.evaluate_molecule(smiles)
+
+        if 'error' in result:
+            return jsonify({'error': result['error'], 'code': 'ANALYSIS_FAILED'}), 400
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ CiPA endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'CiPA analysis failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/translation/animal', methods=['POST'])
+def species_translation():
+    """Cross-Species Translation endpoint (Phase 3).
+
+    Performs two-stage in-silico to in-vivo translation:
+    1. Predicts Rat/Mouse LD50 via fragment-based log(LD50) model
+    2. Allometric PK scaling (CL, Vd) across 5 species
+
+    Optionally computes HED, NOAEL, and Margin of Safety (MOS).
+
+    Request JSON:
+        smiles: str  — molecule SMILES string
+        human_clearance: float (optional) — in vitro CL (mL/min/10^6 cells)
+        dose_mg: float (optional) — projected human dose for HED/MOS
+
+    Returns:
+        ld50, clearance_ml_per_min_per_kg, hed_mg, noael_mg, margin_of_safety,
+        nams_justification, model_hash
+    """
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        human_clearance = data.get('human_clearance')
+        dose_mg = data.get('dose_mg')
+
+        # Validate optional numeric inputs
+        if human_clearance is not None:
+            try:
+                human_clearance = float(human_clearance)
+            except (TypeError, ValueError):
+                return jsonify({'error': 'human_clearance must be a number'}), 400
+
+        if dose_mg is not None:
+            try:
+                dose_mg = float(dose_mg)
+            except (TypeError, ValueError):
+                return jsonify({'error': 'dose_mg must be a number'}), 400
+
+        from utils.species_translation import get_default_translation_engine
+
+        translator = get_default_translation_engine()
+        result = translator.translate_molecule(smiles, human_clearance, dose_mg)
+
+        if 'error' in result:
+            return jsonify({'error': result['error'], 'code': 'TRANSLATION_FAILED'}), 400
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ Species translation endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Species translation failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/report/regulatory-pdf', methods=['POST'])
+def regulatory_pdf_export():
+    """Generate a 21 CFR Part 11 compliant regulatory PDF dossier (Phase 3).
+
+    Integrates CiPA cardiotoxicity, species translation, and NAMs
+    justification into a tamper-evident regulatory PDF with digital
+    signature and audit trail.
+
+    Request JSON:
+        smiles: str  — molecule SMILES string
+        compound_name: str (optional) — human-readable compound name
+        batch_id: str (optional) — testing batch identifier
+        dose_mg: float (optional) — projected human dose for HED/MOS
+        human_clearance: float (optional) — in vitro CL for scaling
+
+    Returns:
+        JSON with success, pdf_path, file_hash, signature, model_hash
+    """
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        compound_name = data.get('compound_name', smiles[:50])
+        batch_id = data.get('batch_id', 'DEFAULT')
+        dose_mg = data.get('dose_mg')
+        human_clearance = data.get('human_clearance')
+
+        # Step 1: Run CiPA analysis
+        from models.cipa_cardiotox import get_default_cipa_engine
+        cipa_engine = get_default_cipa_engine()
+        cipa_data = cipa_engine.evaluate_molecule(smiles)
+        if 'error' in cipa_data:
+            return jsonify({'error': cipa_data['error'], 'code': 'CIPA_FAILED'}), 400
+
+        # Step 2: Run species translation
+        from utils.species_translation import get_default_translation_engine
+        translator = get_default_translation_engine()
+        species_data = translator.translate_molecule(smiles, human_clearance, dose_mg)
+        if 'error' in species_data:
+            return jsonify({'error': species_data['error'], 'code': 'TRANSLATION_FAILED'}), 400
+
+        # Pass dose info for PDF rendering
+        species_data['human_dose_mg'] = dose_mg if dose_mg else None
+
+        # Step 3: Generate regulatory PDF
+        from services.regulatory_pdf import get_default_pdf_generator
+        pdf_gen = get_default_pdf_generator()
+        pdf_path = pdf_gen.generate(cipa_data, species_data, batch_id=batch_id,
+                                    compound_name=compound_name)
+
+        # Return JSON with file path (not the PDF itself for large dossiers)
+        import os
+        file_size = os.path.getsize(pdf_path)
+
+        return jsonify({
+            'success': True,
+            'pdf_path': pdf_path,
+            'file_size_bytes': file_size,
+            'batch_id': batch_id,
+            'compound_name': compound_name,
+            'ruleset_version': pdf_gen.ruleset_version,
+            'model_hash': species_data.get('model_hash', 'N/A'),
+            'cipa_risk': cipa_data.get('risk_classification', 'N/A'),
+            'verify_url': f'/api/report/verify-signature?pdf_path={pdf_path}'
+        })
+
+    except Exception as e:
+        print(f"❌ Regulatory PDF endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/report/verify-signature', methods=['GET', 'POST'])
+def verify_regulatory_pdf():
+    """Verify the digital signature of a 21 CFR Part 11 regulatory PDF (Phase 3).
+
+    GET:  /api/report/verify-signature?pdf_path=<path>
+    POST: /api/report/verify-signature with JSON {"pdf_path": "<path>"}
+
+    Returns:
+        valid, file_hash_match, signature_match, file_hash, timestamp, version
+    """
+    try:
+        if request.method == 'GET':
+            pdf_path = request.args.get('pdf_path')
+        else:
+            data = request.get_json()
+            pdf_path = data.get('pdf_path') if data else None
+
+        if not pdf_path:
+            return jsonify({'error': 'pdf_path parameter required'}), 400
+
+        from services.regulatory_pdf import get_default_pdf_generator
+        pdf_gen = get_default_pdf_generator()
+        result = pdf_gen.verify_signature(pdf_path)
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ PDF verification endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Verification failed: {str(e)}'}), 500

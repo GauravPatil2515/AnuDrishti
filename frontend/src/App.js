@@ -17,6 +17,8 @@ import WhatIfPage from './pages/WhatIfPage';
 import Settings from './pages/Settings';
 import Benchmark from './pages/Benchmark';
 import FormulationScreening from './pages/FormulationScreening';
+import CiPATesting from './pages/Phase3/CiPATesting';
+import SpeciesTranslation from './pages/Phase3/SpeciesTranslation';
 import { NotificationProvider } from './components/NotificationSystem';
 import { OnboardingTutorial, QuickHelp } from './components/OnboardingTutorial';
 import ChemBioBot from './components/ChemBioBot';
@@ -160,6 +162,8 @@ const AppContent = () => {
             <Route path="settings" element={<Settings />} />
             <Route path="benchmark" element={<Benchmark />} />
             <Route path="formulation" element={<FormulationScreening />} />
+            <Route path="cipa" element={<CiPATesting />} />
+            <Route path="translation" element={<SpeciesTranslation />} />
             <Route path="help" element={<Help />} />
             <Route path="contact" element={<Contact />} />
           </Route>

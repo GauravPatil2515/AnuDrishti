@@ -1,8 +1,8 @@
 import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  HomeIcon, 
+import {
+  HomeIcon,
   BeakerIcon,
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon,
@@ -14,7 +14,9 @@ import {
   QuestionMarkCircleIcon,
   XMarkIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  HeartIcon,
+  ScaleIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 
@@ -31,6 +33,13 @@ const navSections = [
       { name: 'Analyze Molecules', href: '/app/analyze', icon: ShieldCheckIcon, highlight: true },
       { name: 'Batch Screening', href: '/app/batch', icon: TableCellsIcon },
       { name: 'Formulation & Mixtures', href: '/app/formulation', icon: BeakerIcon },
+    ]
+  },
+  {
+    title: 'Regulatory Safety',
+    items: [
+      { name: 'CiPA CardioTox', href: '/app/cipa', icon: HeartIcon },
+      { name: 'Species Translation', href: '/app/translation', icon: ScaleIcon },
     ]
   },
   {
