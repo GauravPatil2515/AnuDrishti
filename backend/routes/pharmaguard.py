@@ -841,6 +841,166 @@ def analyze_batch_status():
         return jsonify({'error': str(e)}), 500
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Phase 2: Formulation Screening & Reactive Metabolite Detection (Routes)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@pharmaguard_bp.route('/formulation/screen', methods=['POST'])
+def formulation_screen():
+    """Phase 2 — Multi-component formulation stability & incompatibility screening.
+
+    POST body:
+        {
+            "name": "Tablet Formulation A",
+            "components": [
+                {"name": "API_1", "smiles": "...",
+                 "role": "API", "dose_mg": 100}, ...
+            ]
+        }
+
+    Returns:
+        {
+            "success": true,
+            "formulation_name": "...",
+            "formulation_stability": "STABLE" | "WARNING" | "CRITICAL_INCOMPATIBILITY",
+            "overall_risk_score": 0.35,
+            "incompatibility_matrix": [...],
+            "synergistic_toxicity": {...},
+            "components_summary": [...],
+            "reactive_metabolite_scan": [...],
+            "timestamp": "..."
+        }
+    """
+    try:
+        data = request.get_json()
+        if not data or 'components' not in data:
+            return jsonify({'error': 'components list required'}), 400
+
+        components = data['components']
+        if not isinstance(components, list) or len(components) == 0:
+            return jsonify({'error': 'components must be a non-empty array'}), 400
+
+        # Validate all SMILES upfront
+        validated_components = []
+        for comp in components:
+            if not comp.get('smiles') or not isinstance(comp['smiles'], str):
+                return jsonify({
+                    'error': f'SMILES required for component: {comp.get("name", "unknown")}'
+                }), 400
+            mol, err, toxicophore_info = _validate_smiles(comp['smiles'], return_toxicophore_info=True)
+            if err:
+                return jsonify({
+                    'error': f'Invalid SMILES for {comp.get("name", "unknown")}: {err}',
+                    'code': 'INVALID_SMILES'
+                }), 400
+            validated_components.append({
+                'name': comp.get('name', 'unknown'),
+                'smiles': comp['smiles'].strip(),
+                'role': comp.get('role', 'API'),
+                'dose_mg': float(comp.get('dose_mg', 0)),
+                'mol': mol,
+                'toxicophore_info': toxicophore_info,
+            })
+
+        # Run FormulationEngine
+        from models.formulation_engine import FormulationEngine
+        engine = FormulationEngine(gnn_model=predictor)
+        result = engine.screen_formulation(
+            [
+                {
+                    'name': c['name'],
+                    'smiles': c['smiles'],
+                    'role': c['role'],
+                    'dose_mg': c['dose_mg'],
+                }
+                for c in validated_components
+            ],
+            predictor=predictor,
+        )
+
+        # Also run reactive metabolite scan on each component
+        from utils.reactive_metabolites import detect_reactive_metabolites
+        rm_scans = []
+        for comp in validated_components:
+            rm_result = detect_reactive_metabolites(comp['smiles'])
+            if rm_result['alert_count'] > 0:
+                rm_scans.append({
+                    'component': comp['name'],
+                    'smiles': comp['smiles'],
+                    'bri_score': rm_result['bri_score'],
+                    'risk_label': rm_result['risk_label'],
+                    'alerts': rm_result['detected_alerts'],
+                })
+
+        return jsonify({
+            'success': True,
+            'mode': 'formulation',
+            'formulation_name': data.get('name', 'Unnamed Formulation'),
+            'formulation_stability': result['formulation_stability'],
+            'overall_risk_score': result['overall_risk_score'],
+            'incompatibility_matrix': result['incompatibility_matrix'],
+            'synergistic_toxicity': result['synergistic_toxicity'],
+            'components_summary': result['components_summary'],
+            'reactive_metabolite_scan': rm_scans,
+            'n_components': result['n_components'],
+            'n_incompatibilities': result['n_incompatibilities'],
+            'timestamp': datetime.now().isoformat(),
+        })
+
+    except Exception as e:
+        print(f"❌ Formulation screening error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Formulation screening failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/adme/reactive-metabolites', methods=['POST'])
+def reactive_metabolites():
+    """Phase 2 — Reactive metabolite & bioactivation scan.
+
+    POST body:
+        {"smiles": "..."}
+
+    Returns:
+        {
+            "success": true,
+            "smiles": "...",
+            "alert_count": 2,
+            "bri_score": 0.85,
+            "risk_label": "HIGH",
+            "detected_alerts": [...],
+            "smiles_hash": "..."
+        }
+    """
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        mol, err = _validate_smiles(smiles)
+        if err:
+            return jsonify({'error': err, 'code': 'INVALID_SMILES'}), 400
+
+        from utils.reactive_metabolites import detect_reactive_metabolites
+        result = detect_reactive_metabolites(smiles)
+
+        return jsonify({
+            'success': True,
+            'mode': 'reactive-metabolites',
+            'smiles': smiles,
+            **result,
+            'timestamp': datetime.now().isoformat(),
+        })
+
+    except Exception as e:
+        print(f"❌ Reactive metabolite scan error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Scan failed: {str(e)}'}), 500
+
+
 @pharmaguard_bp.route('/optimize/what-if', methods=['POST'])
 def optimize_what_if():
     """Mode C — Counterfactual modification & ADMET optimization (PharmaGuard AI).
