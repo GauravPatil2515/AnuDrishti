@@ -16,6 +16,7 @@ import BatchScreening from './pages/BatchScreening';
 import WhatIfPage from './pages/WhatIfPage';
 import Settings from './pages/Settings';
 import Benchmark from './pages/Benchmark';
+import FormulationScreening from './pages/FormulationScreening';
 import { NotificationProvider } from './components/NotificationSystem';
 import { OnboardingTutorial, QuickHelp } from './components/OnboardingTutorial';
 import ChemBioBot from './components/ChemBioBot';
@@ -158,6 +159,7 @@ const AppContent = () => {
             <Route path="chat" element={<Chat />} />
             <Route path="settings" element={<Settings />} />
             <Route path="benchmark" element={<Benchmark />} />
+            <Route path="formulation" element={<FormulationScreening />} />
             <Route path="help" element={<Help />} />
             <Route path="contact" element={<Contact />} />
           </Route>

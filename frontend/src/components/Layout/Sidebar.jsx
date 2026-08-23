@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
-  BeakerIcon, 
+  BeakerIcon,
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon,
   SwatchIcon,
@@ -30,6 +30,7 @@ const navSections = [
     items: [
       { name: 'Analyze Molecules', href: '/app/analyze', icon: ShieldCheckIcon, highlight: true },
       { name: 'Batch Screening', href: '/app/batch', icon: TableCellsIcon },
+      { name: 'Formulation & Mixtures', href: '/app/formulation', icon: BeakerIcon },
     ]
   },
   {
