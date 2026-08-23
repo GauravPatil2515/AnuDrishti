@@ -54,7 +54,7 @@ const PipelineProgress = ({ active }) => {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-white/60">
-                Running PharmaGuard Pipeline
+                Running AnuDrishti Pipeline
               </p>
               <p className="text-[10px] text-white/40">
                 {stage < STAGES.length ? STAGES[stage].label : 'Analysis Complete'}

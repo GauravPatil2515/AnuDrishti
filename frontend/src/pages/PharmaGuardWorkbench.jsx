@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import MolecularInput from '../components/MolecularInput';
 import MolecularExplorer from '../components/MolecularExplorer';
-import SafetyDashboard from '../components/SafetyDashboardWrapper';
+import SafetyDashboard from '../components/SafetyDashboard';
 import ExplanationAudit from '../components/ExplanationAudit';
 import LibraryScreening from '../components/LibraryScreening';
 import WhatIfOptimizer from '../components/WhatIfOptimizer';
@@ -258,7 +258,7 @@ const PharmaGuardWorkbench = () => {
         setAnalysis(newAnalysis);
         addAnalysis(newAnalysis);
         setWhatif(null);
-        setActiveTab('safety');
+        setActiveTab('input');
         toast.success('Analysis complete');
       } else if (mode === 'batch') {
         const res = await api.post('/api/analyze/batch', { smiles_list, include_explanation: false });
@@ -292,36 +292,6 @@ const PharmaGuardWorkbench = () => {
         searchRef={cmdInputRef}
       />
 
-      {/* Tab Navigation & Info Bar Header */}
-      <div className="surface p-2 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
-        <div className="inline-flex items-center gap-1 rounded-xl bg-surface/80 p-1.5 border border-border/60 backdrop-blur-md overflow-x-auto w-full sm:w-auto hide-scrollbar">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={clsx(
-                  'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all duration-150 whitespace-nowrap',
-                  activeTab === t.id
-                    ? 'bg-accent-green text-white shadow-sm'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="hidden md:flex items-center gap-2 text-xs text-text-muted px-2">
-          <span>Press</span>
-          <kbd className="px-1.5 py-0.5 rounded border border-border bg-surface-elevated font-mono text-[10px] font-bold text-text-primary">⌘K</kbd>
-          <span>for commands</span>
-        </div>
-      </div>
-
       {/* Main Content Area */}
       <div>
         {loading && (
@@ -331,18 +301,40 @@ const PharmaGuardWorkbench = () => {
         )}
 
         {activeTab === 'input' && (
-          <div className="animate-fade-in">
+          <div className="animate-fade-in space-y-6">
             <MolecularInput onAnalyze={handleAnalyze} isLoading={loading} />
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={loadDemo}
-                disabled={demoLoading}
-                className="btn btn-secondary"
-              >
-                <PlayIcon className="h-4 w-4 text-accent-green" />
-                {demoLoading ? 'Loading Demo…' : 'Try Demo (No SMILES needed)'}
-              </button>
-            </div>
+            
+            {analysis && (
+              <div className="mt-8 border-t border-border pt-8 space-y-8 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold font-display text-text-primary">
+                    Analysis Results & Model Predictions
+                  </h2>
+                  <span className="pill pill-emerald text-xs font-mono">
+                    {analysis.compound_name || analysis.smiles}
+                  </span>
+                </div>
+                
+                {/* Unified Output: Safety & Model-wise Toxicity Predictions */}
+                <SafetyDashboard analysis={analysis} />
+                
+                {/* Graph Structure & Heatmap */}
+                <MolecularExplorer analysis={analysis} />
+              </div>
+            )}
+
+            {!analysis && (
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={loadDemo}
+                  disabled={demoLoading}
+                  className="btn btn-secondary"
+                >
+                  <PlayIcon className="h-4 w-4 text-accent-green" />
+                  {demoLoading ? 'Loading Demo…' : 'Try Demo (No SMILES needed)'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

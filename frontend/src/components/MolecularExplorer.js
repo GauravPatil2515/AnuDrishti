@@ -10,7 +10,8 @@ const MolecularExplorer = ({ analysis }) => {
   const [rdkitFailed, setRdkitFailed] = useState(false);
   const [depictSvg, setDepictSvg] = useState(null);
   const [depictLoading, setDepictLoading] = useState(false);
-  const structureSvgRef = useRef(null);
+  const [rdkitSvg, setRdkitSvg] = useState(null);
+
   const apiBase = process.env.REACT_APP_API_BASE || '';
 
   useEffect(() => {
@@ -61,28 +62,31 @@ const MolecularExplorer = ({ analysis }) => {
   };
 
   const renderStructure = (smiles) => {
-    if (rdkitFailed || !structureSvgRef.current || !smiles) {
-      if (structureSvgRef.current) {
-        structureSvgRef.current.innerHTML = '<div class="text-center text-muted text-xs">2D structure requires RDKit.js (CDN).<br/>Check the Attention tab for the GNN heatmap instead.</div>';
-      }
+    if (!smiles) {
+      setRdkitSvg(null);
       return;
     }
-    if (!rdkitReady) return;
+    if (rdkitFailed) {
+      setRdkitSvg(null);
+      return;
+    }
+    if (!rdkitReady) {
+      setRdkitSvg(null);
+      return;
+    }
     try {
       const RDKit = window.RDKit;
       const mol = RDKit.get_mol(smiles);
       if (mol) {
         const svg = mol.get_svg();
-        structureSvgRef.current.innerHTML = svg;
+        setRdkitSvg(svg);
         mol.delete();
-      } else if (structureSvgRef.current) {
-        structureSvgRef.current.innerHTML = '<div class="text-center text-muted text-xs">Invalid SMILES</div>';
+      } else {
+        setRdkitSvg(null);
       }
     } catch (e) {
       console.error('RDKit rendering failed:', e);
-      if (structureSvgRef.current) {
-        structureSvgRef.current.innerHTML = '<div class="text-center text-muted text-xs">Structure rendering unavailable</div>';
-      }
+      setRdkitSvg(null);
     }
   };
 
@@ -166,11 +170,13 @@ const MolecularExplorer = ({ analysis }) => {
 
             {/* SVG container with dark background */}
             <div className="relative w-full max-w-xs h-full min-h-[140px] flex items-center justify-center">
-              <div ref={structureSvgRef} className="w-full h-full overflow-auto flex items-center justify-center">
                 {!rdkitReady && (
                   <div className="text-center text-muted text-xs">
                     {rdkitFailed ? 'RDKit.js unavailable (offline)' : 'Loading RDKit.js…'}
                   </div>
+                )}
+                {rdkitReady && rdkitSvg && (
+                  <div dangerouslySetInnerHTML={{ __html: rdkitSvg }} />
                 )}
                 {rdkitFailed && depictSvg && (
                   <div dangerouslySetInnerHTML={{ __html: depictSvg }} />
@@ -181,53 +187,57 @@ const MolecularExplorer = ({ analysis }) => {
                 {depictLoading && (
                   <div className="text-center text-muted text-xs">Loading structure from server…</div>
                 )}
-              </div>
             </div>
-          </div>
-        )}
-
-        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted">
-          <InformationCircleIcon className="h-3 w-3" />
-          Attribution source:
-          <span className="font-medium text-secondary">
-            {attnSource === 'gnn_attention' ? 'GNN attention (real)' : attnSource || 'n/a'}
-          </span>
-        </div>
-
-        {toggle === 'substructure' && topSub && (
-          <div className="mt-2 rounded-lg bg-accent-emerald/5 border border-accent-emerald/20 p-2 text-xs text-accent-emerald">
-            Primary flagged: <b>{topSub.name}</b> · attention {(topSub.avg_attention * 100).toFixed(0)}% · {topSub.category}
           </div>
         )}
       </div>
 
-      {/* Risk-associated regions */}
+      {/* Attention heatmap sub-components (placeholder) */}
       <div className="surface-elevated rounded-lg p-3">
-        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Risk Regions</h3>
-        {substructures.length === 0 ? (
-          <p className="text-xs text-muted">No high-attention substructures detected.</p>
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Substructure</th>
-                <th className="w-12 text-right">Attn.</th>
-                <th className="w-16">Category</th>
-              </tr>
-            </thead>
-            <tbody>
-              {substructures.map((s, i) => (
-                <tr key={i}>
-                  <td className="font-mono text-secondary">{s.name}</td>
-                  <td className="text-right font-mono">{(s.avg_attention * 100).toFixed(0)}%</td>
-                  <td>
-                    <span className="pill pill-violet text-[9px]">{s.category}</span>
-                  </td>
-                </tr>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Attention Details</h3>
+        </div>
+        <div className="space-y-2">
+          {attnSource && (
+            <>
+              <p className="text-xs font-semibold text-text-primary">Source: {attnSource}</p>
+              {substructures.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-text-primary">
+                    Top Substructure: {typeof topSub === 'string' ? topSub : (topSub.name || topSub.smarts || 'Alert')}
+                  </p>
+                  <p className="text-xs text-text-muted">{substructures.length} substructures detected</p>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Substructure highlights */}
+      <div className="surface-elevated rounded-lg p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">Substructure Highlights</h3>
+        </div>
+        <div className="space-y-2">
+          {substructures.length > 0 ? (
+            <>
+              {substructures.map((sub, idx) => (
+                <div key={idx} className="flex items-center justify-between px-3 py-1 bg-surface/50 rounded">
+                  <span className="font-mono text-xs">
+                    {typeof sub === 'string' ? sub : (sub.name || sub.smarts || 'Alert')}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {typeof sub === 'object' && sub.category ? sub.category : 'Highlighted'}
+                  </span>
+                </div>
               ))}
-            </tbody>
-          </table>
-        )}
+              <p className="text-xs text-text-muted mt-2">Click on a substructure to view details</p>
+            </>
+          ) : (
+            <p className="text-xs text-text-muted">No substructures detected</p>
+          )}
+        </div>
       </div>
     </div>
   );

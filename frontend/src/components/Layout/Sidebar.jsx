@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
-  BeakerIcon, 
+  BeakerIcon,
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon,
   SwatchIcon,
@@ -28,17 +28,9 @@ const navSections = [
   {
     title: 'Analysis',
     items: [
-      { name: 'PharmaGuard Workbench', href: '/app/pharmaguard', icon: ShieldCheckIcon, highlight: true },
+      { name: 'Analyze Molecules', href: '/app/analyze', icon: ShieldCheckIcon, highlight: true },
       { name: 'Batch Screening', href: '/app/batch', icon: TableCellsIcon },
-      { name: 'What-If Optimizer', href: '/app/whatif', icon: SparklesIcon },
-    ]
-  },
-  {
-    title: 'Deep Analysis',
-    items: [
-      { name: 'Molecular Explorer', href: '/app/explorer', icon: SwatchIcon },
-      { name: 'Safety & ADMET', href: '/app/safety', icon: BeakerIcon },
-      { name: 'Explanation Audit', href: '/app/audit', icon: MagnifyingGlassIcon },
+      { name: 'Formulation & Mixtures', href: '/app/formulation', icon: BeakerIcon },
     ]
   },
   {
@@ -72,7 +64,7 @@ const Sidebar = ({ open, setOpen, collapsed, setCollapsed }) => {
           </div>
           {(!collapsed || !isDesktop) && (
             <div>
-              <h1 className="text-sm font-bold text-text-primary font-display tracking-tight">PharmaGuard AI</h1>
+              <h1 className="text-sm font-bold text-text-primary font-display tracking-tight">AnuDrishti AI</h1>
               <p className="text-[10px] text-text-muted font-medium">Toxicity Decision Support</p>
             </div>
           )}

@@ -14,6 +14,9 @@ import SafetyDashboard from './pages/SafetyDashboard';
 import ExplanationAudit from './pages/ExplanationAudit';
 import BatchScreening from './pages/BatchScreening';
 import WhatIfPage from './pages/WhatIfPage';
+import Settings from './pages/Settings';
+import Benchmark from './pages/Benchmark';
+import FormulationScreening from './pages/FormulationScreening';
 import { NotificationProvider } from './components/NotificationSystem';
 import { OnboardingTutorial, QuickHelp } from './components/OnboardingTutorial';
 import ChemBioBot from './components/ChemBioBot';
@@ -109,7 +112,6 @@ const ComingSoon = ({ title, description }) => (
   </div>
 );
 
-const Settings = () => <ComingSoon title="Platform Settings" description="System configuration, API key management, and model threshold tuning." />;
 const Help = () => <ComingSoon title="Documentation & Help" description="Interactive user guides, GNN model architecture whitepapers, and API specifications." />;
 const Contact = () => <ComingSoon title="Contact & Support" description="Reach out to the PharmaGuard AI research team for institutional partnerships." />;
 
@@ -154,9 +156,10 @@ const AppContent = () => {
             <Route path="audit" element={<ExplanationAudit />} />
             <Route path="batch" element={<BatchScreening />} />
             <Route path="whatif" element={<WhatIfPage />} />
-            <Route path="predictions" element={<EnhancedPredictions />} />
             <Route path="chat" element={<Chat />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="benchmark" element={<Benchmark />} />
+            <Route path="formulation" element={<FormulationScreening />} />
             <Route path="help" element={<Help />} />
             <Route path="contact" element={<Contact />} />
           </Route>

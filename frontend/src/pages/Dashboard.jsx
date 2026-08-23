@@ -118,7 +118,7 @@ const Dashboard = () => {
           className="btn btn-primary"
         >
           <SparklesIcon className="h-4 w-4" />
-          PharmaGuard Workbench
+          AnuDrishti Workbench
           <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>

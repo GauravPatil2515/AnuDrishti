@@ -9,37 +9,34 @@ const Layout = () => {
   const location = useLocation();
 
   const getPageTitle = (pathname) => {
-    switch (pathname) {
-      case '/app':
-      case '/app/dashboard':
-        return 'Dashboard';
-      case '/app/analyze':
-      case '/app/pharmaguard':
-        return 'PharmaGuard AI Workbench';
-      case '/app/explorer':
-        return 'Molecular Explorer';
-      case '/app/safety':
-        return 'Safety & ADMET Panel';
-      case '/app/audit':
-        return 'Explanation Audit';
-      case '/app/batch':
-        return 'Batch Screening';
-      case '/app/whatif':
-        return 'What-If Optimizer';
-      case '/app/chat':
-        return 'ChemGuard Copilot';
-      case '/app/predictions':
-        return 'Molecular Predictions';
-      case '/app/settings':
-        return 'Settings';
-      case '/app/help':
-        return 'Help & Documentation';
-      case '/app/contact':
-        return 'Contact Support';
-      default:
-        return 'PharmaGuard AI';
-    }
-  };
+      switch (pathname) {
+        case '/app':
+        case '/app/dashboard':
+          return 'Dashboard';
+        case '/app/analyze':
+          return 'Analyze Molecules';
+        case '/app/explorer':
+          return 'Molecular Explorer';
+        case '/app/safety':
+          return 'Safety & ADMET Panel';
+        case '/app/audit':
+          return 'Explanation Audit';
+        case '/app/batch':
+          return 'Batch Screening';
+        case '/app/whatif':
+          return 'What-If Optimizer';
+        case '/app/chat':
+          return 'ChemGuard Copilot';
+        case '/app/settings':
+          return 'Settings';
+        case '/app/help':
+          return 'Help & Documentation';
+        case '/app/contact':
+          return 'Contact Support';
+        default:
+          return 'AnuDrishti AI';
+      }
+    };
 
   return (
     <div className="min-h-screen bg-canvas text-text-primary transition-colors duration-200 flex flex-col">

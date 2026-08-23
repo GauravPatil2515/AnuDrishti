@@ -327,7 +327,7 @@ class UnifiedADMETPredictor:
     def _extract_rdkit_features(self, smiles):
         """Extract 306 RDKit descriptors for XGBoost"""
         from utils.molecular_featurizer import extract_rdkit_descriptors
-        return extract_rdkit_features(smiles)
+        return extract_rdkit_descriptors(smiles)
     
     def predict(self, smiles):
             """Make predictions using all available models"""
@@ -882,7 +882,7 @@ def predict_mc_dropout(self, smiles, n_samples=50):
                             'ci_high': float(mc_result['ci_high'][i]),
                         }
             except Exception as e:
-                logger.warning(f"MC dropout failed for model {key}: {e}")
+                print(f"⚠️ MC dropout failed for model {key}: {e}")
         
         # Process all GNN models that support MC dropout
         for key in ['attention_gin', 'gps', 'bbbp', 'clintox', 'clearance']:

@@ -153,6 +153,11 @@ def optimize_whatif_task(self, smiles, n_variants=5):
         
         cf_gen = CounterfactualGenerator()
         counterfactuals = cf_gen.generate_optimization_candidates(smiles, n_variants=n_variants)
+        # Compute baseline toxicity
+        baseline_result = predictor.predict(smiles)
+        baseline_tox = 0.0
+        if 'summary' in baseline_result:
+            baseline_tox = float(baseline_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
         
         _update_progress(task_id, 0, len(counterfactuals), "predicting_candidates")
         
@@ -170,6 +175,10 @@ def optimize_whatif_task(self, smiles, n_variants=5):
                 cf_tox = 0.0
                 if 'summary' in cf_result:
                     cf_tox = float(cf_result.get('summary', {}).get('average_toxicity_probability', 0.0) or 0.0)
+                    # Skip if candidate increases toxicity significantly
+                    toxicity_reduction = baseline_tox - cf_tox
+                    if toxicity_reduction < -0.01:
+                        continue
                     
                 candidates.append({
                     'original_smiles': cf.original_smiles,

@@ -102,6 +102,7 @@ cache = prediction_cache  # Use global cache instance
 ood_detector = None
 triage_engine = None
 faithfulness_validator = None
+tdc_models = None
 
 def initialize_services():
     """Initialize all services (ML predictor, database, AI, MedToXAi, OOD, Triage, Faithfulness)"""
@@ -109,9 +110,7 @@ def initialize_services():
     global ood_detector, triage_engine, faithfulness_validator, tdc_models
     
     # Initialize ML predictor with caching
-    # Priority: UnifiedADMETPredictor > GIN > SimpleDrugToxPredictor
     try:
-        # Try unified predictor first (combines Attention-GIN + XGBoost)
         from models.unified_predictor import UnifiedADMETPredictor
         predictor = UnifiedADMETPredictor()
         if predictor.is_loaded:
@@ -122,27 +121,8 @@ def initialize_services():
             raise Exception("UnifiedADMETPredictor not loaded")
     except Exception as e:
         print(f"⚠️ UnifiedADMETPredictor failed: {e}")
-        # Fallback to GIN predictor
-        try:
-            from models.gin_predictor import MultiModelPredictor
-            predictor = MultiModelPredictor()
-            if predictor.is_loaded:
-                predictor_cached = CachedPredictionWrapper(predictor, cache)
-                print("✅ GIN predictor initialized successfully")
-            else:
-                raise Exception("GIN predictor not loaded")
-        except Exception as e2:
-            print(f"⚠️ GIN predictor failed: {e2}")
-            # Final fallback to simple predictor
-            try:
-                from models.simple_predictor import SimpleDrugToxPredictor
-                predictor = SimpleDrugToxPredictor()
-                predictor_cached = CachedPredictionWrapper(predictor, cache)
-                print("✅ SimpleDrugToxPredictor initialized (fallback)")
-            except Exception as e3:
-                print(f"❌ All predictors failed: {e3}")
-                predictor = None
-                predictor_cached = None
+        predictor = None
+        predictor_cached = None
 
     # Final fallback: rule-based heuristic predictor (no trained weights needed).
     if predictor is None or not predictor.is_loaded:
@@ -1579,6 +1559,20 @@ def get_molecule_library():
     except Exception as e:
         print(f"❌ Database query error: {e}")
         return jsonify({'error': f'Database query failed: {str(e)}'}), 500
+
+@app.route('/api/session/stats', methods=['POST', 'GET'])
+def get_session_stats():
+    data = request.get_json(silent=True) or {}
+    history = data.get('history', [])
+    total = len(history)
+    toxic = sum(1 for h in history if h.get('overall_risk') in ['High Risk', 'CRITICAL'])
+    safe = total - toxic
+    return jsonify({
+        'total_predictions': total,
+        'toxic_count': toxic,
+        'safe_count': safe,
+        'status': 'success'
+    })
 
 @app.route('/api/stats', methods=['GET'])
 def get_platform_stats():
