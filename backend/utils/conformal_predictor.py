@@ -205,6 +205,242 @@ def get_default_predictor(alpha: float = 0.05) -> ConformalPredictor:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# PILLAR 3: Mondrian Scaffold-Stratified Conformal Predictor
+# ─────────────────────────────────────────────────────────────────────────────
+# Mondrian CP (Vovk et al., 2005) groups calibration residuals into equivalence
+# classes (here: Bemis-Murcko scaffold clusters) and computes a *per-class*
+# q_hat. Novel chemotypes — which share no scaffold with calibration data —
+# get their own wide singleton interval, preventing under-coverage on OOD
+# scaffolds. This is the standard approach for chemistry-aware conformal CP.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _bemis_murcko_scaffold(smiles: str) -> str:
+    """Extract the Bemis-Murcko scaffold from a SMILES string.
+
+    Falls back to a truncated fingerprint if the molecule cannot be parsed.
+    The scaffold is used as the Mondrian equivalence class key.
+    """
+    try:
+        from rdkit import Chem
+        from rdkit.Chem.Scaffolds import MurckoScaffold
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return "UNPARSED"
+        scaffold = MurckoScaffold.GetScaffoldForMol(mol)
+        if scaffold is None or scaffold.GetNumAtoms() == 0:
+            return "EMPTY_SCAFFOLD"
+        return Chem.MolToSmiles(scaffold)
+    except Exception:
+        # Fallback: use first 8 chars of canonical SMILES as a pseudo-scaffold
+        try:
+            from rdkit import Chem
+            mol = Chem.MolFromSmiles(smiles)
+            if mol:
+                return Chem.MolToSmiles(mol)[:8]
+        except Exception:
+            pass
+        return "FALLBACK_" + str(hash(smiles))[:8]
+
+
+class MondrianConformalPredictor:
+    """
+    Mondrian (scaffold-stratified) split conformal predictor.
+
+    Partitions calibration data into equivalence classes keyed by Bemis-Murcko
+    scaffold, then computes a per-scaffold q_hat. At prediction time, the
+    appropriate per-class interval is used; for scaffolds unseen during
+    calibration, a conservative *global* q_hat (max over all classes) is applied
+    so coverage is never under-conservative on novel chemotypes.
+
+    Inherits the conformal CI API shape (conformal_ci_low/high) so it can be
+    dropped in as a superset of ConformalPredictor.
+
+    Reference:
+        Vovk, Gammerman & Shafer — "Algorithmic Learning in a Random World"
+        (2005). Mondrian Prediction.
+    """
+
+    RULESET_VERSION = "v3.0.0"
+
+    def __init__(self, alpha: float = 0.05):
+        if not 0.0 < alpha < 1.0:
+            raise ValueError("alpha must be in (0, 1)")
+        self.alpha = float(alpha)
+        # q_hat per scaffold equivalence class
+        self._q_hat_by_scaffold: Dict[str, float] = {}
+        # Fallback global q_hat for unseen scaffolds (max over all classes)
+        self._global_q_hat: float = max(DEFAULT_Q_HAT.values())
+        # Calibration metadata
+        self._scaffold_stats: Dict[str, Dict[str, Any]] = {}
+        self._calibrated = False
+        self.calibration_version = CONFORMAL_CALIBRATION_VERSION
+
+    def calibrate(
+        self,
+        smiles_list: List[str],
+        y_calib,
+        preds_calib,
+        endpoint: str = "tox21"
+    ) -> Dict[str, float]:
+        """
+        Calibrate per-scaffold q_hat values from held-out residuals.
+
+        Args:
+            smiles_list: SMILES strings of calibration molecules
+            y_calib: true labels / values
+            preds_calib: predicted probabilities / values
+            endpoint: endpoint name for reporting
+
+        Returns:
+            Dict mapping scaffold SMILES -> q_hat for that class
+        """
+        import numpy as np
+        y = np.asarray(y_calib, dtype=float)
+        p = np.asarray(preds_calib, dtype=float)
+        if y.shape != p.shape or y.size == 0:
+            raise ValueError("y_calib and preds_calib must be same-shape, non-empty")
+        if len(smiles_list) != y.size:
+            raise ValueError("smiles_list length must match y_calib length")
+
+        residuals = np.abs(y - p)
+        n = residuals.size
+        q_level = min(1.0, np.ceil((n + 1) * (1 - self.alpha)) / n)
+
+        # Group residuals by scaffold
+        scaffold_residuals: Dict[str, List[float]] = {}
+        for smi, res in zip(smiles_list, residuals):
+            scaffold = _bemis_murcko_scaffold(smi)
+            scaffold_residuals.setdefault(scaffold, []).append(float(res))
+
+        # Compute per-scaffold q_hat
+        self._q_hat_by_scaffold = {}
+        self._scaffold_stats = {}
+        for scaffold, res_list in scaffold_residuals.items():
+            res_arr = np.asarray(res_list, dtype=float)
+            q = float(np.quantile(res_arr, q_level))
+            self._q_hat_by_scaffold[scaffold] = q
+            self._scaffold_stats[scaffold] = {
+                "n": len(res_list),
+                "mean_residual": float(np.mean(res_arr)),
+                "q_hat": q,
+            }
+
+        # Global q_hat = max over all scaffold q_hats (conservative for unseen)
+        if self._q_hat_by_scaffold:
+            self._global_q_hat = max(self._q_hat_by_scaffold.values())
+
+        self._calibrated = True
+        self._endpoint = endpoint
+        return dict(self._q_hat_by_scaffold)
+
+    def predict_interval(
+        self,
+        point_pred: float,
+        smiles: str,
+        endpoint: str = "tox21"
+    ) -> Tuple[float, float, float]:
+        """
+        Return (lower, point, upper) interval using scaffold-aware q_hat.
+
+        For scaffolds seen during calibration: use per-scaffold q_hat.
+        For novel scaffolds: use conservative global q_hat (max class width).
+        """
+        scaffold = _bemis_murcko_scaffold(smiles)
+        key = _canonical_endpoint(endpoint)
+
+        if scaffold in self._q_hat_by_scaffold:
+            q = self._q_hat_by_scaffold[scaffold]
+            scaffold_status = "calibrated"
+        else:
+            # OOD scaffold — use conservative global q_hat
+            q = self._global_q_hat
+            scaffold_status = "ood_unseen"
+
+        p = float(point_pred)
+        ci_low = round(p - q, 4)
+        ci_high = round(p + q, 4)
+        return (ci_low, p, ci_high)
+
+    def prediction_set(
+        self,
+        prob: float,
+        smiles: str,
+        endpoint: str = "tox21"
+    ) -> Dict[str, Any]:
+        """Mondrian classification prediction set (per-scaffold q_hat)."""
+        scaffold = _bemis_murcko_scaffold(smiles)
+        key = _canonical_endpoint(endpoint)
+
+        if scaffold in self._q_hat_by_scaffold:
+            q = self._q_hat_by_scaffold[scaffold]
+            scaffold_status = "calibrated"
+        else:
+            q = self._global_q_hat
+            scaffold_status = "ood_unseen"
+
+        p = float(np.clip(float(prob), 0.0, 1.0))
+        threshold = 1.0 - q
+        members = []
+        if p >= threshold:
+            members.append(1)
+        if (1.0 - p) >= threshold:
+            members.append(0)
+        members.sort()
+        return {
+            "set": members,
+            "size": len(members),
+            "threshold": round(threshold, 4),
+            "q_hat": round(q, 4),
+            "coverage": round(1.0 - self.alpha, 2),
+            "ambiguous": len(members) == 2,
+            "scaffold": scaffold[:20] + "..." if len(scaffold) > 20 else scaffold,
+            "scaffold_status": scaffold_status,
+            "global_q_hat": round(self._global_q_hat, 4),
+        }
+
+    def calibration_hash(self) -> str:
+        """SHA-256 of the scaffold-stratified calibration table."""
+        payload = json.dumps({
+            "version": self.calibration_version,
+            "alpha": self.alpha,
+            "q_hat_by_scaffold": {k: self._q_hat_by_scaffold[k]
+                                  for k in sorted(self._q_hat_by_scaffold)},
+            "global_q_hat": self._global_q_hat,
+            "scaffold_stats": {k: self._scaffold_stats[k]
+                               for k in sorted(self._scaffold_stats)},
+        }, sort_keys=True)
+        return "sha256_mondrian_" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "alpha": self.alpha,
+            "coverage": round(1.0 - self.alpha, 2),
+            "calibration_version": self.calibration_version,
+            "calibration_hash": self.calibration_hash(),
+            "n_scaffolds": len(self._q_hat_by_scaffold),
+            "global_q_hat": round(self._global_q_hat, 4),
+            "scaffold_q_hat": {k: round(v, 4)
+                               for k, v in sorted(self._q_hat_by_scaffold.items())},
+            "scaffold_stats": self._scaffold_stats,
+            "calibrated": self._calibrated,
+        }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Mondrian singleton
+# ─────────────────────────────────────────────────────────────────────────────
+_MONDR: Optional["MondrianConformalPredictor"] = None
+
+
+def get_default_mondrian_predictor(alpha: float = 0.05) -> MondrianConformalPredictor:
+    """Module-level singleton for scaffold-stratified conformal prediction."""
+    global _MONDR
+    if _MONDR is None or abs(_MONDR.alpha - alpha) > 1e-9:
+        _MONDR = MondrianConformalPredictor(alpha=alpha)
+    return _MONDR
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Self-test
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

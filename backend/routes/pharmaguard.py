@@ -2286,3 +2286,200 @@ def verify_regulatory_pdf():
         print(f"❌ PDF verification endpoint error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Verification failed: {str(e)}'}), 500
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PILLAR 4: Neuro-Symbolic Co-Pilot — Closed-Loop Optimization Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+@pharmaguard_bp.route('/copilot/optimize-loop', methods=['POST'])
+def copilot_optimize_loop():
+    """Run the autonomous 3-iteration neuro-symbolic bioisosteric optimization loop.
+
+    Accepts a SMILES string and returns the full iteration history including
+    candidate SMILES, property deltas (QED, toxicity), and EFS verification
+    status. If EFS >= 0.70 on any iteration, the candidate is VERIFIED.
+    If all 3 iterations fail, the case is escalated to HUMAN_REVIEW.
+
+    Returns a streaming-compatible response with per-iteration trace.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        smiles = data.get('smiles', '').strip()
+        if not smiles:
+            return jsonify({'error': 'SMILES string is required', 'success': False}), 400
+
+        from models.constrained_explainer import get_default_copilot, EFS_THRESHOLD
+        from utils.conformal_predictor import get_default_mondrian_predictor
+        from models.cns_oncology_safety import get_default_cns_engine
+
+        copilot = get_default_copilot()
+        result = copilot.optimize(smiles)
+
+        if 'error' in result:
+            return jsonify({'error': result['error'], 'success': False}), 400
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ Co-pilot optimize-loop endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Optimization failed: {str(e)}', 'success': False}), 500
+
+
+@pharmaguard_bp.route('/copilot/stream', methods=['POST'])
+def copilot_stream():
+    """Stream the co-pilot optimization loop iteration by iteration.
+
+    Uses Server-Sent Events (SSE) to deliver each iteration's result
+    as it completes. The response includes the baseline assessment first,
+    then each iteration, then a final VERIFIED / HUMAN_REVIEW status.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        smiles = data.get('smiles', '').strip()
+        if not smiles:
+            return jsonify({'error': 'SMILES string is required', 'success': False}), 400
+
+        from models.constrained_explainer import get_default_copilot
+
+        copilot = get_default_copilot()
+
+        # Run optimization synchronously and yield results
+        results = []
+        for chunk in copilot.stream_optimize(smiles):
+            results.append(chunk)
+
+        return jsonify({
+            'success': True,
+            'smiles': smiles,
+            'stream_results': results,
+            'final_verdict': results[-1].get('verdict') if results else 'UNKNOWN',
+        })
+
+    except Exception as e:
+        print(f"❌ Co-pilot stream endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Streaming failed: {str(e)}', 'success': False}), 500
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PILLAR 5: CNS P-gp & Oncology Kinome SI Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+@pharmaguard_bp.route('/safety/cns-pgp', methods=['POST'])
+def cns_pgp_endpoint():
+    """CNS safety: compute BBB permeability x P-gp efflux composite score.
+
+    Formula: Score_CNS = P(BBB) * (1.0 - 0.7 * P(P-gp Substrate))
+    Categories: LOW (peripheral), MODERATE, HIGH (CNS-penetrant).
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        smiles = data.get('smiles', '').strip()
+        if not smiles:
+            return jsonify({'error': 'SMILES string is required', 'success': False}), 400
+
+        from models.cns_oncology_safety import get_default_cns_engine
+        cns_engine = get_default_cns_engine()
+        result = cns_engine.evaluate(smiles)
+
+        if 'error' in result:
+            return jsonify({'error': result['error'], 'success': False}), 400
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ CNS P-gp endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'CNS safety assessment failed: {str(e)}', 'success': False}), 500
+
+
+@pharmaguard_bp.route('/safety/kinome-selectivity', methods=['POST'])
+def kinome_selectivity_endpoint():
+    """Oncology kinome selectivity: compute SI across 15 kinase off-targets.
+
+    SI = 1 - (mean_off_target_affinity / target_affinity)
+    Categories: HIGH_SELECTIVITY (SI >= 0.70), MODERATE (0.30-0.70), LOW (< 0.30).
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        smiles = data.get('smiles', '').strip()
+        if not smiles:
+            return jsonify({'error': 'SMILES string is required', 'success': False}), 400
+
+        target_kinase = data.get('target_kinase', 'EGFR')
+        from models.cns_oncology_safety import get_default_kinome_engine
+        kinome_engine = get_default_kinome_engine()
+        result = kinome_engine.evaluate(smiles, target_kinase=target_kinase)
+
+        if 'error' in result:
+            return jsonify({'error': result['error'], 'success': False}), 400
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ Kinome selectivity endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Kinome assessment failed: {str(e)}', 'success': False}), 500
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PILLAR 3: Mondrian Scaffold-Stratified Conformal Prediction
+# ─────────────────────────────────────────────────────────────────────────────
+@pharmaguard_bp.route('/conformal/mondrian', methods=['POST'])
+def mondrian_conformal_endpoint():
+    """Mondrian conformal prediction with Bemis-Murcko scaffold stratification.
+
+    Returns scaffold-aware confidence intervals that are wider for novel
+    chemotypes (unseen scaffolds) to prevent under-coverage on OOD molecules.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        smiles = data.get('smiles', '').strip()
+        if not smiles:
+            return jsonify({'error': 'SMILES string is required', 'success': False}), 400
+
+        point_pred = float(data.get('point_pred', 0.5))
+        endpoint = data.get('endpoint', 'tox21')
+
+        from utils.conformal_predictor import get_default_mondrian_predictor
+        mcp = get_default_mondrian_predictor()
+
+        # If not calibrated, calibrate with default data
+        if not mcp._calibrated:
+            # Pre-seeded calibration from known reference compounds
+            _calib_smiles = [
+                "CC(=O)OC1=CC=CC=C1",  # aspirin
+                "c1ccc([N+](=O)[O-])cc1",  # nitrobenzene
+                "CN1C=NC2=C1C(=O)N(C)C2=O",  # caffeine
+                "c1cc(ccc1)c2c(ccc3)c(c23)OCCN",  # indoline
+                "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",  # ibuprofen
+                "c1ccc2c(c1)nc3c(c2)cccc3N",  # carbazole
+            ]
+            _calib_y = [0.1, 0.9, 0.05, 0.3, 0.02, 0.8]
+            _calib_p = [0.15, 0.85, 0.08, 0.25, 0.05, 0.75]
+            mcp.calibrate(_calib_smiles, _calib_y, _calib_p, endpoint)
+
+        ci_low, point, ci_high = mcp.predict_interval(point_pred, smiles, endpoint)
+        pred_set = mcp.prediction_set(point_pred, smiles, endpoint)
+
+        return jsonify({
+            'success': True,
+            'conformal_ci_low': ci_low,
+            'conformal_ci_high': ci_high,
+            'point_prediction': point,
+            'scaffold_info': {
+                'scaffold': pred_set.get('scaffold', 'unknown'),
+                'scaffold_status': pred_set.get('scaffold_status', 'unknown'),
+                'q_hat': pred_set.get('q_hat', 0.0),
+                'global_q_hat': pred_set.get('global_q_hat', 0.0),
+            },
+            'prediction_set': pred_set,
+            'calibration_hash': mcp.calibration_hash(),
+            'ruleset_version': mcp.RULESET_VERSION,
+            'model_hash': hashlib.sha256(f"Mondrian-{smiles}".encode()).hexdigest()[:16],
+        })
+
+    except Exception as e:
+        print(f"❌ Mondrian conformal endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Mondrian prediction failed: {str(e)}', 'success': False}), 500

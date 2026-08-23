@@ -19,6 +19,8 @@ import Benchmark from './pages/Benchmark';
 import FormulationScreening from './pages/FormulationScreening';
 import CiPATesting from './pages/Phase3/CiPATesting';
 import SpeciesTranslation from './pages/Phase3/SpeciesTranslation';
+import CoPilotOptimizer from './pages/Phase4/CoPilotOptimizer';
+import AdvancedPanels from './pages/Phase4/AdvancedPanels';
 import { NotificationProvider } from './components/NotificationSystem';
 import { OnboardingTutorial, QuickHelp } from './components/OnboardingTutorial';
 import ChemBioBot from './components/ChemBioBot';
@@ -164,6 +166,8 @@ const AppContent = () => {
             <Route path="formulation" element={<FormulationScreening />} />
             <Route path="cipa" element={<CiPATesting />} />
             <Route path="translation" element={<SpeciesTranslation />} />
+            <Route path="copilot" element={<CoPilotOptimizer />} />
+            <Route path="advanced-panels" element={<AdvancedPanels />} />
             <Route path="help" element={<Help />} />
             <Route path="contact" element={<Contact />} />
           </Route>

@@ -16,7 +16,9 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HeartIcon,
-  ScaleIcon
+  ScaleIcon,
+  DocumentIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 
@@ -40,6 +42,13 @@ const navSections = [
     items: [
       { name: 'CiPA CardioTox', href: '/app/cipa', icon: HeartIcon },
       { name: 'Species Translation', href: '/app/translation', icon: ScaleIcon },
+    ]
+  },
+  {
+    title: 'Phase 4: Co-Pilot',
+    items: [
+      { name: 'Neuro-Symbolic Co-Pilot', href: '/app/copilot', icon: SparklesIcon, highlight: true },
+      { name: 'CNS & Kinome Safety', href: '/app/advanced-panels', icon: ChartBarIcon },
     ]
   },
   {
