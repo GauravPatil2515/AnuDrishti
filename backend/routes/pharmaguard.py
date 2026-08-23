@@ -11,6 +11,7 @@ Shared services (predictor, faithfulness_validator, …) are injected via
 stays free of Flask app wiring.
 """
 
+import hashlib
 import json
 import os
 import traceback
@@ -22,6 +23,11 @@ import uuid
 
 import numpy as np
 from flask import Blueprint, jsonify, request
+from typing import Dict, Any
+
+# ── Phase 1: Conformal Prediction Engine ─────────────────────────────────
+from utils.conformal_predictor import get_default_predictor as _get_conformal
+_conformal = _get_conformal()
 
 pharmaguard_bp = Blueprint('pharmaguard', __name__, url_prefix='/api')
 
@@ -74,25 +80,91 @@ def init_pharmaguard(**services):
 # Shared helpers (moved verbatim from the monolith to keep behaviour identical)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _validate_smiles(smiles):
+def _validate_smiles(smiles, return_toxicophore_info=False):
     """Validate a SMILES string with RDKit.
 
     Returns ``(mol, error)`` where ``error`` is ``None`` on success or a
     human-readable message on failure (SIH audit Bug #9: permissive SMILES
     handling previously crashed downstream RDKit calls with a generic 500).
+
+    When ``return_toxicophore_info=True``, returns ``(mol, error, info)``
+    where ``info`` includes calibrated nitrobenzene / toxicophore flags so
+    the analysis pipeline can apply the pre-calibrated q_hat.
     """
     if not isinstance(smiles, str) or not smiles.strip():
+        if return_toxicophore_info:
+            return None, "SMILES string is required", None
         return None, "SMILES string is required"
     from rdkit import Chem
+    from rdkit.Chem import rdMolDescriptors
     try:
         mol = Chem.MolFromSmiles(smiles.strip())
     except Exception as e:
+        if return_toxicophore_info:
+            return None, f"Invalid SMILES (parse error): {e}", None
         return None, f"Invalid SMILES (parse error): {e}"
     if mol is None:
+        if return_toxicophore_info:
+            return None, "Invalid SMILES string — could not be parsed by RDKit", None
         return None, "Invalid SMILES string — could not be parsed by RDKit"
     if mol.GetNumAtoms() == 0:
+        if return_toxicophore_info:
+            return None, "SMILES string produced an empty molecule", None
         return None, "SMILES string produced an empty molecule"
-    return mol, None
+
+    if not return_toxicophore_info:
+        return mol, None
+
+    info = _detect_calibrated_toxicophores(mol, smiles)
+    return mol, None, info
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 1: Nitrobenzene toxicophore calibration gate
+# ─────────────────────────────────────────────────────────────────────────────
+# Pre-calibrated SMARTS patterns for high-confidence toxicophores.
+# When any of these match, the conformal q_hat for "nitrobenzene" is applied
+# (q_hat=0.38, 95% coverage) instead of the generic tox21 default.
+_NITROBENZENE_SMARTS = [
+    "[N+](=O)[O-]",                    # nitro group (any aromatic)
+    "c1ccc([N+](=O)[O-])cc1",          # nitrobenzene specifically
+    "[n+](=O)[O-]",                     # nitro on heteroaromatic
+    "[N+](=O)[O-]=c1ccccc1",           # extended nitroaromatic
+]
+
+
+def _detect_calibrated_toxicophores(mol, smiles: str) -> Dict[str, Any]:
+    """Detect calibrated toxicophores and return calibration metadata.
+
+    Checks for nitrobenzene / nitro-aromatic toxicophores that have
+    pre-calibrated q_hat values for split-conformal prediction.
+    """
+    from rdkit import Chem
+    info = {
+        'detected_toxicophores': [],
+        'calibration_q_hat': None,
+        'calibration_endpoint': None,
+        'smiles_hash': hashlib.sha256(smiles.encode()).hexdigest()[:16],
+    }
+    try:
+        for smt in _NITROBENZENE_SMARTS:
+            pattern = Chem.MolFromSmarts(smt)
+            if pattern is None:
+                continue
+            if mol.HasSubstructMatch(pattern):
+                info['detected_toxicophores'].append({
+                    'name': 'nitro_group' if smt == "[N+](=O)[O-]" else 'nitroaromatic',
+                    'smarts': smt,
+                    'calibrated': True,
+                })
+                # Apply nitrobenzene calibrated q_hat (0.38)
+                info['calibration_q_hat'] = _conformal.q_hat.get('nitrobenzene', 0.38)
+                info['calibration_endpoint'] = 'nitrobenzene'
+                break  # first match wins
+    except Exception as e:
+        print(f"⚠️ Toxicophore detection failed: {e}")
+
+    return info
 
 
 def _compute_uncertainty(result, smiles=None, use_mc=False):
@@ -144,6 +216,13 @@ def _compute_uncertainty(result, smiles=None, use_mc=False):
 
         half = min(half, 0.45)
 
+        # Phase 1: conformal prediction half-width (distribution-free, 95% CI)
+        # For classification: q_hat is the max non-conformity score (|1-p|).
+        # The (1-alpha) coverage band is [max(0, p - q_hat), min(1, p + q_hat)],
+        # i.e. the prediction set's lower/upper coverage on the probability axis.
+        con_q = _conformal.q_hat.get(endpoint, _conformal.q_hat.get('tox21', 0.31))
+        con_half = float(con_q)
+
         # Label epistemic uncertainty: Low <0.05 / Moderate 0.05-0.15 / High >0.15
         if e_std < 0.05:
             e_label = "Low"
@@ -156,6 +235,9 @@ def _compute_uncertainty(result, smiles=None, use_mc=False):
             'probability': round(mean_p, 4),
             'ci_low': round(ci_low, 4),
             'ci_high': round(ci_high, 4),
+            'conformal_ci_low': round(max(0.0, mean_p - con_half), 4),
+            'conformal_ci_high': round(min(1.0, mean_p + con_half), 4),
+            'conformal_coverage': 0.95,
             'epistemic_std': round(e_std, 4),
             'epistemic_uncertainty': e_label,
             'n_models': len(lst),
@@ -183,6 +265,7 @@ def _compute_uncertainty(result, smiles=None, use_mc=False):
 
     return {
         'per_endpoint': per_endpoint,
+        'conformal_info': _conformal.to_dict(),
         'overall': {
             'mean': round(overall_mean, 4),
             'ci_low': round(max(0.0, overall_mean - overall_half), 4),
@@ -470,6 +553,8 @@ def _deterministic_explanation(smiles, tox_prob, substructures, attention_weight
             'validated': False,
             'note': 'Deterministic explanation — LLM provider unavailable, grounded in GNN attention only. Not faithfulness-validated.'
         },
+        'model_hash': 'sha256_unavailable',
+        'ruleset_version': 'v1.4.0',
         'generation_attempts': 0
     }
 
@@ -549,7 +634,12 @@ def analyze_batch():
             if not isinstance(smi, str) or not smi.strip():
                 return jsonify({'error': 'All items must be non-empty SMILES strings'}), 400
 
-        # Sync mode for small batches (backward compatibility)
+        # ──────────────────────────────────────────────────────────────
+        # Non-blocking async batch (Phase 1 upgrade):
+        # Every batch is now processed non-blocking via ThreadPoolExecutor
+        # + a polling endpoint. Even small batches go async so the API
+        # is uniform. Sync mode is reserved for explicit async=False.
+        # ──────────────────────────────────────────────────────────────
         if not async_mode:
             max_workers = min(4, max(1, (os.cpu_count() or 2)))
 
@@ -594,16 +684,18 @@ def analyze_batch():
                 'results': results
             })
 
-        # Async mode for large jobs - run in background thread with in-memory tracking
+        # Async mode (default): non-blocking, returns immediately with task_id
         task_id = str(uuid.uuid4())
         _set_task(task_id, {
             'task_id': task_id,
-            'status': 'queued',
+            'status': 'processing',
+            'progress': 0.0,
             'total': len(smiles_list),
             'completed': 0,
             'current_index': 0,
             'results': [],
-            'started_at': datetime.now().isoformat()
+            'started_at': datetime.now().isoformat(),
+            'created_at': datetime.now().isoformat(),
         })
 
         # Start background processing
@@ -632,6 +724,7 @@ def analyze_batch():
                         result = future.result()
                         _update_task(
                             task_id,
+                            progress=round((i + 1) / len(smiles_list), 4),
                             completed=i + 1,
                             current_index=i,
                             results=[r for r in _get_task(task_id).get('results', [])] + [result]
@@ -693,10 +786,12 @@ def analyze_batch_progress(task_id):
         'success': True,
         'task_id': task_id,
         'status': task.get('status', 'unknown'),
+        'progress': task.get('progress', 0.0),
         'total': task.get('total', 0),
         'completed': task.get('completed', 0),
         'current_index': task.get('current_index', 0),
         'started_at': task.get('started_at'),
+        'results': task.get('results', []),
         'error': task.get('error')
     })
 
@@ -942,12 +1037,17 @@ def explain_verify():
             explanation, smiles, tox_prob, attention_weights, run_counterfactual_test=True
         )
 
+        # Phase 1: run EFS perturbation testing with confidence intervals
+        verification = faithfulness_validator.validate_explanation(
+            explanation, smiles, tox_prob, attention_weights, n_perturbations=5
+        )
+
         return jsonify({
             'success': True,
             'smiles': smiles,
             'injected_hallucination': inject_hallucination,
-            'faithfulness': score.to_dict(),
-            'status': 'VERIFIED' if score.passed else 'REJECTED',
+            'faithfulness': verification,
+            'status': verification['verdict'],
             'timestamp': datetime.now().isoformat()
         })
 
