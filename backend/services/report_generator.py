@@ -27,6 +27,7 @@ FPDF = None
 HAS_FPDF = False
 try:
     from fpdf import FPDF
+    from fpdf.enums import XPos, YPos
     HAS_FPDF = True
 except ImportError:
     pass
@@ -181,13 +182,13 @@ class SimplePDF(_FP):
     def header(self):
         self.set_font('Helvetica', 'B', 12)
         self.set_text_color(67, 56, 200)
-        self.cell(0, 10, 'PharmaGuard AI - Molecular Safety Report', border='B', ln=True, align='C')
+        self.cell(0, 10, 'PharmaGuard AI - Molecular Safety Report', border='B', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
         self.ln(5)
     
     def chapter_title(self, title):
         self.set_font('Helvetica', 'B', 14)
         self.set_text_color(99, 102, 241)
-        self.cell(0, 10, title, ln=True)
+        self.cell(0, 10, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         self.ln(2)
     
     def chapter_body(self, body):
@@ -199,10 +200,10 @@ class SimplePDF(_FP):
     def metric_card(self, label, value):
         self.set_font('Helvetica', 'B', 9)
         self.set_text_color(55, 65, 85)
-        self.cell(0, 5, f'{label}:', ln=True)
+        self.cell(0, 5, f'{label}:', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         self.set_font('Helvetica', '', 10)
         self.set_text_color(17, 24, 39)
-        self.cell(0, 6, str(value), ln=True)
+        self.cell(0, 6, str(value), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         self.ln(1)
 
 
@@ -278,12 +279,12 @@ def _generate_fpdf_report(results: Dict[str, Any]) -> bytes:
     # Title
     pdf.set_font('Helvetica', 'B', 16)
     pdf.set_text_color(67, 56, 200)
-    pdf.cell(0, 15, 'PharmaGuard AI - Molecular Safety Report', ln=True, align='C')
+    pdf.cell(0, 15, 'PharmaGuard AI - Molecular Safety Report', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
     pdf.ln(5)
 
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(107, 115, 128)
-    pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', ln=True, align='C')
+    pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
     pdf.ln(10)
 
     # Section 1: Molecule Overview

@@ -40,14 +40,30 @@ class TestConformalPredictor:
         assert ps["ambiguous"] is True
 
     def test_default_q_hat_keys(self):
-        """All 4 required datasets must have pre-calibrated q_hat."""
+        """All 4 required datasets must have default q_hat placeholder estimates."""
         for ds in ("tox21", "bbbp", "bace", "clintox"):
             assert ds in DEFAULT_Q_HAT
 
-    def test_nitrobenzene_calibrated(self):
-        """Nitrobenzene toxicophore must have pre-calibrated q_hat."""
+    def test_nitrobenzene_default_q_hat(self):
+        """Nitrobenzene toxicophore must have a default q_hat entry (placeholder estimate)."""
         assert "nitrobenzene" in DEFAULT_Q_HAT
         assert DEFAULT_Q_HAT["nitrobenzene"] == 0.38
+
+    def test_prediction_set_reports_q_hat_source(self):
+        """Default endpoints must be flagged as default estimates, not calibrated."""
+        ps = self.cp.prediction_set(0.9, endpoint="tox21")
+        assert ps["q_hat_source"] == "default_estimate"
+        assert ps["coverage_guaranteed"] is False
+
+    def test_live_calibration_upgrades_source(self):
+        """After real calibration, q_hat_source must report live calibration."""
+        rng = np.random.default_rng(0)
+        y = rng.integers(0, 2, 200)
+        probs = np.clip(y + rng.normal(0, 0.3, 200), 0.01, 0.99)
+        self.cp.calibrate_classification(y, probs, endpoint="tox21")
+        ps = self.cp.prediction_set(0.9, endpoint="tox21")
+        assert ps["q_hat_source"] == "live_calibration"
+        assert ps["coverage_guaranteed"] is True
 
     def test_endpoint_alias_resolution(self):
         """Aliases should resolve to canonical endpoint keys."""

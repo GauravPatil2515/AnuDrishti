@@ -40,7 +40,7 @@ const navSections = [
   {
     title: 'Regulatory Safety',
     items: [
-      { name: 'CiPA CardioTox', href: '/app/cipa', icon: HeartIcon },
+      { name: 'Cardiotox Screen', href: '/app/cipa', icon: HeartIcon },
       { name: 'Species Translation', href: '/app/translation', icon: ScaleIcon },
     ]
   },

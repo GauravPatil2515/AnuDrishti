@@ -322,6 +322,46 @@ class OODDetector:
         return 1.0 - best
 
     # ─────────────────────────────────────────────────────────────────────
+    # Applicability-Domain check (Sheridan et al., JCICS 2004)
+    # ─────────────────────────────────────────────────────────────────────
+    AD_TANIMOTO_THRESHOLD = 0.30
+    AD_REFERENCE_CITATION = (
+        "Sheridan et al., J. Chem. Inf. Comput. Sci. 2004 — "
+        "Tanimoto >=0.30 to the training ECFP4 reference set is treated as "
+        "'in applicability domain'."
+    )
+
+    def applicability_domain(self, smiles: str) -> Dict[str, Any]:
+        """Explicit applicability-domain verdict for a SMILES string.
+
+        Returns ``in_domain`` (bool), ``max_tanimoto`` (nearest training
+        similarity), ``domain_threshold`` (0.30), and the citation. Uses the
+        same Morgan fingerprints as the OOD distance signal. This is a
+        separate, more granular signal than the blended ``ood_score`` so
+        callers can surface a clear AD flag in reports.
+        """
+        fp = self._morgan_fp(smiles)
+        if fp is None:
+            return {
+                "in_domain": False,
+                "max_tanimoto": 0.0,
+                "domain_threshold": self.AD_TANIMOTO_THRESHOLD,
+                "reference_source": "training ECFP4 reference",
+                "citation": self.AD_REFERENCE_CITATION,
+                "status": "OUT_OF_DOMAIN",
+            }
+        nearest = 1.0 - self._min_tanimoto_distance(fp)
+        in_domain = bool(nearest >= self.AD_TANIMOTO_THRESHOLD)
+        return {
+            "in_domain": in_domain,
+            "max_tanimoto": round(float(nearest), 4),
+            "domain_threshold": self.AD_TANIMOTO_THRESHOLD,
+            "reference_source": "training ECFP4 reference",
+            "citation": self.AD_REFERENCE_CITATION,
+            "status": "IN_DOMAIN" if in_domain else "OUT_OF_DOMAIN",
+        }
+
+    # ─────────────────────────────────────────────────────────────────────
     # Latent embedding
     # ─────────────────────────────────────────────────────────────────────
     def _latent_embedding(self, smiles: str) -> Optional[np.ndarray]:

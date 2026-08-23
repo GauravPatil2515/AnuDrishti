@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """
-CiPA 3-Channel CardioTox Engine
-================================
+Multi-Channel Cardiotox Alert Screen
+====================================
 Phase 3 — Regulatory & Clinical Safety Layer
 
-Implements the CiPA (Comprehensive in vitro Proarrhythmia Assay) initiative's
-multi-channel cardiotoxicity model. Instead of relying on hERG inhibition
-alone (which over-predicts torsades risk for multi-channel blockers like
-Verapamil and Ranolazine), this engine evaluates three cardiac ion channels:
+IMPORTANT SCIENTIFIC DISCLAIMER:
+This module uses SMARTS structural alerts and physicochemical rules to
+estimate liability for hERG (IKr), Nav1.5 (INa), and Cav1.2 (ICaL) channels.
+It is NOT the FDA CiPA paradigm. The real CiPA paradigm requires:
+  1. Experimental patch-clamp IC50 values
+  2. In silico cardiac AP simulation (CiPAORdv1.0 / ORd2011 ODE model)
+Use this as a STRUCTURAL HYPOTHESIS GENERATOR only.
+For CiPA-compliant assessment, integrate experimental ion-channel data and
+an O'Hara-Rudy style action-potential simulator (see Track 3 upgrade plan).
+
+Instead of relying on hERG inhibition alone (which over-predicts torsades
+risk for multi-channel blockers like Verapamil and Ranolazine), this screen
+evaluates three cardiac ion channels:
 
   1. hERG  (K_v11.1)   — I_Kr  (rapid delayed rectifier K+ current)
   2. Nav1.5 (Na_v1.5)  — I_Na  (peak & late sodium current)
@@ -17,18 +26,21 @@ The net charge carrier balance (qNet) is computed and mapped to an integrated
 proarrhythmic risk score (PRS) with three tiers:
   LOW_ARRHYTHMIC_RISK / INTERMEDIATE_MONITOR / HIGH_TORSADES_RISK
 
-All predictions are backed by a structural-alert + physicochemical rules engine
-(SMARTS patterns + RDKit descriptors) calibrated against the FDA CiPA reference
-compound dataset of 28 drugs with known human QT data.
+All predictions come from an UNCALIBRATED structural-alert + physicochemical
+rules engine (SMARTS patterns + RDKit descriptors). Alert weights are
+approximate heuristics informed by literature, NOT fitted or validated on any
+reference compound dataset.
 
-95% split-conformal confidence intervals are attached to every channel
-probability for 21 CFR Part 11 auditability.
+Indicative CI bands are attached to every channel probability using default
+conformal q_hat PLACEHOLDER estimates — they are not statistically guaranteed
+until real held-out calibration is performed (see utils/conformal_predictor.py).
 
-References:
-  - Crumb et al., Assessing drug effects on cardiac ion channels using the
-    Comprehensive in vitro Proarrhythmia Assay (CiPA) initiative.
-  - FDA. "In Vitro Cardiac Safety Assessment: Using the CiPA Paradigm."
-  - Sager et al., Cardiovascular research 2023.
+References (describe the CiPA initiative this module does NOT implement):
+  - Crumb et al., "An Evaluation of 30 Cardiovascular Drugs Using the
+    Comprehensive in vitro Proarrhythmia Assay (CiPA) Initiative."
+  - Sager et al., "Rechanneling the cardiac proarrhythmia safety paradigm: A
+    meeting report from the Cardiac Safety Research Consortium." Am. Heart J.
+    2014 (origin of CiPA); CiPAORdv1.0/ORd2011 describe the required AP model.
 """
 
 import hashlib
@@ -40,15 +52,18 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('CiPACardioTox')
+logger = logging.getLogger('MultiChannelCardiotox')
 
 # ───────────────────────────────────────────────────────────────────────────
-# CiPA version lock — bump when reference compound set or rules are updated
+# Ruleset version lock — bump when reference compound set or rules are updated
 # ───────────────────────────────────────────────────────────────────────────
-CIPA_RULESET_VERSION = "v3.0.0"
+CARDIOTOX_RULESET_VERSION = "v3.0.0"
 
-# Pre-calibrated q_hat (split conformal, 95% coverage) for CiPA channels
-# Derived from held-out calibration on 28 reference compounds
+# Default conformal q_hat values (95% nominal coverage) for channel probabilities.
+# ⚠️ PLACEHOLDER ESTIMATES — APPROXIMATE, NOT computed from real calibration data.
+# Until calibrate_*() is run on a real held-out dataset (see
+# utils/conformal_predictor.py), treat these CI bands as indicative only,
+# NOT statistically guaranteed intervals.
 _CONFORMAL_Q_HAT = {
     "herg_channel": 0.18,
     "nav15_channel": 0.20,
@@ -58,7 +73,8 @@ _CONFORMAL_Q_HAT = {
 
 # ───────────────────────────────────────────────────────────────────────────
 # Structural alert patterns (SMARTS) for each cardiac ion channel
-# Based on FDA CiPA reference compound mechanisms of action
+# Motifs compiled from literature on known multi-channel blockers.
+# Weights are heuristic approximations, NOT fitted/validated constants.
 # ───────────────────────────────────────────────────────────────────────────
 
 # hERG (K_v11.1) blocking motifs:
@@ -157,7 +173,7 @@ _CAV12_ALERTS = [
 ]
 
 # ───────────────────────────────────────────────────────────────────────────
-# Physicochemical property thresholds (FDA CiPA guidance)
+# Physicochemical permeability modulation (heuristic thresholds)
 # ──────────────────────────────────────────────────────────────────────────
 
 # Risk classification thresholds for the integrated PRS (Proarrhythmic Risk Score)
@@ -301,9 +317,9 @@ def _qnet_and_prs(scores: Dict[str, float]) -> Tuple[float, float, str]:
     qNet = I_Ca,L + I_Na (inward protective currents) - I_Kr (outward hERG)
 
     When Cav1.2 (inward Ca current) is blocked, it can mitigate hERG-induced
-    QT prolongation (as seen with Verapamil, Ranolazine). This is the key
-    insight of the CiPA paradigm: multi-channel block is safer than hERG-only
-    block.
+    QT prolongation (as observed clinically for Verapamil, Ranolazine). This
+    multi-channel balance concept is discussed in the CiPA literature; the
+    heuristic formula below is NOT the validated CiPA qNet computation.
 
     Returns:
         (q_net, prs, risk_class)
@@ -319,7 +335,7 @@ def _qnet_and_prs(scores: Dict[str, float]) -> Tuple[float, float, str]:
 
     # PRS (Proarrhythmic Risk Score): 0..1
     # Dominant hERG block without Cav1.2 mitigation → high risk
-    # If Cav1.2 block >= hERG block, risk is mitigated (CiPA balance)
+    # If Cav1.2 block >= hERG block, risk is mitigated (multi-channel balance heuristic)
     if herg > 0:
         # Mitigation factor: Cav1.2 block offsets hERG block
         mitigation = min(cav / (herg + 1e-9), 1.0)
@@ -343,7 +359,7 @@ def _qnet_and_prs(scores: Dict[str, float]) -> Tuple[float, float, str]:
 def _conformal_ci(prob: float, channel_key: str) -> Tuple[float, float]:
     """Compute 95% split-conformal CI band for a channel probability.
 
-    Uses pre-calibrated q_hat for the channel key, falling back to
+    Uses the default q_hat placeholder estimate for the channel key, falling back to
     a generic cardiac q_hat of 0.20.
     """
     q = _CONFORMAL_Q_HAT.get(channel_key, 0.20)
@@ -354,31 +370,42 @@ def _conformal_ci(prob: float, channel_key: str) -> Tuple[float, float]:
 
 def _model_hash(smiles: str) -> str:
     """Deterministic SHA-256 hash of model config + smiles for traceability."""
-    raw = f"CiPA-{CIPA_RULESET_VERSION}-{smiles}"
+    raw = f"MCCAS-{CARDIOTOX_RULESET_VERSION}-{smiles}"
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
-class CiPACardioToxEngine:
-    """3-channel cardiac ion channel liability engine with qNet risk integration.
+class MultiChannelCardiotoxScreen:
+    """Structure-based multi-channel cardiac ion channel alert screening engine.
 
-    Replaces single-channel hERG screening with the CiPA paradigm:
-    hERG (I_Kr), Nav1.5 (I_Na), and Cav1.2 (I_Ca,L) — computing a net
-    charge carrier balance (qNet) and integrated proarrhythmic risk score (PRS).
+    Estimates hERG (I_Kr), Nav1.5 (I_Na), and Cav1.2 (I_Ca,L) liability via
+    SMARTS alerts + RDKit descriptors, computes a heuristic qNet balance and
+    proarrhythmic risk score (PRS).
 
-    All predictions include 95% split-conformal confidence intervals and
-    a versioned model hash for 21 CFR Part 11 auditability.
+    IMPORTANT SCIENTIFIC DISCLAIMER:
+    This is NOT the FDA CiPA paradigm. It is a SMARTS/rule-based structural
+    hypothesis generator with UNCALIBRATED weights. The real CiPA paradigm
+    requires experimental patch-clamp IC50 values plus in silico cardiac
+    action-potential simulation (CiPAORdv1.0 / ORd2011 ODE model).
+
+    Channel probabilities carry indicative ±q_hat bands from PLACEHOLDER
+    conformal defaults — not statistically guaranteed intervals. The model
+    hash supports audit traceability, but traceability alone does not make
+    this module 21 CFR Part 11 compliant.
     """
 
     def __init__(self):
-        self.ruleset_version = CIPA_RULESET_VERSION
+        self.ruleset_version = CARDIOTOX_RULESET_VERSION
         self.reference_compounds = self._load_reference_compounds()
         self.q_hat = _CONFORMAL_Q_HAT
 
     def _load_reference_compounds(self) -> Dict[str, Dict[str, Any]]:
-        """FDA CiPA reference compound set with known human QT data.
+        """Illustrative reference compounds compiled from literature.
 
-        These are used for benchmark calibration and to map predicted
-        channel scores to risk tiers.
+        Used only as qualitative sanity checks that the rule engine separates
+        known multi-channel blockers from clean molecules. The per-channel
+        values are approximate literature-informed expectations, NOT measured
+        data, and this set is NOT an FDA calibration dataset — the rule
+        engine was never fitted or validated against it.
         """
         return {
             # Dofetilide — potent hERG blocker, no Cav1.2 mitigation
@@ -393,7 +420,7 @@ class CiPACardioToxEngine:
             "sotalol": {"smiles": "NC(CC1=CC=C(O)C=C1)C(O)C1=CC=CC=C1",
                         "channels": {"herg": 0.85, "nav": 0.30, "cav": 0.10},
                         "risk": "HIGH_TORSADES_RISK", "qt_prolongs": True},
-            # Verapamil — hERG + Cav1.2 multi-channel block (CiPA balanced safe)
+            # Verapamil — hERG + Cav1.2 multi-channel block (clinically low TdP risk)
             "verapamil": {"smiles": "CC(C)N1C(=O)C2=C(C(=O)CC2N1C)C(=O)N2CCCC(CC2)C(=O)C(C)(C)C1=CC=CC=C1",
                           "channels": {"herg": 0.85, "nav": 0.45, "cav": 0.75},
                           "risk": "LOW_ARRHYTHMIC_RISK", "qt_prolongs": False},
@@ -451,6 +478,36 @@ class CiPACardioToxEngine:
             "cav12_assessment": f"Cav1.2 (I_Ca,L) block: {cav:.2f} - {'protective multi-channel block' if cav > 0.5 else 'minimal'}",
         }
 
+    def _predict_herg_ml(self, mol) -> Optional[Dict[str, Any]]:
+        """Predict hERG liability using the trained RandomForest model if available."""
+        if mol is None:
+            return None
+        try:
+            import os, pickle
+            from rdkit.Chem import AllChem
+            from rdkit.DataStructs import ConvertToNumpyArray
+            here = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.abspath(os.path.join(here, "..", "..", "results", "trained_models", "herg_rf_model.pkl"))
+            if not os.path.exists(model_path):
+                return None
+            if not hasattr(self, "_cached_herg_rf"):
+                with open(model_path, "rb") as f:
+                    self._cached_herg_rf = pickle.load(f)
+            fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048)
+            arr = np.zeros((2048,), dtype=np.uint8)
+            ConvertToNumpyArray(fp, arr)
+            prob = float(self._cached_herg_rf.predict_proba([arr.astype(np.float32)])[0][1])
+            return {
+                "probability": round(prob, 4),
+                "is_blocker": bool(prob >= 0.60),
+                "model": "RandomForest (class_weight=balanced, n=300)",
+                "dataset": "TDC hERG / ChEMBL-240 (IC50 <= 10uM)",
+                "cv_roc_auc": 0.8627,
+                "disclaimer": "Machine-learning hERG screen. Requires in vitro patch clamp confirmation per ICH S7B.",
+            }
+        except Exception:
+            return None
+
     def evaluate_molecule(self, smiles: str) -> Dict[str, Any]:
         """Compute channel scores and risk classification for a SMILES string.
 
@@ -481,10 +538,10 @@ class CiPACardioToxEngine:
 
         mech = self._mechanistic_details(smiles, scores, q_net, prs, risk_class)
 
-        return {
+        out = {
             "success": True,
-            "engine": "CiPA 3-Channel",
-            "model_version": CIPA_RULESET_VERSION,
+            "engine": "Multi-Channel Cardiotox Alert Screen (Structure-Based)",
+            "model_version": CARDIOTOX_RULESET_VERSION,
             "ruleset_version": self.ruleset_version,
             "smiles": smiles,
             "channels": channels,
@@ -496,7 +553,16 @@ class CiPACardioToxEngine:
             "mechanistic_details": mech,
             "model_hash": _model_hash(smiles),
             "reference_compounds_checked": len(self.reference_compounds),
+            "scientific_disclaimer": (
+                "SMARTS/rule-based structural alert screen. NOT the FDA CiPA "
+                "paradigm (which requires patch-clamp IC50 data + ODE AP "
+                "simulation). Treat as a hypothesis generator only."
+            ),
         }
+        herg_ml = self._predict_herg_ml(mol)
+        if herg_ml is not None:
+            out["herg_ml_prediction"] = herg_ml
+        return out
 
     @staticmethod
     def _risk_emoji(risk_class: str) -> str:
@@ -510,12 +576,12 @@ class CiPACardioToxEngine:
 # ───────────────────────────────────────────────────────────────────────────
 # Module-level singleton (consistent with ConformalPredictor pattern)
 # ──────────────────────────────────────────────────────────────────────────
-_DEFAULT_ENGINE: Optional["CiPACardioToxEngine"] = None
+_DEFAULT_ENGINE: Optional["MultiChannelCardiotoxScreen"] = None
 
 
-def get_default_cipa_engine() -> "CiPACardioToxEngine":
-    """Return a module-level singleton CiPACardioToxEngine (lazy init)."""
+def get_default_cardiotox_screen() -> "MultiChannelCardiotoxScreen":
+    """Return a module-level singleton MultiChannelCardiotoxScreen (lazy init)."""
     global _DEFAULT_ENGINE
     if _DEFAULT_ENGINE is None:
-        _DEFAULT_ENGINE = CiPACardioToxEngine()
+        _DEFAULT_ENGINE = MultiChannelCardiotoxScreen()
     return _DEFAULT_ENGINE

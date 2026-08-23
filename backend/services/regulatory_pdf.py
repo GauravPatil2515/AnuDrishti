@@ -4,18 +4,22 @@ Regulatory PDF Generator
 ========================
 Phase 3 — Regulatory & Clinical Safety Layer
 
-Generates 21 CFR Part 11-compliant, tamper-evident regulatory dossiers
-using fpdf2. Each PDF includes:
+Generates tamper-evident safety dossiers using fpdf2. Each PDF includes:
   - Unique document hash and version
   - Digital signature block (HMAC-SHA256)
   - Audit trail of all input data hashes
   - Multi-page report with structured tables
 
-Compliance features:
+Data-integrity features:
   - Document hash embedded in PDF metadata + footer
   - Signature verification API endpoint
   - All input data hashed and recorded in audit trail
   - Deterministic rendering for reproducibility
+
+IMPORTANT: HMAC-SHA256 signatures provide DATA INTEGRITY ONLY. Full
+21 CFR Part 11 compliance additionally requires unique user authentication,
+access controls, SOPs, record-retention policies, and validated computer
+system workflows (IQ/OQ/PQ) — see remediation plan Track 4.
 """
 
 import hashlib
@@ -28,6 +32,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 
@@ -43,10 +48,10 @@ PDF_RULESET_VERSION = "v3.0.0"
 # ───────────────────────────────────────────────────────────────────────────
 PDF_CONFIG = {
     "title": "AnuDrishti Regulatory Safety Dossier",
-    "subtitle": "Phase 3 - CiPA CardioToxicity, Species Translation & NAMs",
-    "subject": "21 CFR Part 11 Compliant Regulatory Dossier",
+    "subtitle": "Phase 3 - Multi-Channel Cardiotox Alert Screen, Species Translation & NAMs",
+    "subject": "Tamper-Evident Safety Dossier (HMAC-SHA256 Integrity)",
     "author": "AnuDrishti - Lethos-AI GCS",
-    "keywords": "drug safety, CiPA, cardiotoxicity, species translation, NAMs, regulatory",
+    "keywords": "drug safety, multi-channel cardiotox alert screen, cardiotoxicity, species translation, NAMs, audit trail",
     "font_family": "Helvetica",
     "font_size_title": 16,
     "font_size_heading": 12,
@@ -67,7 +72,7 @@ def _compute_file_hash(cipa_data: Dict[str, Any], species_data: Dict[str, Any],
         "timestamp": timestamp,
         "batch_id": batch_id,
         "compound_name": compound_name,
-        "cipa": cipa_data,
+        "cardiotox": cipa_data,
         "species": species_data,
     }
     content_str = json.dumps(content, sort_keys=True, default=str)
@@ -115,9 +120,9 @@ class RegulatoryPDF(FPDF):
         """Header with document title on first page only."""
         if self.page_no() == 1:
             self.set_font(PDF_CONFIG["font_family"], "B", PDF_CONFIG["font_size_title"])
-            self.cell(0, 8, PDF_CONFIG["title"], ln=1, align="C")
+            self.cell(0, 8, PDF_CONFIG["title"], new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
             self.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_body"])
-            self.cell(0, 5, PDF_CONFIG["subtitle"], ln=1, align="C")
+            self.cell(0, 5, PDF_CONFIG["subtitle"], new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
             self.ln(3)
             self.set_draw_color(100, 100, 100)
             self.line(self.l_margin, self.get_y(),
@@ -126,7 +131,7 @@ class RegulatoryPDF(FPDF):
         else:
             self.set_font(PDF_CONFIG["font_family"], "B", PDF_CONFIG["font_size_small"])
             self.set_text_color(80, 80, 80)
-            self.cell(0, 5, PDF_CONFIG["title"], ln=1, align="C")
+            self.cell(0, 5, PDF_CONFIG["title"], new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
             self.ln(2)
 
     def footer(self):
@@ -135,18 +140,18 @@ class RegulatoryPDF(FPDF):
         self.set_font(PDF_CONFIG["font_family"], "I", PDF_CONFIG["font_size_small"])
         self.set_text_color(100, 100, 100)
         # Page number
-        self.cell(0, 4, f"Page {self.page_no()}", align="C", ln=1)
+        self.cell(0, 4, f"Page {self.page_no()}", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         # Document hash (truncated for display)
         self.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_small"] - 1)
         hash_display = self._file_hash[:24] + "..."
-        self.cell(0, 3, f"Doc ID: {hash_display}", align="C", ln=1)
+        self.cell(0, 3, f"Doc ID: {hash_display}", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         # Signature (truncated)
         sig_display = self._signature[:16] + "..."
-        self.cell(0, 3, f"Signature: {sig_display}", align="C", ln=1)
+        self.cell(0, 3, f"Signature: {sig_display}", align="C", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 
 class RegulatoryPDFGenerator:
-    """Generates 21 CFR Part 11-compliant regulatory PDF dossiers.
+    """Generates tamper-evident (HMAC-SHA256) safety dossier PDFs.
 
     Usage:
         gen = RegulatoryPDFGenerator()
@@ -155,6 +160,8 @@ class RegulatoryPDFGenerator:
     The generated PDF is tamper-evident: any modification to the source
     data will produce a different file_hash, which is embedded in the PDF
     footer and metadata. Signature verification confirms authenticity.
+    Note: tamper evidence != 21 CFR Part 11 compliance (needs access
+    controls + SOPs + validated workflows).
     """
 
     def __init__(self, signing_key: Optional[str] = None):
@@ -165,10 +172,10 @@ class RegulatoryPDFGenerator:
     def generate(self, cipa_data: Dict[str, Any], species_data: Dict[str, Any],
                  batch_id: str = "DEFAULT",
                  compound_name: str = "Unknown Compound") -> str:
-        """Generate a regulatory PDF dossier from CiPA + Species Translation data.
+        """Generate a regulatory PDF dossier from Cardiotox Screen + Species Translation data.
 
         Args:
-            cipa_data: Output dict from CiPACardioToxEngine.evaluate_molecule()
+            cipa_data: Output dict from MultiChannelCardiotoxScreen.evaluate_molecule()
             species_data: Output dict from SpeciesTranslationEngine.translate_molecule()
             batch_id: Identifier for the testing batch
             compound_name: Human-readable compound name
@@ -189,7 +196,7 @@ class RegulatoryPDFGenerator:
 
         self._render_cover(pdf, compound_name, batch_id, timestamp)
         pdf.add_page()
-        self._render_cipa_section(pdf, cipa_data)
+        self._render_cardiotox_section(pdf, cipa_data)
         pdf.add_page()
         self._render_species_section(pdf, species_data)
         pdf.add_page()
@@ -204,7 +211,7 @@ class RegulatoryPDFGenerator:
             "version": self.ruleset_version,
             "compound_name": compound_name,
             "batch_id": batch_id,
-            "cipa_data": cipa_data,
+            "cardiotox_data": cipa_data,
             "species_data": species_data,
         }
         meta_json = json.dumps(meta, sort_keys=True, default=str)
@@ -218,7 +225,7 @@ class RegulatoryPDFGenerator:
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, filename)
 
-        pdf.output(output_path, dest="F")
+        pdf.output(output_path)
         logger.info(f"Regulatory PDF generated: {output_path}")
 
         # Post-process: embed metadata into PDF for signature verification
@@ -323,7 +330,7 @@ class RegulatoryPDFGenerator:
             stored_version = metadata.get("version", "")
             compound_name = metadata.get("compound_name", "Unknown")
             batch_id = metadata.get("batch_id", "DEFAULT")
-            cipa_data = metadata.get("cipa_data", {})
+            cipa_data = metadata.get("cardiotox_data", metadata.get("cipa_data", {}))
             species_data = metadata.get("species_data", {})
 
             # Recompute hash from embedded data
@@ -363,18 +370,18 @@ class RegulatoryPDFGenerator:
         # Agency header
         pdf.set_font(PDF_CONFIG["font_family"], "B", 14)
         pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 8, "LETHOS-AI GCS", ln=1, align="C")
+        pdf.cell(0, 8, "LETHOS-AI GCS", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
         pdf.set_font(PDF_CONFIG["font_family"], "I", 12)
         pdf.set_text_color(80, 80, 80)
-        pdf.cell(0, 6, "AnuDrishti - Drug Safety Platform", ln=1, align="C")
+        pdf.cell(0, 6, "AnuDrishti - Drug Safety Platform", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
         pdf.set_text_color(0, 0, 0)
         pdf.ln(5)
 
         # Regulatory compliance statement
         pdf.set_font(PDF_CONFIG["font_family"], "B", 12)
-        pdf.cell(0, 8, "21 CFR Part 11 - GxP Regulated Environment", ln=1, align="C")
+        pdf.cell(0, 8, "Tamper-Evident Electronic Record (HMAC-SHA256)", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
         pdf.set_font(PDF_CONFIG["font_family"], "", 10)
-        pdf.cell(0, 6, "Tamper-Evident Regulatory Dossier", ln=1, align="C")
+        pdf.cell(0, 6, "Screening-Level Safety Dossier - Research Use Only", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
         pdf.ln(10)
 
         # Document metadata table
@@ -386,45 +393,53 @@ class RegulatoryPDFGenerator:
             ["Generated (UTC)", timestamp],
             ["Engine Version", self.ruleset_version],
             ["Risk Engine", "AnuDrishti Phase 3"],
-            ["Compliance", "21 CFR Part 11, FDA Modernization Act 2.0/3.0"],
+            ["Data Integrity", "HMAC-SHA256 signature (see Part 11 note below)"],
         ]
         self._add_table(pdf, ["Field", "Value"], meta_rows, col_widths=[50, 100])
 
         # Regulatory statement
         pdf.ln(5)
-        self._add_heading(pdf, "Regulatory Statement", level=2)
+        self._add_heading(pdf, "Regulatory Statement & Limitations", level=2)
         self._add_body(pdf,
-            "This document is a computer-generated regulatory dossier produced "
-            "by the AnuDrishti Drug Safety Platform under 21 CFR Part 11 "
-            "compliance. The dossier integrates CiPA 3-channel cardiotoxicity "
-            "predictions, cross-species toxicokinetic translation via New "
-            "Approach Methodologies (NAMs), and FDA Modernization Act 2.0/3.0 "
-            "justification. All data is cryptographically signed and the "
-            "integrity of this document can be verified using the signature "
-            "verification endpoint.", indent=5
+            "This document is a computer-generated safety screening dossier "
+            "produced by the AnuDrishti Drug Safety Platform. It integrates a "
+            "structure-based multi-channel cardiotox ALERT SCREEN (not the FDA "
+            "CiPA paradigm), cross-species toxicokinetic extrapolations from "
+            "rule-estimated clearance (not measured IVIVE input), and rule-based "
+            "LD50 estimates (unvalidated hypothesis generators). All content is "
+            "cryptographically signed for tamper evidence and integrity can be "
+            "verified via the signature verification endpoint. HMAC-SHA256 "
+            "signatures provide data integrity ONLY; full 21 CFR Part 11 "
+            "compliance additionally requires access controls, standard operating "
+            "procedures, and validated computer-system workflows. Predictions "
+            "are RESEARCH USE ONLY and not for clinical decision making.",
+            indent=5
         )
 
         # Signature block placeholder
         pdf.ln(10)
         pdf.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_body"])
-        pdf.cell(0, 5, "Authorized Signature:", border="B", ln=1)
+        pdf.cell(0, 5, "Authorized Signature:", border="B", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(2)
-        pdf.cell(0, 5, f"Date: {timestamp}", ln=1)
+        pdf.cell(0, 5, f"Date: {timestamp}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(2)
         pdf.multi_cell(0, 4,
-            "This electronic record is legally binding under 21 CFR Part 11. "
             "Any modification to this document after generation will invalidate "
             "the digital signature and produce a verification failure.")
 
-    def _render_cipa_section(self, pdf: RegulatoryPDF, cipa_data: Dict[str, Any]):
-        """Render the CiPA 3-Channel CardioToxicity section."""
-        self._add_heading(pdf, "Section 1: CiPA 3-Channel CardioToxicity Assessment", level=2)
+    def _render_cardiotox_section(self, pdf: RegulatoryPDF, cipa_data: Dict[str, Any]):
+        """Render the Multi-Channel Cardiotox Alert Screen section."""
+        self._add_heading(pdf, "Section 1: Multi-Channel Cardiotox Alert Screen (Structure-Based)", level=2)
 
         smiles = cipa_data.get("smiles", "")
         pdf.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_body"])
-        pdf.cell(0, 5, f"Compound SMILES: {smiles}", ln=1)
-        pdf.cell(0, 5, f"Model: {cipa_data.get('model', 'CiPACardioToxEngine')}", ln=1)
-        pdf.cell(0, 5, f"Version: {cipa_data.get('model_version', 'N/A')}", ln=1)
+        pdf.cell(0, 5, f"Compound SMILES: {smiles}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 5, f"Model: {cipa_data.get('model', 'MultiChannelCardiotoxScreen')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 5, f"Version: {cipa_data.get('model_version', 'N/A')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.multi_cell(0, 4,
+            "DISCLAIMER: SMARTS/rule-based structural alert screen (hypothesis "
+            "generator). NOT the FDA CiPA paradigm, which requires experimental "
+            "patch-clamp IC50 data and in silico action-potential simulation.")
 
         # Channel predictions table
         channels = cipa_data.get("channels", {})
@@ -442,12 +457,16 @@ class RegulatoryPDFGenerator:
                 alert_str,
             ])
 
-        self._add_heading(pdf, "1.1 Ion Channel Blocking Predictions", level=3)
+        self._add_heading(pdf, "1.1 Ion Channel Blocking Estimates", level=3)
         self._add_table(pdf,
-            ["Channel", "Probability", "95% CI", "Matched Alerts"],
+            ["Channel", "Probability", "Indicative CI*", "Matched Alerts"],
             chan_rows,
             col_widths=[45, 25, 35, 55]
         )
+        pdf.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_small"])
+        pdf.multi_cell(0, 4,
+            "*CI bands use default placeholder q_hat estimates and are NOT "
+            "coverage-guaranteed until calibrated on real held-out data.")
 
         # qNet and PRS
         self._add_heading(pdf, "1.2 Network-Level Arrhythmia Metrics", level=3)
@@ -484,9 +503,9 @@ class RegulatoryPDFGenerator:
         self._add_heading(pdf, "Section 2: Cross-Species Translation & NAMs", level=2)
 
         pdf.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_body"])
-        pdf.cell(0, 5, f"Compound SMILES: {species_data.get('smiles', 'N/A')}", ln=1)
-        pdf.cell(0, 5, f"Ruleset: {species_data.get('ruleset_version', 'N/A')}", ln=1)
-        pdf.cell(0, 5, f"Model Hash: {species_data.get('model_hash', 'N/A')}", ln=1)
+        pdf.cell(0, 5, f"Compound SMILES: {species_data.get('smiles', 'N/A')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 5, f"Ruleset: {species_data.get('ruleset_version', 'N/A')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 5, f"Model Hash: {species_data.get('model_hash', 'N/A')}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         # LD50 predictions
         ld50 = species_data.get("ld50", {})
@@ -529,7 +548,7 @@ class RegulatoryPDFGenerator:
         # NAMs statement
         nams = species_data.get("nams_justification", "")
         if nams:
-            self._add_heading(pdf, "2.4 NAMs Modernization Act 2.0/3.0 Justification", level=3)
+            self._add_heading(pdf, "2.4 NAMs Statement & Limitations", level=3)
             self._add_body(pdf, nams, indent=3)
 
     def _render_audit_trail(self, pdf: RegulatoryPDF, cipa_data: Dict[str, Any],
@@ -545,32 +564,36 @@ class RegulatoryPDFGenerator:
             ["Digital Signature (HMAC-SHA256)", signature],
             ["Timestamp (UTC)", timestamp],
             ["Ruleset Version", self.ruleset_version],
-            ["Compliance Standard", "21 CFR Part 11"],
+            ["Data Integrity", "HMAC-SHA256 tamper evidence"],
         ]
         self._add_table(pdf, ["Field", "Hash / Value"], sig_rows, col_widths=[60, 90])
 
         self._add_heading(pdf, "3.2 Input Data Hashes", level=3)
         input_rows = [
-            ["CiPA Data Hash", _hash_dict(cipa_data)],
+            ["Cardiotox Screen Data Hash", _hash_dict(cipa_data)],
             ["Species Translation Hash", _hash_dict(species_data)],
             ["Batch ID", batch_id],
             ["Compound Name", compound_name],
         ]
         self._add_table(pdf, ["Input", "SHA-256 Hash"], input_rows, col_widths=[60, 90])
 
-        self._add_heading(pdf, "3.3 Compliance Attestation", level=3)
+        self._add_heading(pdf, "3.3 Data Integrity Attestation", level=3)
         self._add_body(pdf,
-            "Under 21 CFR Part 11.10, this electronic record meets the "
-            "requirements for:"
-            "\n\n1. Closed-system authentication: HMAC-SHA256 signature "
-            "verifies integrity.\n2. Audit trail: All input data hashes are "
-            "recorded in Section 3.2.\n3. Record retention: This dossier is "
-            "retained in accordance with 21 CFR Part 11.180.\n4. Computer "
-            "system validation: The AnuDrishti engine is validated per "
-            "GAMP 5 guidelines.\n5. Signature authenticity: The digital "
-            "signature uses HMAC-SHA256 with a versioned key."
-            "\n\nThis document was generated by computer and requires no "
-            "manual signature.", indent=3
+            "This dossier provides the following data-integrity guarantees:"
+            "\n\n1. Tamper evidence: HMAC-SHA256 signature verifies that the "
+            "document content has not been modified since generation."
+            "\n2. Audit trail: All input data hashes are recorded in "
+            "Section 3.2."
+            "\n3. Traceability: Ruleset version and per-input hashes are "
+            "embedded in the document metadata."
+            "\n\nIMPORTANT LIMITATIONS: A cryptographic signature establishes "
+            "data integrity ONLY. It does NOT by itself constitute 21 CFR Part "
+            "11 compliance, which additionally requires unique user "
+            "authentication, access controls, standard operating procedures, "
+            "record-retention policies, and validated computer-system workflows "
+            "(IQ/OQ/PQ). Predictions herein are screening-level estimates from "
+            "uncalibrated rule-based models: RESEARCH USE ONLY - not for "
+            "clinical decision making or regulatory submission.", indent=3
         )
 
     @staticmethod
@@ -579,7 +602,7 @@ class RegulatoryPDFGenerator:
         size = {1: PDF_CONFIG["font_size_heading"], 2: 12, 3: 10}[level]
         pdf.set_font(PDF_CONFIG["font_family"], "B", size)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(0, 6, text, ln=1)
+        pdf.cell(0, 6, text, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_text_color(0, 0, 0)
         pdf.ln(1)
 
@@ -598,7 +621,7 @@ class RegulatoryPDFGenerator:
         """Add a formatted table."""
         if not rows:
             pdf.set_font(PDF_CONFIG["font_family"], "", PDF_CONFIG["font_size_body"])
-            pdf.cell(0, 5, "  No data available.", ln=1)
+            pdf.cell(0, 5, "  No data available.", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
             return
 
         if col_widths is None:

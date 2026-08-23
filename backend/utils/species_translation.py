@@ -2,14 +2,17 @@
 """
 Species Translation Engine
 ==========================
-Phase 3 — Regulatory & Clinical Safety Layer
+Phase 3 - Regulatory & Clinical Safety Layer
 
 Cross-species in-silico to in-vivo translation using New Approach
 Methodologies (NAMs) per FDA Modernization Act 2.0/3.0.
 
 Two-stage model:
   Stage 1: Acute Oral Toxicity (LD50)
-    - Predicts Rat and Mouse LD50 (mg/kg) from structural descriptors
+    - Estimates Rat and Mouse LD50 (mg/kg) from structural descriptors using
+      an EXPERIMENTAL rule-based fragment model - NOT a validated QSAR.
+      Treat output as a hypothesis generator; see Track 3 plan to replace
+      with ProTox-3.0 / trained ML models before any regulatory use.
     - Maps to EPA/GHS Toxicity Categories
   Stage 2: Allometric Pharmacokinetic Scaling
     - Extrapolates in vitro intrinsic clearance to in vivo clearance
@@ -45,12 +48,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('SpeciesTranslation')
 
 # ───────────────────────────────────────────────────────────────────────────
-# Version lock — bump when scaling coefficients or LD50 model changes
+# Version lock - bump when scaling coefficients or LD50 model changes
 # ───────────────────────────────────────────────────────────────────────────
 TRANSLATION_RULESET_VERSION = "v3.0.0"
 
 # ───────────────────────────────────────────────────────────────────────────
-# Species database — standard regulatory toxicology species with body weights
+# Species database - standard regulatory toxicology species with body weights
 # Reference: FDA, EPA, and ICH harmonized tripartite guidelines
 # ───────────────────────────────────────────────────────────────────────────
 SPECIES_DB = {
@@ -87,10 +90,17 @@ def _classify_ghs(ld50: float) -> Dict[str, Any]:
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# LD50 prediction via fragment contribution (Hansen-style)
-# Reference: Hansen, K. H.; et al. "ConsensusQSAR." 2020.
+# LD50 prediction — ProTox-3.0 primary, rule-based fallback
 # ───────────────────────────────────────────────────────────────────────────
-# Fragment contributions to log(LD50) (mg/kg) — calibration constants
+# Primary: ProTox-3.0 (Banerjee et al., NAR 2024) — similarity-based ML model,
+# queried via services/protox_client.py.
+# Fallback: the EXPERIMENTAL rule-based fragment model below (UNVALIDATED),
+# used only when the ProTox-3.0 service is unreachable/parse-failing.
+# ───────────────────────────────────────────────────────────────────────────
+# Fragment contributions to log(LD50) (mg/kg) — EXPERIMENTAL rule-based estimates.
+# DISCLAIMER: These weights are APPROXIMATE and NOT calibrated against published
+# data. Used only as a last-resort fallback. DO NOT use for regulatory
+# submissions. See Track 3 for ProTox-3.0 integration to replace this.
 _FRAG_CONTRIB = {
     "C": 0.002,    # alkyl C
     "c": 0.015,    # aromatic C (higher toxicity risk)
@@ -114,17 +124,17 @@ _SPECIES_LD50_ADJUST = {
 }
 
 
-def _predict_ld50(smiles: str) -> Dict[str, Any]:
-    """Predict LD50 (mg/kg) for rat and mouse using fragment contribution +
-    physicochemical correction.
+def _predict_ld50_rule_based(smiles: str) -> Optional[float]:
+    """Rule-based LD50 (mg/kg) fallback for rat — UNVALIDATED hypothesis generator.
 
     log(LD50) = base + sum(fragment_contributions) - f(mol_weight, logP, TPSA)
 
-    Returns dict with rat_ld50, mouse_ld50, and GHS categories.
+    Returns the rat LD50 in mg/kg (or None if unparseable). Used ONLY when the
+    ProTox-3.0 service is unavailable.
     """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
-        return {"error": "Cannot parse SMILES for LD50 prediction"}
+        return None
 
     mw = float(Descriptors.MolWt(mol))
     logp = float(Descriptors.MolLogP(mol))
@@ -156,19 +166,66 @@ def _predict_ld50(smiles: str) -> Dict[str, Any]:
     tpsa_factor = max(0, (tpsa - 60) * 0.002)
 
     log_ld50 = log_ld50 + frag_norm + mw_penalty + logp_factor - tpsa_factor
-
-    # Convert to mg/kg
     base_ld50 = 10 ** log_ld50
-
-    # Species adjustment
     rat_ld50 = round(max(5, min(50000, base_ld50 / _SPECIES_LD50_ADJUST["rat"])), 2)
-    mouse_ld50 = round(max(5, min(50000, base_ld50 / _SPECIES_LD50_ADJUST["mouse"])), 2)
+    return rat_ld50
+
+
+def _predict_ld50(smiles: str) -> Dict[str, Any]:
+    """Predict rat/mouse LD50 (mg/kg) + GHS categories, primary = ProTox-3.0.
+
+    Primary source: ProTox-3.0 (Banerjee et al., NAR 2024), a similarity-based
+    ML model queried via services/protox_client.py. Mouse LD50 is derived from
+    the rat LD50 using the standard mouse/rat sensitivity ratio from
+    _SPECIES_LD50_ADJUST (documented, not a separate model).
+
+    If the ProTox-3.0 service is unavailable, parse-failing, or rate-limited,
+    falls back to the UNVALIDATED rule-based fragment model below — and the
+    result is tagged ``rule_based_fallback`` with low confidence.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return {"error": "Cannot parse SMILES for LD50 prediction"}
+
+    protox_result: Optional[Dict[str, Any]] = None
+    try:
+        from services.protox_client import predict_ld50_protox3
+        protox_result = predict_ld50_protox3(smiles)
+    except Exception as e:
+        print(f"⚠️ ProTox-3.0 import/query failed: {e}")
+
+    source = "ProTox-3.0-fallback"
+    confidence = "low"
+    confidence_note = (
+        "ProTox-3.0 unavailable; using UNVALIDATED rule-based fragment model."
+    )
+    rat_ld50 = _predict_ld50_rule_based(smiles)
+
+    if (protox_result and protox_result.get("ld50_mg_per_kg") is not None
+            and protox_result.get("source", "").startswith("ProTox-3.0")):
+        rat_ld50 = round(float(protox_result["ld50_mg_per_kg"]), 2)
+        source = protox_result["source"]
+        confidence = protox_result.get("confidence", "low")
+        confidence_note = protox_result.get("confidence_note", confidence_note)
+
+    if rat_ld50 is None:
+        return {"error": "LD50 estimation failed for SMILES"}
+
+    # Mouse extrapolation from rat (documented ratio; ProTox does not provide
+    # mouse LD50). Mouse is typically ~1.2x more sensitive => lower LD50.
+    mouse_factor = _SPECIES_LD50_ADJUST.get("mouse", 1.2) / _SPECIES_LD50_ADJUST.get("rat", 1.0)
+    mouse_ld50 = round(max(5, min(50000, rat_ld50 / mouse_factor)), 2)
 
     return {
         "rat_ld50_mg_per_kg": rat_ld50,
         "mouse_ld50_mg_per_kg": mouse_ld50,
         "rat_ghs_category": _classify_ghs(rat_ld50),
         "mouse_ghs_category": _classify_ghs(mouse_ld50),
+        "ld50_source": source,
+        "ld50_confidence": confidence,
+        "ld50_confidence_note": confidence_note,
+        "ld50_note": ("Hypothesis generator only (ProTox-3.0 similarity ML); "
+                      "validate before any regulatory reliance."),
     }
 
 
@@ -203,7 +260,7 @@ def _predict_clearance(mol: Chem.Mol, smiles: str) -> Dict[str, float]:
     logp = float(Descriptors.MolLogP(mol))
     tpsa = float(Descriptors.TPSA(mol))
 
-    # Base intrinsic clearance for human (mL/min/kg) — rule-based estimate
+    # Base intrinsic clearance for human (mL/min/kg) - rule-based estimate
     base_cl = 15.0  # mL/min/kg reference for 70kg human
     logp_factor = 1.0 + (logp - 2.5) * 0.15   # logP 2.5 = neutral
     tpsa_factor = 1.0 - max(0, tpsa - 80) * 0.005  # TPSA > 80 reduces CL
@@ -261,16 +318,20 @@ def _model_hash(smiles: str) -> str:
 
 
 class SpeciesTranslationEngine:
-    """Cross-species in-silico to in-vivo translation engine.
+    """Cross-species in-silico to in-vivo translation engine (SCREENING GRADE).
 
     Implements:
-    1. Acute oral toxicity (LD50) prediction for Rat and Mouse
-    2. Allometric PK scaling (clearance, Vd) across 5 species
-    3. FDA-compliant Human Equivalent Dose (HED) calculation
+    1. Rule-based acute oral toxicity (LD50) estimation for Rat and Mouse
+       - UNVALIDATED, hypothesis generator only
+    2. Allometric PK scaling (clearance, Vd) across 5 species from a
+       rule-estimated human clearance anchor (not measured IVIVE input)
+    3. Screening-level Human Equivalent Dose (HED) calculation
     4. Margin of Safety (MOS) and NOAEL safety margin computation
-    5. Automated FDA NAMs Modernization Act 2.0/3.0 justification
+    5. Honest NAMs statement with explicit limitations (NOT a regulatory
+       justification document)
 
-    All predictions include versioned model hash for 21 CFR Part 11 auditability.
+    A versioned model hash is included for traceability; traceability alone
+    does not make this module 21 CFR Part 11 compliant.
     """
 
     def __init__(self):
@@ -313,7 +374,7 @@ class SpeciesTranslationEngine:
                 cl_results[sp_key] = round(human_clearance * scale_factor, 4)
 
         # Compute HED / Safety Margins if dose_mg provided
-        # HED: Human Equivalent Dose — converts animal dose to human equivalent
+        # HED: Human Equivalent Dose - converts animal dose to human equivalent
         # using allometric scaling: HED_mg = Animal_dose_mg * (BW_animal/BW_human)^0.33
         # Here dose_mg is the human dose; we compute the animal-equivalent dose
         # and then the NOAEL/MOS.
@@ -352,16 +413,25 @@ class SpeciesTranslationEngine:
             "hed_mg": hed,
             "noael_mg": noael,
             "margin_of_safety": mos,
+            "pk_scaling_method": "simple_allometry",
+            "pk_disclaimer": (
+                "Allometric scaling (b=0.75, Kleiber's law) from rule-estimated human CL. "
+                "This is a starting hypothesis only. FDA recommends IVIVE (in vitro clearance "
+                "from microsomal assays) for regulatory submissions. Typical accuracy: 2-3 fold."
+            ),
+            "hed_calculation": "FDA Guidance: HED = NOAEL_animal x (BW_animal/BW_human)^0.33",
             "nams_justification": nams_statement,
             "model_hash": _model_hash(smiles),
         }
 
     @staticmethod
     def _generate_nams_justification(smiles: str, ld50_result: Dict, cl_results: Dict) -> str:
-        """Generate automated FDA NAMs Modernization Act 2.0/3.0 justification.
+        """Generate an honest NAMs (New Approach Methodologies) statement.
 
-        This paragraph can be used in regulatory submissions to justify
-        in-silico/in-vitro alternatives to animal testing.
+        This paragraph describes what was done AND its limitations. It must
+        NOT be pasted into a regulatory submission as-is: the LD50 model is
+        an unvalidated rule-based estimator and human clearance is
+        rule-estimated rather than measured in vitro.
         """
         mol = Chem.MolFromSmiles(smiles)
         mw = round(float(Descriptors.MolWt(mol)), 1) if mol else 0
@@ -371,25 +441,26 @@ class SpeciesTranslationEngine:
         human_cl = cl_results.get("human", "N/A")
 
         return (
-            f"This study utilized New Approach Methodologies (NAMs) for the in-silico "
-            f"toxicokinetic and toxicodynamic assessment of the test article "
-            f"(MW={mw} g/mol, logP={logp}), in accordance with FDA Modernization "
-            f"Act 2.0/3.0 (H.R.4381, 2024) and the CiPA/Tox21 framework. "
-            f"Acute oral toxicity was predicted via a fragment-based log(LD50) "
-            f"model calibrated against OECD TG 401 reference compounds, yielding "
-            f"a Rat LD50 of {rat_ld50} mg/kg (GHS Category {rat_cat}) and a Mouse "
-            f"LD50 of {ld50_result.get('mouse_ld50_mg_per_kg', 'N/A')} mg/kg. "
-            f"Allometric pharmacokinetic scaling (Y = a * W^0.75) was applied to "
-            f"extrapolate in vitro intrinsic clearance to in vivo clearance across "
-            f"Human ({human_cl} mL/min/kg), Rat, Mouse, Dog, and Cynomolgus Monkey. "
-            f"This NAMs-based approach is scientifically justified as a replacement "
-            f"for acute animal toxicity testing because: (1) the fragment-based LD50 "
-            f"model achieves >85% concordance with OECD historical control data; "
-            f"(2) allometric scaling with standard 3/4-exponent (Kleiber's law) "
-            f"has well-established cross-species validity for >95% of small-molecule "
-            f"therapeutics; and (3) the Human Equivalent Dose (HED) calculation "
-            f"meets FDA guidance criteria for first-in-human dose projection. "
-            f"No animals were used in this assessment."
+            f"This assessment used New Approach Methodologies (NAMs) in the spirit "
+            f"of the FDA Modernization Act 2.0/3.0 (H.R.4381, 2024) for the in-silico "
+            f"toxicokinetic screening of the test article (MW={mw} g/mol, logP={logp}). "
+            f"IMPORTANT LIMITATIONS - READ BEFORE RELYING ON THESE OUTPUTS: "
+            f"(1) The acute oral toxicity estimate is produced by an UNVALIDATED "
+            f"rule-based fragment model, not a validated QSAR; it is a hypothesis "
+            f"generator only and must not be used for regulatory submissions. It "
+            f"suggests a Rat LD50 of {rat_ld50} mg/kg (GHS Category {rat_cat}) and a "
+            f"Mouse LD50 of {ld50_result.get('mouse_ld50_mg_per_kg', 'N/A')} mg/kg, "
+            f"which should be confirmed with a validated model (e.g., ProTox-3.0) or "
+            f"in vivo data. (2) Allometric pharmacokinetic scaling (Y = a * W^0.75, "
+            f"Kleiber's law) is a standard cross-species extrapolation, but the "
+            f"clearance anchor here is RULE-ESTIMATED from logP/MW/TPSA rather than "
+            f"derived from in vitro microsomal clearance (IVIVE); typical accuracy of "
+            f"such estimates is 2-3 fold at best. Human CL used: {human_cl} mL/min/kg. "
+            f"(3) HED/NOAEL/Margin-of-Safety outputs inherit both limitations and are "
+            f"screening-level estimates only. For regulatory use, replace with "
+            f"experimentally derived CLint (IVIVE), validated QSAR toxicity models, "
+            f"and documented applicability-domain checks. No animals were used in "
+            f"this assessment."
         )
 
 

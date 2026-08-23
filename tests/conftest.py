@@ -12,3 +12,9 @@ def app():
     app = Flask(__name__)
     app.register_blueprint(pg.pharmaguard_bp)
     return app
+
+
+@pytest.fixture
+def client(app):
+    """Flask test client."""
+    return app.test_client()

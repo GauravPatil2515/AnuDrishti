@@ -30,7 +30,7 @@ const CiPATesting = () => {
         throw new Error(data.error || 'Analysis failed');
       }
       setResult(data);
-      toast.success('CiPA analysis complete');
+      toast.success('Cardiotox alert screen complete');
     } catch (err) {
       setError(err.message);
       toast.error('Analysis failed');
@@ -79,9 +79,9 @@ const CiPATesting = () => {
     <div className="max-w-6xl mx-auto p-6">
       <Toaster />
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-text-primary">CiPA 3-Channel CardioToxicity</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Multi-Channel Cardiotox Alert Screen (Structure-Based)</h1>
         <p className="text-sm text-text-muted mt-1">
-          Predicts hERG, Nav1.5, and Cav1.2 channel blocking with proarrhythmic risk classification
+          SMARTS structural-alert estimates of hERG, Nav1.5, and Cav1.2 blocking with heuristic proarrhythmic risk classification. Not the FDA CiPA paradigm — hypothesis generator only.
         </p>
       </div>
 

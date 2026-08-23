@@ -37,6 +37,10 @@ pretrained/
 training_outputs/
 results/
 !results/trained_models/
+!results/trained_models/*.json
+!results/trained_models/*.md
+!results/calibration/
+!results/calibration/*.json
 !benchmark_results/VALIDATION_LOG.md
 
 # Frontend

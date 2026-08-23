@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use AnuDrishti in your research, please cite it as below."
+authors:
+  - family-names: "Patil"
+    given-names: "Gaurav"
+title: "AnuDrishti (PharmaGuard AI): A Regulatory-Grade Neuro-Symbolic Platform for Molecular Toxicology & Drug Safety Triage"
+version: 3.0.0
+date-released: 2026-08-24
+url: "https://github.com/GauravPatil2515/AnuDrishti"
+keywords:
+  - "molecular toxicity"
+  - "graph neural networks"
+  - "drug discovery"
+  - "computational toxicology"
+  - "conformal prediction"
+  - "neurosymbolic AI"
+  - "21 CFR Part 11"
+  - "hERG liability"
+  - "ADMET"
+license: MIT

@@ -6,25 +6,31 @@ Conformal Prediction Module (Phase 1 — Robustness & Trust)
 Split conformal prediction for regression endpoints (Clearance, IC50) and
 classification probability sets for Tox21-style endpoints, with a
 distribution-free (1 - alpha) coverage guarantee (Vovk et al., Papadopoulos
-et al.). Ships with pre-calibrated default non-conformity quantiles (q_hat)
-for Tox21, BBBP, BACE, and ClinTox so intervals work out-of-the-box without
-requiring live re-calibration.
+et al.) — BUT ONLY once calibrated with real held-out data via
+``calibrate_regression()`` / ``calibrate_classification()``.
 
-Pre-calibrated q_hat values were derived from held-out calibration splits
-(20% of training data, never used in training) using the finite-sample
-corrected quantile  ceil((n+1)(1-alpha))/n. They are versioned and
-hash-locked for 21 CFR Part 11 reproducibility.
+DEFAULT_Q_HAT values shipped below are APPROXIMATE PLACEHOLDER ESTIMATES,
+not computed from real calibration data. Until you call the calibrate_*
+methods with a real held-out dataset (replacing these defaults), treat all
+intervals/prediction sets as indicative only — they are NOT statistically
+guaranteed. The framework code itself is correct; only the default q_hat
+values need real calibration.
 """
 
 import hashlib
 import json
+import os
 import numpy as np
 from typing import Dict, List, Optional, Tuple, Any
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Pre-calibrated default non-conformity quantiles (95% coverage, alpha=0.05).
-# Derived from held-out calibration residuals on each dataset's scaffold split.
-# Version-locked: bump RULESET_VERSION when re-calibrating.
+# Default non-conformity quantiles (95% nominal coverage, alpha=0.05).
+# ⚠️ DEFAULT Q_HAT values — APPROXIMATE ESTIMATES. Not computed from real
+# calibration data. Call calibrate_classification() or calibrate_regression()
+# with a real held-out dataset to replace these with valid,
+# coverage-guaranteed values. Until then, treat confidence intervals as
+# indicative only, not statistically guaranteed.
+# Version-locked: bump CONFORMAL_CALIBRATION_VERSION when re-calibrating.
 # ─────────────────────────────────────────────────────────────────────────────
 CONFORMAL_CALIBRATION_VERSION = "v1.0.0"
 
@@ -34,8 +40,7 @@ DEFAULT_Q_HAT = {
     "bbbp": 0.24,
     "bace": 0.27,
     "clintox": 0.33,
-    # nitrobenzene calibration: pre-calibrated q_hat for the nitro-toxicophore
-    # substructure (CI-tox / nitroaromatic alert) from held-out calibration set
+    # nitrobenzene / nitro-toxicophore alias keys (same placeholder caveat)
     "nitrobenzene": 0.38,
     "ntox": 0.38,
     # regression endpoints (response space, non-conformity = |y - y_hat|)
@@ -76,8 +81,10 @@ class ConformalPredictor:
     Classification: (1-alpha) coverage *prediction sets* from probability
     non-conformity scores 1 - p(true_class).
 
-    Works out-of-the-box using pre-calibrated DEFAULT_Q_HAT; call
-    ``calibrate()`` with real held-out data to replace the defaults.
+    Runs out-of-the-box using DEFAULT_Q_HAT placeholder estimates; call
+    ``calibrate_*()`` with real held-out data to obtain valid,
+    coverage-guaranteed intervals. Check ``prediction_set(...)['q_hat_source']``
+    to know whether an interval came from live calibration or a default.
     """
 
     def __init__(self, alpha: float = 0.05, q_hat_overrides: Optional[Dict[str, float]] = None):
@@ -159,14 +166,19 @@ class ConformalPredictor:
         if (1.0 - p) >= threshold:
             members.append(0)
         members.sort()
+        live_calibrated = key in self._calibrated_endpoints
         return {
             "set": members,
             "size": len(members),
             "threshold": round(threshold, 4),
             "q_hat": round(q, 4),
+            # nominal design coverage of the conformal method
             "coverage": round(1.0 - self.alpha, 2),
+            "q_hat_source": "live_calibration" if live_calibrated else "default_estimate",
+            # the coverage guarantee holds ONLY for live-calibrated endpoints;
+            # default q_hat values are placeholder estimates
+            "coverage_guaranteed": live_calibrated,
             "ambiguous": len(members) == 2,  # both classes covered -> abstain-worthy
-            "calibrated": key in self._calibrated_endpoints or key in DEFAULT_Q_HAT,
         }
 
     # ── Introspection / audit ─────────────────────────────────────────────────
@@ -178,6 +190,27 @@ class ConformalPredictor:
             sort_keys=True,
         )
         return "sha256_" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+    def load_calibration_file(self, path: Optional[str] = None) -> bool:
+        """Load calibrated q_hat map from results/calibration/coverage_stats.json if present."""
+        if path is None:
+            here = os.path.dirname(os.path.abspath(__file__))
+            repo_root = os.path.abspath(os.path.join(here, "..", ".."))
+            path = os.path.join(repo_root, "results", "calibration", "coverage_stats.json")
+        if os.path.exists(path):
+            try:
+                with open(path, "r") as f:
+                    data = json.load(f)
+                calib_map = data.get("calibrated_q_hat_map")
+                if calib_map and isinstance(calib_map, dict):
+                    for ep, q in calib_map.items():
+                        canon = _canonical_endpoint(ep)
+                        self.q_hat[canon] = float(q)
+                        self._calibrated_endpoints.add(canon)
+                    return True
+            except Exception:
+                pass
+        return False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -197,10 +230,16 @@ _DEFAULT: Optional["ConformalPredictor"] = None
 
 
 def get_default_predictor(alpha: float = 0.05) -> ConformalPredictor:
-    """Module-level singleton for route integration (pre-calibrated, no retrain)."""
+    """Module-level singleton for route integration.
+
+    Ships with DEFAULT_Q_HAT placeholder estimates; automatically detects
+    and loads results/calibration/coverage_stats.json if present on disk
+    to restore data-driven coverage guarantees.
+    """
     global _DEFAULT
     if _DEFAULT is None or abs(_DEFAULT.alpha - alpha) > 1e-9:
         _DEFAULT = ConformalPredictor(alpha=alpha)
+        _DEFAULT.load_calibration_file()
     return _DEFAULT
 
 
@@ -268,7 +307,8 @@ class MondrianConformalPredictor:
         self.alpha = float(alpha)
         # q_hat per scaffold equivalence class
         self._q_hat_by_scaffold: Dict[str, float] = {}
-        # Fallback global q_hat for unseen scaffolds (max over all classes)
+        # Fallback global q_hat for unseen scaffolds (max over all classes).
+        # ⚠️ Placeholder DEFAULT_Q_HAT estimate until calibrate() is run.
         self._global_q_hat: float = max(DEFAULT_Q_HAT.values())
         # Calibration metadata
         self._scaffold_stats: Dict[str, Dict[str, Any]] = {}

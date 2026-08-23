@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Tests for Phase 3: CiPA 3-Channel CardioTox, Species Translation & Regulatory PDF.
+Tests for Phase 3: Multi-Channel Cardiotox Alert Screen, Species Translation & Regulatory PDF.
 
 Covers:
-  1. CiPA channel predictions (hERG, Nav1.5, Cav1.2) — reference compounds
+  1. Multi-channel cardiotox screen predictions (hERG, Nav1.5, Cav1.2) — reference compounds
   2. qNet and PRS computation with risk classification
-  3. Conformal confidence intervals present and valid
+  3. Indicative CI bands present and valid
   4. Species LD50 prediction (Rat, Mouse) with GHS categorization
   5. Allometric clearance scaling ordering (Mouse > Rat > Monkey > Dog > Human)
   6. HED / NOAEL / MOS computation
-  7. NAMs justification string present and non-empty
+  7. NAMs statement present, non-empty, and honest about limitations
   8. Reference compound risk classification parity
   9. Regulatory PDF generation and signature verification
   10. API endpoint response structure (Flask test client)
@@ -22,8 +22,8 @@ import pytest
 from unittest.mock import MagicMock
 
 from models.cipa_cardiotox import (
-    CiPACardioToxEngine,
-    get_default_cipa_engine,
+    MultiChannelCardiotoxScreen,
+    get_default_cardiotox_screen,
 )
 from utils.species_translation import (
     SpeciesTranslationEngine,
@@ -40,14 +40,14 @@ from services.regulatory_pdf import (
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# Step 1: CiPA Reference Compound Validation
+# Step 1: Cardiotox Screen Reference Compound Validation
 # ───────────────────────────────────────────────────────────────────────────
-class TestCipaReferenceCompounds:
-    """Verify all 8 CiPA reference compounds produce correct risk classification."""
+class TestCardiotoxReferenceCompounds:
+    """Verify all 8 reference compounds produce correct risk classification."""
 
     @pytest.fixture
     def engine(self):
-        return CiPACardioToxEngine()
+        return MultiChannelCardiotoxScreen()
 
     def test_all_reference_compounds(self, engine):
         """All reference compounds must match their expected risk classification."""
@@ -109,14 +109,14 @@ class TestCipaReferenceCompounds:
 
 
 # ───────────────────────────────────────────────────────────────────────────
-# Step 2: CiPA Channel Probabilities & Confidence Intervals
+# Step 2: Channel Probabilities & Indicative CI Bands
 # ───────────────────────────────────────────────────────────────────────────
-class TestCipaChannelPredictions:
+class TestCardiotoxChannelPredictions:
     """Verify channel probability structure, ranges, and conf intervals."""
 
     @pytest.fixture
     def engine(self):
-        return CiPACardioToxEngine()
+        return MultiChannelCardiotoxScreen()
 
     def test_all_three_channels(self, engine):
         """Result must contain hERG, Nav1.5, and Cav1.2 channel data."""
@@ -184,9 +184,9 @@ class TestCipaChannelPredictions:
         assert "error" in result
 
     def test_singleton(self):
-        """get_default_cipa_engine() must return the same instance."""
-        e1 = get_default_cipa_engine()
-        e2 = get_default_cipa_engine()
+        """get_default_cardiotox_screen() must return the same instance."""
+        e1 = get_default_cardiotox_screen()
+        e2 = get_default_cardiotox_screen()
         assert e1 is e2
 
 
@@ -211,6 +211,41 @@ class TestSpeciesTranslationLD50:
         assert "mouse_ghs_category" in ld50
         assert ld50["rat_ld50_mg_per_kg"] > 0
         assert ld50["mouse_ld50_mg_per_kg"] > 0
+
+    def test_ld50_carries_source_and_confidence(self, engine):
+        """LD50 result must declare its source (ProTox-3.0 or fallback)."""
+        result = engine.translate_molecule("CC(=O)OC1=CC=CC=C1")
+        ld50 = result["ld50"]
+        assert "ld50_source" in ld50
+        assert "ld50_confidence" in ld50
+        assert ld50["ld50_source"]  # non-empty
+        assert ld50["ld50_confidence"] in ("high", "moderate", "low")
+
+    def test_ld50_uses_protox_when_available(self, engine, monkeypatch):
+        """When ProTox-3.0 returns an LD50, it must be used (source labelled)."""
+        from utils import species_translation as st
+        monkeypatch.setattr(
+            st, "_predict_ld50_rule_based",
+            lambda smiles: 2000.0,
+        )
+        # Stub the ProTox client path used inside _predict_ld50.
+        import services.protox_client as pc
+        monkeypatch.setattr(
+            pc, "predict_ld50_protox3",
+            lambda smiles, *a, **k: {
+                "source": "ProTox-3.0 (NAR 2024)",
+                "ld50_mg_per_kg": 95.3,
+                "toxicity_class": 2,
+                "prediction_accuracy": 88.0,
+                "confidence": "moderate",
+                "confidence_note": "stub",
+            },
+        )
+        ld50 = st._predict_ld50("CC(=O)OC1=CC=CC=C1")
+        assert ld50["rat_ld50_mg_per_kg"] == 95.3
+        assert ld50["ld50_source"] == "ProTox-3.0 (NAR 2024)"
+        assert ld50["ld50_confidence"] == "moderate"
+        assert ld50["rat_ghs_category"]["category"] in ("I", "II")
 
     def test_ghs_category_structure(self, engine):
         """GHS category must have category, label, and color fields."""
@@ -347,7 +382,7 @@ class TestRegulatoryPDF:
 
     @pytest.fixture
     def cipa_engine(self):
-        return CiPACardioToxEngine()
+        return MultiChannelCardiotoxScreen()
 
     @pytest.fixture
     def translator(self):
@@ -359,7 +394,7 @@ class TestRegulatoryPDF:
 
     @pytest.fixture
     def sample_data(self, cipa_engine, translator):
-        """Generate sample CiPA + Species data for PDF tests."""
+        """Generate sample cardiotox + species data for PDF tests."""
         smiles = "CC(=O)OC1=CC=CC=C1"
         cipa = cipa_engine.evaluate_molecule(smiles)
         species = translator.translate_molecule(smiles, dose_mg=100)
@@ -418,7 +453,7 @@ class TestRegulatoryPDF:
             meta_json = bytes.fromhex(meta_hex).decode("utf-8")
             meta = _json.loads(meta_json)
             # Tamper: change a prediction value
-            meta["cipa_data"]["risk_classification"] = "HIGH_TORSADES_RISK"
+            meta["cardiotox_data"]["risk_classification"] = "HIGH_TORSADES_RISK"
             tampered_json = _json.dumps(meta, sort_keys=True, default=str)
             tampered_hex = tampered_json.encode("utf-8").hex()
             tampered_str = raw_str.replace(
@@ -540,7 +575,7 @@ class TestPhase3Endpoints:
         assert data['success'] is True
         assert 'pdf_path' in data
         assert os.path.exists(data['pdf_path'])
-        assert data['cipa_risk'] in ('LOW_ARRHYTHMIC_RISK', 'INTERMEDIATE_MONITOR', 'HIGH_TORSADES_RISK')
+        assert data['cardiotox_risk'] in ('LOW_ARRHYTHMIC_RISK', 'INTERMEDIATE_MONITOR', 'HIGH_TORSADES_RISK')
         assert 'verify_url' in data
         # Clean up
         if os.path.exists(data['pdf_path']):
@@ -573,6 +608,25 @@ class TestPhase3Endpoints:
         if os.path.isdir(report_dir) and not os.listdir(report_dir):
             os.rmdir(report_dir)
 
+    def test_applicability_domain_endpoint(self, client):
+        """POST /api/applicability-domain returns an AD verdict + citation."""
+        resp = client.post('/api/applicability-domain',
+                           json={'smiles': 'CC(=O)OC1=CC=CC=C1'})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'in_domain' in data
+        assert 'max_tanimoto' in data
+        assert 'domain_threshold' in data
+        assert 'citation' in data
+        assert 'Sheridan' in data['citation']
+
+    def test_applicability_domain_invalid_smiles(self, client):
+        """POST /api/applicability-domain with invalid SMILES returns 400."""
+        resp = client.post('/api/applicability-domain',
+                           json={'smiles': 'NOT_A_SMILES!!!'})
+        assert resp.status_code == 400
+        assert 'error' in resp.get_json()
+
     def test_dose_endpoint(self, client):
         """Both endpoints should work with just a SMILES (no dose)."""
         resp = client.post('/api/translation/animal', json={'smiles': 'c1ccccc1'})
@@ -585,11 +639,11 @@ class TestPhase3Endpoints:
 # Step 8: End-to-End Reference Compound Pipeline
 # ───────────────────────────────────────────────────────────────────────────
 class TestEndToEndPipeline:
-    """End-to-end test: CiPA → PDF → Signature Verify for all reference compounds."""
+    """End-to-end test: Cardiotox screen → PDF → Signature Verify for all reference compounds."""
 
     @pytest.fixture
     def engines(self):
-        return CiPACardioToxEngine(), SpeciesTranslationEngine(), RegulatoryPDFGenerator()
+        return MultiChannelCardiotoxScreen(), SpeciesTranslationEngine(), RegulatoryPDFGenerator()
 
     @pytest.fixture
     def client(self):

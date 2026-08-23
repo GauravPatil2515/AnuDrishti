@@ -103,51 +103,119 @@ _PGP_SUBSTRATE_ALERTS = [
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BBB permeability predictors (based on logP, TPSA, MW, HBD)
-# Using a modified Kowalski / Schleyer model.
+# BBB permeability predictor — Wager et al. CNS Multiparameter Optimization (2010)
+# ---------------------------------------------------------------------------
+# Replaces the previous hand-tuned linear logBB proxy. We now implement the
+# published CNS MPO desirability score (Wager, Travis T. et al., ACS Chemical
+# Neuroscience, 2010, 1, 435-449; DOI: 10.1021/cn100008c), which combines six
+# physicochemical properties (clogP, clogD, MW, TPSA, HBD, pKa) into a 0-6
+# desirability score. A score >= 4.0 denotes druglikeliness for CNS exposure.
+#
+# Implementation note / transparency disclosure:
+#   RDKit does not natively compute clogD (pH 7.4) or pKa. Following the
+#   same simplification ChemAxon documents as an option, clogD is approximated
+#   by the RDKit Crippen clogP when an experimental clogD is unavailable, and
+#   the most-basic pKa is estimated from basic-nitrogen SMARTS (documented
+#   default ~9.5). All six desirability functions use the EXACT published
+#   inflection points from Wager Table 1 / Figure 4. No hand-tuned constants.
 # ─────────────────────────────────────────────────────────────────────────────
-def _logbb_probability(logp: float, tpsa: float, mw: float, hbd: int) -> float:
+_BASIC_NITROGEN_SMARTS = "[n+0!#6;!a;!$(N~[!#6])]"  # aliphatic basic nitrogen
+
+def _desirability_monotonic(x: float, optimum: float, worst: float) -> float:
+    """Monotonic-decreasing desirability: 1.0 at/below optimum, linear to 0 at worst."""
+    if x <= optimum:
+        return 1.0
+    if x >= worst:
+        return 0.0
+    return round(1.0 - (x - optimum) / (worst - optimum), 4)
+
+def _desirability_hump(x: float, x0: float, x_peak: float, x1: float, x_worst: float) -> float:
+    """Hump (inverted-V) desirability for TPSA-like properties."""
+    if x <= x0:
+        return 0.0
+    if x_peak <= x <= x1:
+        return 1.0
+    if x >= x_worst:
+        return 0.0
+    if x < x_peak:
+        return round((x - x0) / (x_peak - x0), 4)
+    return round(1.0 - (x - x1) / (x_worst - x1), 4)
+
+def _estimate_basic_pka(mol) -> Optional[float]:
+    """Estimate most-basic-center pKa when a real pKa calculator is unavailable.
+
+    Returns ~9.5 for molecules with a basic aliphatic nitrogen, ~7.0 otherwise.
+    This is a placeholder approximation — a production system should use a
+    real pKa predictor (e.g. ChemAxon, ACD/Labs)."""
+    if mol is not None:
+        try:
+            pat = Chem.MolFromSmarts(_BASIC_NITROGEN_SMARTS)
+            if pat is not None and mol.HasSubstructMatch(pat):
+                return 9.5
+        except Exception:
+            pass
+    return 7.0
+
+def _wager_cns_mpo(logp: float, tpsa: float, mw: float, hbd: float,
+                   mol: Chem.Mol = None) -> float:
+    """Compute the Wager 2010 CNS MPO desirability score (0-6).
+
+    Uses the exact published inflection points. clogD is approximated by clogP
+    when a true pH 7.4 distribution coefficient is unavailable (see module
+    docstring disclosure)."""
+    clogd = logp  # approximation — see disclosure above
+    pka = _estimate_basic_pka(mol) if mol is not None else 7.0
+
+    d_clogp = _desirability_monotonic(logp, optimum=3.0, worst=5.0)
+    d_clogd = _desirability_monotonic(clogd, optimum=2.0, worst=4.0)
+    d_mw    = _desirability_monotonic(mw, optimum=360.0, worst=500.0)
+    d_tpsa  = _desirability_hump(tpsa, x0=20.0, x_peak=40.0, x1=90.0, x_worst=120.0)
+    d_hbd   = _desirability_monotonic(hbd, optimum=0.5, worst=3.5)
+    d_pka   = _desirability_monotonic(pka, optimum=8.0, worst=10.0)
+
+    return round(d_clogp + d_clogd + d_mw + d_tpsa + d_hbd + d_pka, 4)
+
+def _logbb_probability(logp: float, tpsa: float, mw: float, hbd: int,
+                       mol: Chem.Mol = None) -> float:
     """
+
     Predict BBB passive permeability probability from physicochemical
-    properties. Based on the modified Schleyer model trained on the
-    logBB dataset (Yamashita et al., 2022).
+    properties using the published Wager et al. (2010) CNS MPO algorithm.
 
-    Returns P(BBB) as a probability in [0, 1].
+    Returns P(BBB) as a probability in [0, 1] (CNS MPO score / 6.0).
     """
-    # Base logBB from logP, TPSA, MW (linear model)
-    logbb = (0.152 * logp) - (0.0144 * tpsa) - (0.0246 * mw / 100) - (0.35 * hbd) + 0.5
-
-    # Squash to [0, 1] via sigmoid
-    import math
-    return round(1.0 / (1.0 + math.exp(-logbb)), 4)
+    cns_mpo = _wager_cns_mpo(logp, tpsa, mw, hbd, mol)
+    return round(min(1.0, max(0.0, cns_mpo / 6.0)), 4)
 
 
 def _p_gp_substrate_prob(mol: Chem.Mol, logp: float, mw: float) -> float:
     """
-    Compute P(P-gp substrate) from structural alerts + physicochemical context.
 
-    Structural alerts provide a base probability; this is modulated by
-    lipophilicity (higher logP increases P-gp recognition) and molecular
-    size (larger molecules are more likely to be efflux substrates).
+    Compute P(P-gp substrate) from structural alerts combined with
+    physicochemical modulation.
+
+    Alerts are combined with an independent probabilistic model, NOT
+    max-pooling (the previous max() approach silently ignored additive
+    alerts). P(any) = 1 - product(1 - p_i) over matched alerts.
+    Physicochemical modulation (logP, MW) then adjusts the probability up.
     """
     if mol is None:
         return 0.30, []  # neutral default with no alerts
 
-    alert_prob = 0.0
     matched_alerts = []
+    base_prob = 0.0
     for alert in _PGP_SUBSTRATE_ALERTS:
         pat = Chem.MolFromSmarts(alert["smarts"])
         if pat is not None and mol.HasSubstructMatch(pat):
-            alert_prob = max(alert_prob, alert["base_prob"])
+            p_i = float(alert.get("base_prob", 0.0))
             matched_alerts.append(alert["name"])
+            # Independent combination: P(A or B) = 1 - (1-pA)(1-pB)
+            base_prob = 1.0 - (1.0 - base_prob) * (1.0 - p_i)
 
     # Physicochemical modulation
-    # High logP (>4) increases P-gp substrate likelihood (more partitioning)
     logp_factor = min(0.4, (max(0, logp - 2.0) * 0.10))
-    # Large MW (>500) increases P-gp recognition
     mw_factor = min(0.25, max(0, (mw - 400) * 0.0025))
-
-    prob = min(1.0, alert_prob + logp_factor + mw_factor)
+    prob = min(1.0, base_prob + logp_factor + mw_factor)
 
     return round(prob, 4), matched_alerts
 
@@ -335,7 +403,7 @@ class CNSSafetyEngine:
         n_aromatic = _safe_desc(lambda m: rdMolDescriptors.CalcNumAromaticRings(m), mol, default=0)
 
         # 1. Passive BBB permeability
-        bbb_prob = _logbb_probability(logp, tpsa, mw, int(hbd))
+        bbb_prob = _logbb_probability(logp, tpsa, mw, int(hbd), mol)
 
         # 2. P-gp substrate probability
         pgp_prob, matched_alerts = _p_gp_substrate_prob(mol, logp, mw)
@@ -392,6 +460,7 @@ class CNSSafetyEngine:
                 "n_aromatic_rings": int(n_aromatic),
             },
             "bbb_permeability": bbb_prob,
+            "cns_mpo_score": round(_wager_cns_mpo(logp, tpsa, mw, float(hbd), mol), 4),
             "pgp_substrate_probability": pgp_prob,
             "cns_exposure_score": cns_score,
             "cns_risk_category": category,

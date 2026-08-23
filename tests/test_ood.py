@@ -57,6 +57,23 @@ class TestOODDetector(unittest.TestCase):
         self.assertGreaterEqual(result['ood_score'], 0.0)
         self.assertLessEqual(result['ood_score'], 1.0)
 
+    def test_applicability_domain_structure(self):
+        """applicability_domain returns honest AD verdict + citation."""
+        ad = self.detector.applicability_domain('c1ccccc1')
+        for key in ('in_domain', 'max_tanimoto', 'domain_threshold',
+                    'reference_source', 'citation', 'status'):
+            self.assertIn(key, ad)
+        self.assertIn(ad['status'], ('IN_DOMAIN', 'OUT_OF_DOMAIN', 'UNKNOWN'))
+        self.assertGreaterEqual(ad['max_tanimoto'], 0.0)
+        self.assertEqual(ad['domain_threshold'], 0.30)
+        self.assertIn('Sheridan', ad['citation'])
+
+    def test_applicability_domain_invalid_smiles(self):
+        """Invalid SMILES must be flagged out-of-domain."""
+        ad = self.detector.applicability_domain('not-a-smiles')
+        self.assertFalse(ad['in_domain'])
+        self.assertEqual(ad['status'], 'OUT_OF_DOMAIN')
+
 
 if __name__ == '__main__':
     unittest.main()

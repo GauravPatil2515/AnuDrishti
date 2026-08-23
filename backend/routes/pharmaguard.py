@@ -88,8 +88,8 @@ def _validate_smiles(smiles, return_toxicophore_info=False):
     handling previously crashed downstream RDKit calls with a generic 500).
 
     When ``return_toxicophore_info=True``, returns ``(mol, error, info)``
-    where ``info`` includes calibrated nitrobenzene / toxicophore flags so
-    the analysis pipeline can apply the pre-calibrated q_hat.
+    where ``info`` includes toxicophore flags so the analysis pipeline can
+    apply the default conformal q_hat placeholder estimate.
     """
     if not isinstance(smiles, str) or not smiles.strip():
         if return_toxicophore_info:
@@ -134,10 +134,10 @@ _NITROBENZENE_SMARTS = [
 
 
 def _detect_calibrated_toxicophores(mol, smiles: str) -> Dict[str, Any]:
-    """Detect calibrated toxicophores and return calibration metadata.
+    """Detect toxicophores and return metadata for split-conformal prediction.
 
-    Checks for nitrobenzene / nitro-aromatic toxicophores that have
-    pre-calibrated q_hat values for split-conformal prediction.
+    Checks for nitrobenzene / nitro-aromatic toxicophores that map to default
+    q_hat placeholder estimates (not calibrated values).
     """
     from rdkit import Chem
     info = {
@@ -427,11 +427,28 @@ def _build_pharmaguard_analysis(smiles, include_explanation=True, include_ood=Tr
 
     # 4. Out-of-distribution detection
     if include_ood and ood_detector is not None:
-        try:
-            ood = ood_detector.evaluate(smiles)
-            analysis['ood'] = ood
-        except Exception as e:
-            print(f"⚠️ OOD evaluation failed: {e}")
+        from utils.ood_detector import OODDetector as _OODet
+        _od = ood_detector if isinstance(ood_detector, _OODet) else None
+        _fps = getattr(_od, 'fingerprints', None) if _od is not None else None
+        if _od is not None and isinstance(_fps, np.ndarray) and _fps.size > 0:
+            try:
+                ood = _od.evaluate(smiles)
+                analysis['ood'] = ood
+                # Explicit applicability-domain verdict (Sheridan 2004
+                # Tanimoto gate). Surface both the blended OOD score and the
+                # granular AD flag so reports can state "outside the model's
+                # training distribution".
+                ad = _od.applicability_domain(smiles)
+                analysis['applicability_domain'] = ad
+                if not ad['in_domain']:
+                    # Flag the recommendation; never auto-silence a toxic signal.
+                    analysis.setdefault('warnings', []).append(
+                        "Molecule is OUTSIDE the model's applicability domain "
+                        "(nearest training Tanimoto < 0.30); treat predictions "
+                        "as low-confidence hypothesis only."
+                    )
+            except Exception as e:
+                print(f"⚠️ OOD/AD evaluation failed: {e}")
 
     # 5. Risk triage
     if triage_engine is not None:
@@ -2080,18 +2097,23 @@ def literature_search():
 
 @pharmaguard_bp.route('/cardiotox/cipa', methods=['POST'])
 def cipa_cardiotox():
-    """CiPA 3-Channel CardioToxicity endpoint (Phase 3).
+    """Multi-Channel Cardiotox Alert Screen endpoint (Phase 3).
 
-    Predicts hERG, Nav1.5, and Cav1.2 ion channel block probabilities,
-    computes the net charge carrier balance (qNet), proarrhythmic risk
-    score (PRS), and risk classification per CiPA methodology.
+    Estimates hERG, Nav1.5, and Cav1.2 ion channel block probabilities from
+    SMARTS structural alerts + physicochemical rules, computes a heuristic
+    net charge carrier balance (qNet), proarrhythmic risk score (PRS), and
+    risk classification.
+
+    NOTE: This is a structure-based alert screen (hypothesis generator),
+    NOT the FDA CiPA paradigm (which requires patch-clamp IC50 data plus
+    in silico action-potential simulation).
 
     Request JSON:
         smiles: str  — molecule SMILES string
 
     Returns:
         channels, q_net, proarrhythmic_risk_score, risk_classification,
-        ghs_risk_flag, with conformal confidence intervals.
+        ghs_risk_flag, with indicative CI bands (default q_hat estimates).
     """
     try:
         data = request.get_json()
@@ -2102,11 +2124,11 @@ def cipa_cardiotox():
         if not smiles:
             return jsonify({'error': 'Empty SMILES string'}), 400
 
-        from models.cipa_cardiotox import CiPACardioToxEngine, get_default_cipa_engine
+        from models.cipa_cardiotox import get_default_cardiotox_screen
 
         # Use the singleton engine
-        cipa_engine = get_default_cipa_engine()
-        result = cipa_engine.evaluate_molecule(smiles)
+        cardiotox_engine = get_default_cardiotox_screen()
+        result = cardiotox_engine.evaluate_molecule(smiles)
 
         if 'error' in result:
             return jsonify({'error': result['error'], 'code': 'ANALYSIS_FAILED'}), 400
@@ -2114,9 +2136,91 @@ def cipa_cardiotox():
         return jsonify(result)
 
     except Exception as e:
-        print(f"❌ CiPA endpoint error: {e}")
+        print(f"❌ Cardiotox screen endpoint error: {e}")
         traceback.print_exc()
-        return jsonify({'error': f'CiPA analysis failed: {str(e)}'}), 500
+        return jsonify({'error': f'Cardiotox screen failed: {str(e)}'}), 500
+
+
+@pharmaguard_bp.route('/applicability-domain', methods=['POST'])
+def check_applicability_domain():
+    """Applicability-Domain check (Sheridan et al., JCICS 2004).
+
+    Returns whether a molecule lies within the training-inference domain of
+    the platform via nearest-neighbour ECFP4 Tanimoto similarity (>=0.30 =
+    in-domain). This is distinct from, and more granular than, the blended
+    OOD score returned by ``/analyze/single``.
+
+    Request JSON:
+        smiles: str — molecule SMILES string
+
+    Returns:
+        in_domain (bool), max_tanimoto, domain_threshold, reference_source,
+        citation, and (when available) the blended ood_score.
+    """
+    try:
+        data = request.get_json()
+        if not data or 'smiles' not in data:
+            return jsonify({'error': 'SMILES string required'}), 400
+
+        smiles = data['smiles'].strip()
+        if not smiles:
+            return jsonify({'error': 'Empty SMILES string'}), 400
+
+        mol, smiles_err = _validate_smiles(smiles)
+        if smiles_err:
+            return jsonify({'error': smiles_err, 'code': 'INVALID_SMILES'}), 400
+
+        # Build a fingerprint-only OOD engine from the persisted training
+        # reference. We deliberately avoid the shared ``ood_detector`` global
+        # here (which may hold a live predictor with non-JSON-safe latent
+        # outputs); the AD verdict only needs the ECFP4 Tanimoto signal.
+        check_engine = None
+        try:
+            from utils.ood_detector import OODDetector
+            ref_path = os.path.join('results', 'trained_models', 'train_ecfp4.npz')
+            if os.path.exists(ref_path):
+                check_engine = OODDetector(
+                    predictor=None, reference_path=ref_path,
+                    tanimoto_weight=1.0, latent_weight=0.0,
+                )
+            elif (ood_detector is not None
+                  and isinstance(ood_detector, OODDetector)
+                  and isinstance(getattr(ood_detector, 'fingerprints', None), np.ndarray)
+                  and ood_detector.fingerprints.size > 0):
+                check_engine = ood_detector
+        except Exception as e:
+            print(f"⚠️ Applicability-domain reference load failed: {e}")
+
+        if check_engine is None:
+            return jsonify({
+                'smiles': smiles,
+                'in_domain': False,
+                'max_tanimoto': 0.0,
+                'domain_threshold': 0.30,
+                'reference_source': 'unavailable',
+                'citation': (
+                    "Sheridan et al., J. Chem. Inf. Comput. Sci. 2004 — "
+                    "Tanimoto >=0.30 to the training ECFP4 reference set is "
+                    "treated as 'in applicability domain'."
+                ),
+                'status': 'UNKNOWN',
+                'warning': (
+                    'No training reference set available; applicability domain '
+                    'could not be evaluated. Treat predictions as out-of-domain.'
+                ),
+            })
+
+        ad = check_engine.applicability_domain(smiles)
+        # The AD verdict is fingerprint-only and always JSON-serialisable.
+        # We deliberately do NOT merge the blended ood_score here (that path
+        # touches the GNN latent embedding and is not always JSON-safe);
+        # callers needing the blended OOD signal should use /analyze/single.
+        return jsonify(ad)
+
+    except Exception as e:
+        print(f"❌ Applicability-domain endpoint error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Applicability-domain check failed: {str(e)}'}), 500
 
 
 @pharmaguard_bp.route('/translation/animal', methods=['POST'])
@@ -2183,9 +2287,13 @@ def species_translation():
 def regulatory_pdf_export():
     """Generate a 21 CFR Part 11 compliant regulatory PDF dossier (Phase 3).
 
-    Integrates CiPA cardiotoxicity, species translation, and NAMs
-    justification into a tamper-evident regulatory PDF with digital
+    Integrates the multi-channel cardiotox alert screen, species
+    translation, and NAMs statement into a tamper-evident PDF with digital
     signature and audit trail.
+
+    NOTE: HMAC-SHA256 signatures provide data integrity; full 21 CFR Part 11
+    compliance additionally requires access controls, SOPs, and validated
+    workflows (see remediation plan Track 4).
 
     Request JSON:
         smiles: str  — molecule SMILES string
@@ -2211,12 +2319,12 @@ def regulatory_pdf_export():
         dose_mg = data.get('dose_mg')
         human_clearance = data.get('human_clearance')
 
-        # Step 1: Run CiPA analysis
-        from models.cipa_cardiotox import get_default_cipa_engine
-        cipa_engine = get_default_cipa_engine()
-        cipa_data = cipa_engine.evaluate_molecule(smiles)
+        # Step 1: Run multi-channel cardiotox alert screen
+        from models.cipa_cardiotox import get_default_cardiotox_screen
+        cardiotox_engine = get_default_cardiotox_screen()
+        cipa_data = cardiotox_engine.evaluate_molecule(smiles)
         if 'error' in cipa_data:
-            return jsonify({'error': cipa_data['error'], 'code': 'CIPA_FAILED'}), 400
+            return jsonify({'error': cipa_data['error'], 'code': 'CARDIOTOX_FAILED'}), 400
 
         # Step 2: Run species translation
         from utils.species_translation import get_default_translation_engine
@@ -2246,7 +2354,7 @@ def regulatory_pdf_export():
             'compound_name': compound_name,
             'ruleset_version': pdf_gen.ruleset_version,
             'model_hash': species_data.get('model_hash', 'N/A'),
-            'cipa_risk': cipa_data.get('risk_classification', 'N/A'),
+            'cardiotox_risk': cipa_data.get('risk_classification', 'N/A'),
             'verify_url': f'/api/report/verify-signature?pdf_path={pdf_path}'
         })
 
@@ -2462,6 +2570,22 @@ def mondrian_conformal_endpoint():
         ci_low, point, ci_high = mcp.predict_interval(point_pred, smiles, endpoint)
         pred_set = mcp.prediction_set(point_pred, smiles, endpoint)
 
+        # Contemporaneous audit log (21 CFR Part 11)
+        try:
+            from services.audit_trail import get_audit_trail_service
+            audit_svc = get_audit_trail_service()
+            audit_svc.log_event(
+                action="MONDRIAN_CONFORMAL_EVALUATION",
+                user_id=data.get("user_id", "anonymous_scientist"),
+                resource_type="molecule",
+                molecule_smiles=smiles,
+                prediction_hash=hashlib.sha256(f"{smiles}:{ci_low}:{ci_high}".encode()).hexdigest()[:16],
+                model_version=mcp.RULESET_VERSION,
+                details={"endpoint": endpoint, "ci_low": ci_low, "ci_high": ci_high, "point": point}
+            )
+        except Exception as audit_err:
+            print(f"⚠️ Audit logging warning: {audit_err}")
+
         return jsonify({
             'success': True,
             'conformal_ci_low': ci_low,
@@ -2483,3 +2607,87 @@ def mondrian_conformal_endpoint():
         print(f"❌ Mondrian conformal endpoint error: {e}")
         traceback.print_exc()
         return jsonify({'error': f'Mondrian prediction failed: {str(e)}', 'success': False}), 500
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 21 CFR Part 11 Electronic Records & Audit Trail Endpoints (Track 4 / Fix 4.1)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@pharmaguard_bp.route('/v1/audit/trail', methods=['GET'])
+@pharmaguard_bp.route('/audit/trail', methods=['GET'])
+def get_audit_trail_endpoint():
+    """
+    21 CFR Part 11 Audit Trail Query.
+    Returns paginated immutable audit records with hash verification metadata.
+    """
+    try:
+        from services.audit_trail import get_audit_trail_service
+        audit_svc = get_audit_trail_service()
+
+        limit = min(int(request.args.get('limit', 50)), 500)
+        offset = max(int(request.args.get('offset', 0)), 0)
+        user_id = request.args.get('user_id')
+        action = request.args.get('action')
+        smiles = request.args.get('smiles')
+
+        res = audit_svc.get_trail(limit=limit, offset=offset, user_id=user_id,
+                                  action=action, smiles=smiles)
+        res['success'] = True
+        return jsonify(res)
+    except Exception as e:
+        print(f"❌ Audit trail query error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to retrieve audit trail: {str(e)}', 'success': False}), 500
+
+
+@pharmaguard_bp.route('/v1/audit/verify', methods=['GET'])
+@pharmaguard_bp.route('/audit/verify', methods=['GET'])
+def verify_audit_integrity_endpoint():
+    """
+    21 CFR Part 11 Cryptographic Audit Trail Verification.
+    Verifies sequential SHA-256 hash chaining and HMAC signatures across all records.
+    """
+    try:
+        from services.audit_trail import get_audit_trail_service
+        audit_svc = get_audit_trail_service()
+        res = audit_svc.verify_integrity()
+        res['success'] = res.get('valid', False)
+        return jsonify(res)
+    except Exception as e:
+        print(f"❌ Audit integrity verification error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Audit integrity verification failed: {str(e)}', 'success': False}), 500
+
+
+@pharmaguard_bp.route('/v1/audit/log', methods=['POST'])
+@pharmaguard_bp.route('/audit/log', methods=['POST'])
+def log_audit_event_endpoint():
+    """
+    Append an immutable event to the 21 CFR Part 11 audit trail.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        action = data.get('action', '').strip()
+        if not action:
+            return jsonify({'error': 'Action is required', 'success': False}), 400
+
+        from services.audit_trail import get_audit_trail_service
+        audit_svc = get_audit_trail_service()
+
+        rec = audit_svc.log_event(
+            action=action,
+            user_id=data.get('user_id', 'anonymous_scientist'),
+            resource_type=data.get('resource_type', 'molecule'),
+            molecule_smiles=data.get('smiles'),
+            molecule_name=data.get('molecule_name'),
+            prediction_hash=data.get('prediction_hash'),
+            model_version=data.get('model_version', 'v3.0.0'),
+            details=data.get('details', {})
+        )
+        rec['success'] = True
+        return jsonify(rec), 201
+    except Exception as e:
+        print(f"❌ Audit logging error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to append audit record: {str(e)}', 'success': False}), 500
+
