@@ -17,7 +17,7 @@ import {
   Cell
 } from 'recharts';
 
-const EFSGauge = ({ score, ci }) => {
+const EFSGauge = ({ score, ci, efs_ci, efs_std }) => {
   const pct = Math.max(0, Math.min(100, Math.round((score || 0) * 100)));
   const color = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
   const clamped = Math.min(100, pct * 3.6);
@@ -25,6 +25,9 @@ const EFSGauge = ({ score, ci }) => {
   // Format CI if provided (e.g., ci=0.12 → "±0.12")
   const ciText = ci != null ? ` ± ${ci.toFixed(2)}` : '';
   const ciWidth = ci != null ? Math.min(100, ci * 2 * 3.6) : 0; // CI width in degrees (2*ci for full range)
+
+  // Phase 1: EFS variance band from perturbation testing
+  const efsCiText = efs_ci ? ` [${efs_ci[0]?.toFixed(2)}–${efs_ci[1]?.toFixed(2)}]` : '';
 
   return (
     <div className="flex items-center gap-3">
@@ -55,6 +58,11 @@ const EFSGauge = ({ score, ci }) => {
         <p className="text-[10px] text-muted mt-1" title="Confidence interval derived from MC Dropout sampling across GNN inference passes">
           Score: {score != null ? score.toFixed(2) : '—'}{ciText}
         </p>
+        {efs_ci && (
+          <p className="text-[10px] text-text-muted mt-0.5" title="95% confidence interval from perturbation testing across bioisosteres">
+            EFS 95% CI: {efsCiText}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -101,9 +109,16 @@ const ExplanationAudit = ({ analysis }) => {
   const verified = analysis?.explanation?.validation_passed;
 
   const status = result?.status || (verified ? 'VERIFIED' : verified === false ? 'REJECTED' : null);
-  const efs = result?.faithfulness?.overall_score ?? faith;
-  const claimAudit = result?.faithfulness?.claim_audit || [];
-  const breakdown = result?.faithfulness?.breakdown || {};
+  const fa = result?.faithfulness || {};
+  const efs = fa.efs_score ?? fa.overall_score ?? faith;
+  const efs_ci = fa.efs_ci || null;
+  const efs_std = fa.efs_std != null ? fa.efs_std : (fa.ci ? fa.ci : null);
+  const claimAudit = fa.claim_audit || [];
+  const breakdown = fa.breakdown || {};
+  const verdict = fa.verdict || status;
+  const modelHash = fa.model_hash;
+  const rulesetVersion = fa.ruleset_version;
+  const nRuns = fa.n_runs;
 
   // EFS breakdown data for bar chart (4 components with fixed weights)
   const efsBreakdownData = [
@@ -186,16 +201,20 @@ const ExplanationAudit = ({ analysis }) => {
                   : 'border border-red-500/30 bg-red-500/5 text-red-400'
               )}
             >
-              {status === 'VERIFIED' ? (
+              {verdict === 'VERIFIED' ? (
                 <CheckBadgeIcon className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+              ) : verdict === 'PARTIAL' ? (
+                <InformationCircleIcon className="h-5 h-5 text-amber-400 flex-shrink-0" />
               ) : (
                 <XCircleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
               )}
               <div>
-                <p>{status === 'VERIFIED' ? 'EXPLANATION VERIFIED' : 'EXPLANATION REJECTED'}</p>
+                <p>{verdict === 'VERIFIED' ? 'EXPLANATION VERIFIED' : verdict === 'PARTIAL' ? 'EXPLANATION PARTIAL' : 'EXPLANATION REJECTED'}</p>
                 <p className="text-[10px] opacity-80 font-normal">
-                  {status === 'VERIFIED'
+                  {verdict === 'VERIFIED'
                     ? 'Explanation passes all faithfulness checks'
+                    : verdict === 'PARTIAL'
+                    ? 'Explanation partially passes faithfulness checks'
                     : 'Explanation fails faithfulness threshold (EFS < 0.30)'}
                 </p>
               </div>
@@ -227,7 +246,49 @@ const ExplanationAudit = ({ analysis }) => {
       {/* Faithfulness gauge + claim audit */}
       {(efs != null || claimAudit.length > 0) && (
         <div className="surface-elevated rounded-lg p-3.5">
-          <EFSGauge score={efs} ci={result?.faithfulness?.ci} />
+          <EFSGauge score={efs} ci={result?.faithfulness?.ci} efs_ci={efs_ci} efs_std={efs_std} />
+
+        {/* EFS Confidence Interval & Variance (Phase 1) */}
+        {verdict && (
+          <div className="mt-3 p-3 rounded-lg bg-surface border border-border text-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-text-muted uppercase text-[10px]">Faithfulness Score</span>
+              <span className={clsx('pill text-xs font-bold', verdict === 'VERIFIED' ? 'pill-green' : verdict === 'PARTIAL' ? 'pill-yellow' : 'pill-red')}>
+                {verdict}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-[10px] text-text-secondary font-mono">
+              <div>
+                <span className="text-text-muted">EFS Score</span>
+                <span className="float-right font-bold text-text-primary">{efs != null ? efs.toFixed(2) : '—'}</span>
+              </div>
+              {efs_ci && (
+                <div>
+                  <span className="text-text-muted">95% CI</span>
+                  <span className="float-right font-bold text-accent-green">[{efs_ci[0]?.toFixed(2)}–{efs_ci[1]?.toFixed(2)}]</span>
+                </div>
+              )}
+              {nRuns && (
+                <div>
+                  <span className="text-text-muted">Perturbation Runs</span>
+                  <span className="float-right font-bold text-accent-purple">{nRuns}</span>
+                </div>
+              )}
+              {efs_std != null && (
+                <div>
+                  <span className="text-text-muted">EFS Std (σ)</span>
+                  <span className="float-right font-bold text-accent-blue">±{efs_std.toFixed(3)}</span>
+                </div>
+              )}
+            </div>
+            {modelHash && (
+              <div className="mt-2 pt-2 border-t border-border text-[9px] text-text-muted">
+                <span className="font-mono truncate">Model: {modelHash}</span>
+                {rulesetVersion && <span className="ml-2">Ruleset: {rulesetVersion}</span>}
+              </div>
+            )}
+          </div>
+        )}
 
           {claimAudit.length > 0 && (
             <div className="mt-3 overflow-x-auto">
@@ -315,7 +376,7 @@ const ExplanationAudit = ({ analysis }) => {
             <div>
               <p className="font-bold text-red-400">Faithfulness Gate TRIGGERED</p>
               <p className="text-xs text-red-400/80">
-                EFS Score dropped to <span className="font-black">{(efs ?? 0.23).toFixed(2)}</span> (REJECTED)
+                EFS Score dropped to <span className="font-black">{(efs ?? 0.23).toFixed(2)}</span> ({verdict})
               </p>
               <p className="text-[10px] text-red-400/60 mt-0.5">
                 Reason: "Claimed toxicophore ungrounded in GNNExplainer attribution map."

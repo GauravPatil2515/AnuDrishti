@@ -53,6 +53,8 @@ const extractEndpoints = (analysis) => {
     const unc = perEndpointUnc[id] || {};
     const ci_low = typeof unc.ci_low === 'number' ? unc.ci_low : Math.max(0, prob - 0.15);
     const ci_high = typeof unc.ci_high === 'number' ? unc.ci_high : Math.min(1, prob + 0.15);
+    const conformal_low = typeof unc.conformal_ci_low === 'number' ? unc.conformal_ci_low : Math.max(0, prob - (unc.conformal_ci_high - unc.conformal_ci_low || 0.3) / 2);
+    const conformal_high = typeof unc.conformal_ci_high === 'number' ? unc.conformal_ci_high : Math.min(1, prob + (unc.conformal_ci_high - unc.conformal_ci_low || 0.3) / 2);
     const epistemicLabel = unc.epistemic_uncertainty || (unc.epistemic_std < 0.05 ? 'Low' : unc.epistemic_std > 0.15 ? 'High' : 'Moderate');
 
     return {
@@ -60,6 +62,9 @@ const extractEndpoints = (analysis) => {
       prob,
       ci_low,
       ci_high,
+      conformal_ci_low: conformal_low,
+      conformal_ci_high: conformal_high,
+      conformal_coverage: unc.conformal_coverage || 0.95,
       epistemic_std: unc.epistemic_std,
       epistemic_uncertainty: epistemicLabel,
       label: v?.prediction || (prob > 0.5 ? 'Toxic' : 'Non-toxic'),
@@ -237,7 +242,82 @@ const SafetyDashboard = ({ analysis }) => {
             )}
           </div>
         </div>
+
+        {/* Conformal Band Card (Phase 1) */}
+        {analysis.uncertainty?.conformal_info && (
+          <div className="relative overflow-hidden surface p-5 rounded-xl hover:shadow-card-hover transition-all duration-300 border border-border/50 group">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <ShieldCheckIcon className="h-24 w-24" />
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-text-muted mb-4">
+              <ShieldCheckIcon className="h-4 w-4 text-accent-blue" /> Conformal Band
+            </div>
+            <div className="flex items-end gap-3 relative z-10">
+              <p className="text-3xl font-black text-text-primary font-display tracking-tight">
+                {(analysis.uncertainty.conformal_info.coverage * 100).toFixed(0)}%
+              </p>
+              <p className="text-xs text-text-muted font-mono mb-1.5">
+                Coverage Guarantee
+              </p>
+            </div>
+            {analysis.uncertainty.conformal_info.calibration_hash && (
+              <p className="text-[10px] text-text-muted font-mono mt-2 opacity-60 truncate">
+                {analysis.uncertainty.conformal_info.calibration_hash}
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Conformal CI Bands (Phase 1) */}
+
+      {/* Conformal CI Bands (Phase 1) */}
+      {analysis.uncertainty?.conformal_info && (
+        <div className="surface overflow-hidden rounded-xl border border-border/50">
+          <div className="p-5 border-b border-border bg-surface-elevated flex items-center justify-between">
+            <h3 className="text-base font-bold text-text-primary font-display">Split-Conformal Prediction Bands</h3>
+            <span className="text-xs text-text-muted font-mono">Coverage: {(analysis.uncertainty.conformal_info.coverage * 100).toFixed(0)}% • α={analysis.uncertainty.conformal_info.alpha}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="table min-w-[500px]">
+              <thead>
+                <tr>
+                  <th>Endpoint</th>
+                  <th className="text-right">Probability</th>
+                  <th className="text-center">Epistemic CI</th>
+                  <th className="text-center">Conformal CI</th>
+                  <th className="text-center">Coverage</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {endpoints.map((e) => (
+                  <tr key={e.id} className="hover:bg-surface-hover transition-colors">
+                    <td className="font-medium text-text-primary">
+                      <span className="text-sm font-bold">{e.id}</span>
+                    </td>
+                    <td className="text-right">
+                      <span className="font-mono text-text-primary font-bold text-sm">{(e.prob * 100).toFixed(1)}%</span>
+                    </td>
+                    <td className="text-center">
+                      <span className="text-xs text-text-muted font-mono">
+                        [{Math.max(0, e.ci_low * 100).toFixed(0)}-{Math.min(100, e.ci_high * 100).toFixed(0)}%]
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <span className="text-xs text-accent-blue font-mono font-bold">
+                        [{Math.max(0, e.conformal_ci_low * 100).toFixed(0)}-{Math.min(100, e.conformal_ci_high * 100).toFixed(0)}%]
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <span className="pill pill-blue text-xs">{(e.conformal_coverage * 100).toFixed(0)}%</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* TDC Core Toxicity Endpoints: hERG, DILI, Ames */}
       {analysis.tdc_predictions && Object.keys(analysis.tdc_predictions).length > 0 && (
