@@ -1,6 +1,13 @@
-"""
-Shared pytest fixtures for AnuDrishti tests.
-"""
+import sys
+from pathlib import Path
+
+# Ensure root and backend are on sys.path for direct test runs and IDE language servers
+_root = Path(__file__).resolve().parent.parent
+_backend = _root / "backend"
+for p in [str(_root), str(_backend)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 import pytest
 from flask import Flask
 import routes.pharmaguard as pg

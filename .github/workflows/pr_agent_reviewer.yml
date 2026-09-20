@@ -26,17 +26,19 @@ jobs:
             const isFirstContribution = context.payload.action === 'opened';
             
             if (isFirstContribution) {
-              const welcomeMessage = `### 🧬 Thank you @${author} for contributing to AnuDrishti!
-              
-Welcome to the AnuDrishti (PharmaGuard AI) open-source community. Our automated scientific & code quality review pipeline has been triggered.
-
-**Automated PR Checklist:**
-- [x] PR Received & Enqueued for Automated CI
-- [ ] PyTest Test Suite Execution
-- [ ] Scientific Citation & Formula Validation
-- [ ] 21 CFR Part 11 Audit Trail Integrity Check
-
-Maintainers will review your pull request shortly. For major scientific changes, please ensure literature references are provided.`;
+              const welcomeMessage = [
+                `### 🧬 Thank you @${author} for contributing to AnuDrishti!`,
+                '',
+                'Welcome to the AnuDrishti (PharmaGuard AI) open-source community. Our automated scientific & code quality review pipeline has been triggered.',
+                '',
+                '**Automated PR Checklist:**',
+                '- [x] PR Received & Enqueued for Automated CI',
+                '- [ ] PyTest Test Suite Execution',
+                '- [ ] Scientific Citation & Formula Validation',
+                '- [ ] 21 CFR Part 11 Audit Trail Integrity Check',
+                '',
+                'Maintainers will review your pull request shortly. For major scientific changes, please ensure literature references are provided.'
+              ].join('\n');
 
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
