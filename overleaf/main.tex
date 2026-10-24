@@ -237,7 +237,10 @@ We utilize a Graph Isomorphism Network with Edge features (GINE) as the backbone
 
 The node embedding for atom $v$ at layer $k$ is updated as:
 \begin{equation}
-    \mathbf{h}_v^{(k)} = \text{MLP}^{(k)} \left( (1 + \epsilon^{(k)}) \cdot \mathbf{h}_v^{(k-1)} + \sum_{u \in \mathcal{N}(v)} \phi(\mathbf{h}_u^{(k-1)}, \mathbf{e}_{uv}) \right)
+\begin{split}
+    \mathbf{h}_v^{(k)} = \text{MLP}^{(k)} \Big( &(1 + \epsilon^{(k)}) \cdot \mathbf{h}_v^{(k-1)} \\
+    &+ \sum_{u \in \mathcal{N}(v)} \phi(\mathbf{h}_u^{(k-1)}, \mathbf{e}_{uv}) \Big)
+\end{split}
 \end{equation}
 where $\epsilon^{(k)}$ is a learnable scalar, $\mathcal{N}(v)$ denotes the neighbors of $v$, and $\phi$ is a message function that combines node and edge features:
 \begin{equation}
@@ -342,7 +345,7 @@ Our metric operationalizes two key properties from the XAI literature \cite{jain
 
 \textbf{Grounding Score} ($S_{\text{grounding}}$): Measures overlap between claimed toxicophores and high-attention atoms:
 \begin{equation}
-    S_{\text{grounding}} = \text{IntersectionRatio}(C, \text{AttentionMap}) = \frac{|\text{Atoms}(C) \cap \text{Atoms}(\alpha \geq \tau(G))|}{|\text{Atoms}(C)|}
+    S_{\text{grounding}} = \frac{|\text{Atoms}(C) \cap \text{Atoms}(\alpha \geq \tau(G))|}{|\text{Atoms}(C)|}
 \end{equation}
 
 \textbf{Causal Consistency Score} ($S_{\text{causal}}$): For each claimed toxicophore, we generate a counterfactual by removing it and check if the prediction drops:
@@ -669,12 +672,7 @@ While DeNovo currently functions as a screening tool (given a molecule, predict 
 
 We envision a ``Generative Feedback Loop'' where DeNovo serves as a critic for a molecular generator (e.g., Graph VAE \cite{jin2018junction}, Diffusion Model \cite{jo2022score}). The generator proposes candidates, DeNovo scores them for ADMET properties, and a steering signal updates the generator's latent space toward safer, more drug-like regions. The faithful explanations would provide structured feedback (``avoid nitro groups'') that could be encoded as soft constraints \cite{kotsias2020direct}.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\linewidth]{figures/genloop.png}
-    \caption{Proposed Generative Feedback Loop. The Faithfulness Validator provides grounded feedback to a generative agent, guiding the optimization toward molecules with high efficacy and low toxicity.}
-    \label{fig:genloop}
-\end{figure}
+
 
 %=====================================================================
 \section{Conclusion}
